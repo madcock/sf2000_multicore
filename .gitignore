@@ -1,0 +1,13 @@
+*.a
+*.o
+cores/*
+libs/*
+sdcard
+
+*.asd
+*.bin
+*.elf
+
+core_87000000
+crc
+*.*~
