@@ -87,7 +87,7 @@ clean:
 	-rm libretro_core.a
 	$(MAKE) -j$(NPROC) -C $(CORE) clean
 
-.PHONY: all clean 
+.PHONY: all clean
 
 define echo_c
     @echo -e "\033[1;33m$(1)\033[0m"
