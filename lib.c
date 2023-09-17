@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include "debug.h"
 
 extern void osal_tds2_cache_flush(void *buf, unsigned sz);
 
@@ -52,26 +53,18 @@ void rewind(FILE *stream)
 	fseeko(stream, 0, SEEK_SET);
 }
 
-extern int lcd_bsod(const char *msg);
-
 void abort(void)
 {
 	unsigned ra;
-	char msg[99];
-
 	asm volatile ("move %0, $ra" : "=r" (ra));
-	snprintf(msg, sizeof msg, "abort() called from 0x%08x", ra);
-	lcd_bsod(msg);
+	lcd_bsod("abort() called from 0x%08x", ra);
 }
 
 void exit(int status)
 {
 	unsigned ra;
-	char msg[99];
-
 	asm volatile ("move %0, $ra" : "=r" (ra));
-	snprintf(msg, sizeof msg, "exit(%d) called from 0x%08x", status, ra);
-	lcd_bsod(msg);
+	lcd_bsod("exit(%d) called from 0x%08x", status, ra);
 }
 
 /* wrappers were not compiled in, but vfs drivers likely support these ops */

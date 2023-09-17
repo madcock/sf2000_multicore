@@ -9,6 +9,7 @@ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND! */
 #include <string.h>
 #include "libretro.h"
 #include "core_api.h"
+#include "debug.h"
 
 extern void osal_tds2_cache_flush(void *buf, unsigned sz);
 extern int dly_tsk(unsigned ms);
@@ -106,24 +107,17 @@ void load_and_run_core(const char *file_path, int load_state)
 }
 
 /* FIXME gets repetitive but we really need this $ra (in lib.c, too) */
-extern int lcd_bsod(const char *msg);
 
 void hook_sys_watchdog_reboot(void)
 {
 	unsigned ra;
-	char msg[99];
-
 	asm volatile ("move %0, $ra" : "=r" (ra));
-	snprintf(msg, sizeof msg, "sys_watchdog_reboot() called from 0x%08x", ra);
-	lcd_bsod(msg);
+	lcd_bsod("sys_watchdog_reboot() called from 0x%08x", ra);
 }
 
 void hook_exception_handler(unsigned code)
 {
 	unsigned ra;
-	char msg[99];
-
 	asm volatile ("move %0, $ra" : "=r" (ra));
-	snprintf(msg, sizeof msg, "exception code %d at 0x%08x", code, ra);
-	lcd_bsod(msg);
+	lcd_bsod("exception code %d at 0x%08x", code, ra);
 }

@@ -23,15 +23,12 @@ static void lcd_init(void)
 	lcd_y = lcd_x = 0;
 }
 
-static int lcd_printf(const char *fmt, ...)
+static int lcd_vprintf(const char* fmt, va_list ap)
 {
 	int ret;
-	va_list ap;
 	char buf[999];
 
-	va_start(ap, fmt);
 	ret = vsnprintf(buf, sizeof buf, fmt, ap);
-	va_end(ap);
 
 	for (char *pc = buf; *pc; pc++) {
 		if (lcd_y >= sizeof lcd_buf / sizeof lcd_buf[0]) continue;
@@ -46,6 +43,14 @@ static int lcd_printf(const char *fmt, ...)
 		}
 	}
 	return ret;
+}
+
+static void lcd_printf(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	lcd_vprintf(fmt, ap);
+	va_end(ap);
 }
 
 static void lcd_send(unsigned short data)
@@ -218,12 +223,17 @@ static void lcd_flush(void)
 
 extern void os_disable_interrupt(void);
 
-void lcd_bsod(const char *msg)
+void lcd_bsod(const char *fmt, ...)
 {
 	os_disable_interrupt();
 	lcd_init();
-	lcd_printf("\n"); // guard against some screen misalignment
-	lcd_printf("  %s", msg);
+	lcd_printf("\n  "); // guard against some screen misalignment
+
+	va_list ap;
+	va_start(ap, fmt);
+	lcd_vprintf(fmt, ap);
+	va_end(ap);
+
 	lcd_flush();
 	do {
 	} while (1);
