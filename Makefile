@@ -11,7 +11,8 @@ LDFLAGS+=-L/opt/mips32-mti-elf/2019.09-03-2/lib/gcc/mips-mti-elf/7.4.0/mips2/el/
 LIBS+=-lgcc
  # -lc -lm
 
-CORE_OBJS=core.o lib.o debug.o
+# CORE_OBJS=core.o lib.o debug.o
+CORE_OBJS=core_api.o lib.o debug.o
 LOADER_OBJS=init.o main.o debug.o
 
 CORE=cores/gpsp
@@ -25,8 +26,11 @@ core:
 	$(MAKE) -j$(NPROC) -C $(CORE) platform=sf2000
 	cp $(CORE)/*.a libretro_core.a
 
-core.o: core.s
-	$(MIPS)-gcc $(CFLAGS) -o $@ -c $<
+# core.o: core.s
+# $(MIPS)-gcc $(CFLAGS) -o $@ -c $<
+
+core_api.o: core_api.c
+	$(MIPS)-gcc $(CFLAGS) -Ilibs/libretro-common/include -o $@ -c $<
 
 lib.o: lib.c
 	$(MIPS)-gcc $(CFLAGS) -o $@ -c $<
@@ -35,7 +39,7 @@ debug.o: debug.c
 	$(MIPS)-gcc $(CFLAGS) -o $@ -c $<
 
 core.elf: core $(CORE_OBJS)
-	$(MIPS)-ld $(LDFLAGS) -Ttext=0x87000000 bisrv_08_03.ld -o core.elf \
+	$(MIPS)-ld -Map $@.map $(LDFLAGS) -e __core_entry__ -Ttext=0x87000000 bisrv_08_03.ld -o core.elf \
 		--start-group $(LIBS) $(CORE_OBJS) libretro_core.a --end-group
 
 core_87000000: core.elf

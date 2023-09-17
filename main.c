@@ -8,6 +8,7 @@ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND! */
 #include <stdio.h>
 #include <string.h>
 #include "libretro.h"
+#include "core_api.h"
 
 extern void osal_tds2_cache_flush(void *buf, unsigned sz);
 extern int dly_tsk(unsigned ms);
@@ -47,31 +48,8 @@ static int state_stub(const char *path) {
 
 void load_and_run_core(const char *file_path, int load_state)
 {
-	/* FIXME magic numbers for the quick hack it is */
-	static void (* const core_init)(void)
-		= (void *) 0x87000000;
-	static void (* const core_deinit)(void)
-		= (void *) 0x87000008;
-	static void (* const core_get_system_av_info)(struct retro_system_av_info *)
-		= (void *) 0x87000010;
-	static void (* const core_run)(void)
-		= (void *) 0x87000018;
-	static bool (* const core_load_game)(const struct retro_game_info *)
-		= (void *) 0x87000020;
-	static unsigned (* const core_get_region)(void)
-		= (void *) 0x87000028;
-	static void (* const core_set_environment)(retro_environment_t)
-		= (void *) 0x87000030;
-	static void (* const core_set_video_refresh)(retro_video_refresh_t)
-		= (void *) 0x87000038;
-	static void (* const core_set_audio_sample_batch)(retro_audio_sample_batch_t)
-		= (void *) 0x87000040;
-	static void (* const core_set_input_poll)(retro_input_poll_t)
-		= (void *) 0x87000048;
-	static void (* const core_set_input_state)(retro_input_state_t)
-		= (void *) 0x87000050;
-	static void (* const core_clear_bss)(void)
-		= (void *) 0x87000058;
+	void *core_load_addr = (void*)0x87000000;
+
 	FILE *pf;
 	size_t core_size;
 	static char m_file_path[256];
@@ -89,36 +67,40 @@ void load_and_run_core(const char *file_path, int load_state)
 	fseeko(pf, 0, SEEK_END);
 	core_size = ftell(pf);
 	fseeko(pf, 0, SEEK_SET);
-	fread(core_init, 1, core_size, pf);
+	fread(core_load_addr, 1, core_size, pf);
 	fclose(pf);
 
-	osal_tds2_cache_flush(core_init, core_size);
+	osal_tds2_cache_flush(core_load_addr, core_size);
 	/* TODO I-cache must be invalidated to load a different core over */
 
-	core_clear_bss();
+	// address of the core entry function resides at the begining of the loaded core
+	core_entry_t core_entry = core_load_addr;
+
+	// the entry function clears core's .bss and return the core's exported api
+	struct retro_core_t *core_api = core_entry();
 
 	/* TODO */
 	gfn_state_load = state_stub;
 	gfn_state_save = state_stub;
 
-	core_set_video_refresh(retro_video_refresh_cb);
-	core_set_audio_sample_batch(retro_audio_sample_batch_cb);
-	core_set_input_poll(retro_input_poll_cb);
-	core_set_input_state(retro_input_state_cb);
-	core_set_environment(retro_set_environment_cb);
+	core_api->retro_set_video_refresh(retro_video_refresh_cb);
+	core_api->retro_set_audio_sample_batch(retro_audio_sample_batch_cb);
+	core_api->retro_set_input_poll(retro_input_poll_cb);
+	core_api->retro_set_input_state(retro_input_state_cb);
+	core_api->retro_set_environment(retro_set_environment_cb);
 
-	core_init();
+	core_api->retro_init();
 
 	strncpy(m_file_path, file_path, sizeof m_file_path);
 	g_retro_game_info.path = m_file_path;
 	g_retro_game_info.data = gp_buf_64m;
 	g_retro_game_info.size = g_run_file_size;
 
-	gfn_retro_get_region	= core_get_region;
-	gfn_get_system_av_info	= core_get_system_av_info;
-	gfn_retro_load_game	= core_load_game;
-	gfn_retro_deinit	= core_deinit;
-	gfn_retro_run	= core_run;
+	gfn_retro_get_region	= core_api->retro_get_region;
+	gfn_get_system_av_info	= core_api->retro_get_system_av_info;
+	gfn_retro_load_game	= core_api->retro_load_game;
+	gfn_retro_deinit	= core_api->retro_deinit;
+	gfn_retro_run	= core_api->retro_run;
 
 	run_emulator(load_state);
 }
