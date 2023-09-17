@@ -1,5 +1,6 @@
 *.a
 *.o
+*.map
 cores/*
 libs/*
 sdcard
@@ -11,3 +12,4 @@ sdcard
 core_87000000
 crc
 *.*~
+*~.*
