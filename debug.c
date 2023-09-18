@@ -14,7 +14,7 @@ extern unsigned long PINMUXT;
 extern unsigned long GPIOLCTRL;
 extern unsigned long GPIOTCTRL;
 
-static char lcd_buf[24][56];
+static char lcd_buf[24][53];
 static unsigned lcd_y, lcd_x;
 
 static void lcd_init(void)
@@ -31,8 +31,12 @@ static int lcd_vprintf(const char* fmt, va_list ap)
 	ret = vsnprintf(buf, sizeof buf, fmt, ap);
 
 	for (char *pc = buf; *pc; pc++) {
-		if (lcd_y >= sizeof lcd_buf / sizeof lcd_buf[0]) continue;
-		if (lcd_x >= sizeof lcd_buf[0]) continue;
+		if (lcd_x >= sizeof lcd_buf[0]) {
+			lcd_x = 0;
+			lcd_y++;
+		}
+		if (lcd_y >= sizeof lcd_buf / sizeof lcd_buf[0])
+			continue;
 		if (*pc == '\n') {
 			lcd_x = 0;
 			lcd_y++;
@@ -227,7 +231,7 @@ void lcd_bsod(const char *fmt, ...)
 {
 	os_disable_interrupt();
 	lcd_init();
-	lcd_printf("\n  "); // guard against some screen misalignment
+	lcd_printf("\n "); // guard against some screen misalignment
 
 	va_list ap;
 	va_start(ap, fmt);
