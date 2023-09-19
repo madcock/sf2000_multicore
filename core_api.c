@@ -41,7 +41,14 @@ static inline void clear_bss()
 	memset(start, 0, end - start);
 }
 
-struct retro_core_t *__core_entry__()
+// __core_entry__ must be placed at a known location in the binary (at the beginning)
+// so that when the loader actually loads the binary into mem address 0x87000000,
+// then __core_entry__ will be the first function there for the loader to call.
+struct retro_core_t *__core_entry__(void) __attribute__((section(".text.unlikely")));
+// TODO: define a special .text section for __core_entry__ function to better control
+// at which address the linker places it.
+
+struct retro_core_t *__core_entry__(void)
 {
 	clear_bss();
 	return &core_exports;
