@@ -14,12 +14,11 @@ CFLAGS += -Os -G0 -mno-abicalls -fno-pic -ffreestanding
 LDFLAGS := -EL -nostdlib -z max-page-size=32
 LDFLAGS += --gc-sections
 
-LDFLAGS += -L$(dir $(shell $(CC) $(CFLAGS) -print-file-name=libgcc.a))
+LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libgcc.a)))
 LIBS+=-lgcc
 
-LDFLAGS += -L$(dir $(shell $(CC) $(CFLAGS) -print-file-name=libc.a))
-LIBS+=-lc
- # -lm
+LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libc.a)))
+LIBS+=-lc -lm
 
 LIBRETRO_COMM_DIR=$(abspath libs/libretro-common)
 export LIBRETRO_COMM_DIR
@@ -29,6 +28,8 @@ LOADER_OBJS=init.o main.o debug.o
 
 # CORE=cores/gpsp
 CORE=cores/snes9x2005
+# CORE=cores/snes9x2010
+# CORE=cores/snes9x2002
 
 # Default target
 all: core_87000000 bisrv install
