@@ -10,6 +10,8 @@ OBJCOPY = $(MIPS)objcopy
 
 CFLAGS := -EL -march=mips32 -mtune=mips32 -msoft-float
 CFLAGS += -Os -G0 -mno-abicalls -fno-pic -ffreestanding
+CFLAGS += -I libs/libretro-common/include
+# CFLAGS += -Wall
 
 LDFLAGS := -EL -nostdlib -z max-page-size=32
 LDFLAGS += --gc-sections
@@ -31,6 +33,12 @@ CORE=cores/snes9x2005
 # CORE=cores/snes9x2010
 # CORE=cores/snes9x2002
 
+%.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+%.o: %.s
+	$(CC) $(CFLAGS) -o $@ -c $<
+
 # Default target
 all: core_87000000 bisrv.asd install
 
@@ -48,15 +56,6 @@ libretro-common:
 libretro-common.a: libretro-common
 	cp -u libs/libretro-common/$@ $@
 
-core_api.o: core_api.c
-	$(CC) $(CFLAGS) -Ilibs/libretro-common/include -o $@ -c $<
-
-lib.o: lib.c
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-debug.o: debug.c
-	$(CC) $(CFLAGS) -o $@ -c $<
-
 core.elf: libretro_core.a libretro-common.a $(CORE_OBJS)
 	$(call echo_c,"compiling $@")
 	$(LD) -Map $@.map $(LDFLAGS) -e __core_entry__ -Ttext=0x87000000 bisrv_08_03.ld -o $@ \
@@ -65,12 +64,6 @@ core.elf: libretro_core.a libretro-common.a $(CORE_OBJS)
 core_87000000: core.elf
 	$(OBJCOPY) -O binary -j .text -j .rodata -j .data core.elf core_87000000
 
-
-init.o: init.s
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-main.o: main.c
-	$(CC) $(CFLAGS) -Wall -I libs/libretro-common/include -o $@ -c $<
 
 loader.elf: $(LOADER_OBJS)
 	$(call echo_c,"compiling $@")
