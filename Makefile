@@ -32,17 +32,21 @@ CORE=cores/snes9x2005
 # CORE=cores/snes9x2002
 
 # Default target
-all: core_87000000 bisrv install
+all: core_87000000 bisrv.asd install
 
-core.a:
+libretro_core:
 	$(call echo_c,"compiling $(CORE)")
 	$(MAKE) -j$(NPROC) -C $(CORE) platform=sf2000
-	cp $(CORE)/*.a libretro_core.a
 
-libretro-common.a:
+libretro_core.a: libretro_core
+	cp -u $(CORE)/*.a libretro_core.a
+
+libretro-common:
 	$(call echo_c,"compiling $@")
 	$(MAKE) -j$(NPROC) -C libs/libretro-common
-	cp libs/libretro-common/*.a $@
+
+libretro-common.a: libretro-common
+	cp -u libs/libretro-common/$@ $@
 
 core_api.o: core_api.c
 	$(CC) $(CFLAGS) -Ilibs/libretro-common/include -o $@ -c $<
@@ -53,9 +57,9 @@ lib.o: lib.c
 debug.o: debug.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-core.elf: core.a libretro-common.a $(CORE_OBJS)
+core.elf: libretro_core.a libretro-common.a $(CORE_OBJS)
 	$(call echo_c,"compiling $@")
-	$(LD) -Map $@.map $(LDFLAGS) -e __core_entry__ -Ttext=0x87000000 bisrv_08_03.ld -o core.elf \
+	$(LD) -Map $@.map $(LDFLAGS) -e __core_entry__ -Ttext=0x87000000 bisrv_08_03.ld -o $@ \
 		--start-group $(LIBS) $(CORE_OBJS) libretro_core.a libretro-common.a --end-group
 
 core_87000000: core.elf
@@ -73,8 +77,8 @@ loader.elf: $(LOADER_OBJS)
 	$(LD) -Map $@.map $(LDFLAGS) -e __start -Ttext=0x800016d0 bisrv_08_03.ld $(LOADER_OBJS) -o loader.elf
 
 
-bisrv: loader.elf crc
-	$(call echo_c,"patching bisrv")
+bisrv.asd: loader.elf crc
+	$(call echo_c,"patching $@")
 
 	$(Q)cp bisrv_08_03.asd bisrv.asd
 
@@ -96,8 +100,8 @@ crc: crc.c
 
 install:
 	$(call echo_c,"install to sdcard")
-	$(Q)cp bisrv.asd sdcard/bios/
-	$(Q)cp core_87000000 sdcard/
+	-$(call copy_if_updated,bisrv.asd,sdcard/bios/bisrv.asd)
+	-$(call copy_if_updated,core_87000000,sdcard/core_87000000)
 
 # Clean intermediate files and the final executable
 clean:
@@ -108,8 +112,12 @@ clean:
 	-rm libretro_core.a
 	$(MAKE) -j$(NPROC) -C $(CORE) clean platform=sf2000
 
-.PHONY: all clean core.a libretro-common.a
+.PHONY: all clean
 
 define echo_c
     @echo -e "\033[1;33m$(1)\033[0m"
+endef
+
+define copy_if_updated
+	diff -q $(1) $(2) || (cp $(1) $(2) && echo "$(1) updated")
 endef
