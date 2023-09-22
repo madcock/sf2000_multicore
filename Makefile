@@ -1,6 +1,10 @@
 NPROC=$(shell nproc)
 SHELL:=/bin/bash
 
+LOADER_PATCH_BEGIN=0x16d0
+LOADER_PATCH_END=0x2180
+LOADER_PATCH_MAXSIZE = $(shell echo "$$(($(LOADER_PATCH_END) - $(LOADER_PATCH_BEGIN)))")
+
 MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
 MIPS2=/home/icemano/x-tools/mipsel-unknown-elf/bin/mips-mti-elf-
 
@@ -69,18 +73,25 @@ loader.elf: $(LOADER_OBJS)
 	$(call echo_c,"compiling $@")
 	$(LD) -Map $@.map $(LDFLAGS) -e __start -Ttext=0x800016d0 bisrv_08_03.ld $(LOADER_OBJS) -o loader.elf
 
+loader.bin: loader.elf
+	$(Q)$(OBJCOPY) -O binary -j .text -j .rodata -j .data loader.elf loader.bin
 
-bisrv.asd: loader.elf crc
+bisrv.asd: loader.bin crc
 	$(call echo_c,"patching $@")
+
+	@if [ $$(stat -c %s loader.bin) -gt $(LOADER_PATCH_MAXSIZE) ]; then \
+        echo "Error: loader.bin size $$(stat -c %s loader.bin) exceeds $(LOADER_PATCH_MAXSIZE) bytes."; \
+        exit 1; \
+    fi
 
 	$(Q)cp bisrv_08_03.asd bisrv.asd
 
-	$(Q)$(OBJCOPY) -O binary -j .text -j .rodata -j .data loader.elf loader.bin
+	$(Q)dd if=loader.bin of=bisrv.asd bs=$$(($(LOADER_PATCH_BEGIN))) seek=1 conv=notrunc 2>/dev/null
 
-	$(Q)dd if=loader.bin of=bisrv.asd bs=$$((0x16d0)) seek=1 conv=notrunc 2>/dev/null
-
-	# jal run_nes -> jal 0x800016d0
+	# note: this patch must match $(LOADER_PATCH_BEGIN)
+	# jal run_gba -> jal 0x800016d0
 	printf "\xB4\x05\x00\x0C" | dd of=bisrv.asd bs=1 seek=$$((0x35a900)) conv=notrunc
+
 	# endless loop in sys_watchdog_reboot -> j 0x800016d8
 	printf "\xB6\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x30d4)) conv=notrunc
 	# endless loop in INT_General_Exception_Hdlr -> j 0x800016e0
