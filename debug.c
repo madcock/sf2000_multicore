@@ -8,6 +8,7 @@ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND! */
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include "stockfw.h"
 
 extern unsigned long PINMUXL;
 extern unsigned long PINMUXT;
@@ -225,7 +226,34 @@ static void lcd_flush(void)
 	}
 }
 
-extern void os_disable_interrupt(void);
+void dbg_cls()
+{
+	lcd_init();
+}
+
+void dbg_print(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	lcd_vprintf(fmt, ap);
+	va_end(ap);
+}
+
+void dbg_show()
+{
+	os_disable_interrupt();
+	lcd_flush();
+	do {
+	} while (1);
+}
+
+void dbg_show_noblock()
+{
+	for (int i=0; i < 5; ++i) {
+		lcd_flush();
+		dly_tsk(2);
+	}
+}
 
 void lcd_bsod(const char *fmt, ...)
 {

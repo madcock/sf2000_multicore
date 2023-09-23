@@ -19,6 +19,10 @@ static int state_stub(const char *path) {
 
 void load_and_run_core(const char *file_path, int load_state)
 {
+	// this will show a blueish flickering at the top of the screen when loading a rom.
+	// it will act as an indicator that a custom core and not a stock emulator is running.
+	dbg_show_noblock();
+
 	void *core_load_addr = (void*)0x87000000;
 
 	FILE *pf;
@@ -66,6 +70,11 @@ void load_and_run_core(const char *file_path, int load_state)
 	g_retro_game_info.path = m_file_path;
 	g_retro_game_info.data = gp_buf_64m;
 	g_retro_game_info.size = g_run_file_size;
+
+	// dbg_cls();
+	// dbg_print("%s\n", m_file_path);
+	// dbg_print("%d\n", g_run_file_size);
+	// dbg_show();
 
 	gfn_retro_get_region	= core_api->retro_get_region;
 	gfn_get_system_av_info	= core_api->retro_get_system_av_info;
