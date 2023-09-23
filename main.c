@@ -22,10 +22,7 @@ void load_and_run_core(const char *file_path, int load_state)
 {
 	callonce_init();
 
-	// dbg_cls();
-	// dbg_print("0         1         2         3         4         5         \n");
-	// dbg_print("012345678901234567890123456789012345678901234567890123456789\n");
-	// dbg_show();
+	xlog("run file=%s\n", file_path);
 
 	// this will show a blueish flickering at the top of the screen when loading a rom.
 	// it will act as an indicator that a custom core and not a stock emulator is running.

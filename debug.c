@@ -173,3 +173,32 @@ void lcd_bsod(const char *fmt, ...)
 	do {
 	} while (1);
 }
+
+void xlog(const char *fmt, ...)
+{
+#define LOG_FILENAME "/mnt/sda1/log.txt"
+	// TODO: currently simply open and close the log file after each print.
+	// yes it might be slow, but it also allows both the loader and the dynamically
+	// loaded cores to have and use their own copy of xlog without conflicts.
+	// 
+	// should consider changing hlog to be static and only open the log file once.
+	// but in that case the cores should not have their own xlog, but rather the loader
+	// would pass its xlog to the cores, so that there would be only one open hlog handle.
+	FILE* hlog = NULL;
+	if (!hlog)
+		hlog = fopen(LOG_FILENAME, "a");
+
+	char buffer[999];
+
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(buffer, sizeof(buffer), fmt, args);
+	va_end(args);
+
+	fwrite(buffer, strlen(buffer), 1, hlog);
+	fflush(hlog);
+
+	fclose(hlog);
+
+	fs_sync(LOG_FILENAME);
+}

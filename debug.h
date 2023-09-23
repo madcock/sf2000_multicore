@@ -9,4 +9,6 @@ void dbg_print(const char *fmt, ...);
 void dbg_show();
 void dbg_show_noblock();
 
+void xlog(const char *fmt, ...);
+
 #endif
