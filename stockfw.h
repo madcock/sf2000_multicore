@@ -1,10 +1,13 @@
 #ifndef __STOCKFW_H
 #define __STOCKFW_H
 
+#include <stdbool.h>
+
 extern int fs_sync(const char *path);
 
 extern void osal_tds2_cache_flush(void *buf, unsigned sz);
 extern int dly_tsk(unsigned ms);
+extern void os_disable_interrupt(void);
 
 extern int run_emulator(int load_state);
 

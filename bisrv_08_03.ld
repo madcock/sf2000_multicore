@@ -61,6 +61,8 @@ write	= 0x802a5f28;
 lseek	= 0x802a6048;
 close	= 0x802a6188;
 
+fs_sync = 0x802a58e4;
+
 strdup	= 0x802acb40; /* only needed for vfs it seems */
 fclose	= 0x802acbf4;
 fflush	= 0x802acd64; /* actually __fflush but sufficiently close */
@@ -74,6 +76,8 @@ fwrite	= 0x802adf60;
 /* TDS2 */
 osal_tds2_cache_flush	= 0x80049214;
 os_disable_interrupt	= 0x802da404;
+os_enable_interrupt		= 0x802da42c;
+
 dly_tsk	= 0x80309134;
 
 /* libretro frontend */
