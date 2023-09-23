@@ -12,6 +12,7 @@ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND! */
 #include "stockfw.h"
 #include "debug.h"
 
+static void callonce_init();
 
 static int state_stub(const char *path) {
 	return 1;
@@ -19,15 +20,22 @@ static int state_stub(const char *path) {
 
 void load_and_run_core(const char *file_path, int load_state)
 {
+	callonce_init();
+
+	// dbg_cls();
+	// dbg_print("0         1         2         3         4         5         \n");
+	// dbg_print("012345678901234567890123456789012345678901234567890123456789\n");
+	// dbg_show();
+
 	// this will show a blueish flickering at the top of the screen when loading a rom.
 	// it will act as an indicator that a custom core and not a stock emulator is running.
+	dbg_cls();
 	dbg_show_noblock();
 
 	void *core_load_addr = (void*)0x87000000;
 
 	FILE *pf;
 	size_t core_size;
-	static char m_file_path[256];
 
 	/* wait for the sound thread to exit, replicated in all run_... functions */
 	g_snd_task_flags = g_snd_task_flags & 0xfffe;
@@ -66,15 +74,9 @@ void load_and_run_core(const char *file_path, int load_state)
 
 	core_api->retro_init();
 
-	strncpy(m_file_path, file_path, sizeof m_file_path);
-	g_retro_game_info.path = m_file_path;
+	g_retro_game_info.path = file_path;
 	g_retro_game_info.data = gp_buf_64m;
 	g_retro_game_info.size = g_run_file_size;
-
-	// dbg_cls();
-	// dbg_print("%s\n", m_file_path);
-	// dbg_print("%d\n", g_run_file_size);
-	// dbg_show();
 
 	gfn_retro_get_region	= core_api->retro_get_region;
 	gfn_get_system_av_info	= core_api->retro_get_system_av_info;
@@ -99,4 +101,27 @@ void hook_exception_handler(unsigned code)
 	unsigned ra;
 	asm volatile ("move %0, $ra" : "=r" (ra));
 	lcd_bsod("exception code %d at 0x%08x", code, ra);
+}
+
+static void clear_bss()
+{
+	extern void *__bss_start;
+	extern void *_end;
+
+    void *start = &__bss_start;
+    void *end = &_end;
+
+	memset(start, 0, end - start);
+}
+
+static void callonce_init()
+{
+	static bool do_init = true;
+	if (!do_init)
+		return;
+
+	do_init = false;
+
+	clear_bss();
+	lcd_init();
 }

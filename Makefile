@@ -1,8 +1,9 @@
 NPROC=$(shell nproc)
 SHELL:=/bin/bash
 
-LOADER_OFFSET=0x16d0
-LOADER_ADDR=0x800016d0
+LCDFONT_OFFSET=0x2260
+LOADER_OFFSET=0x1500
+LOADER_ADDR=0x80001500
 LOADER_ADDR_MAX=0x80002180
 
 MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
@@ -14,6 +15,7 @@ OBJCOPY = $(MIPS)objcopy
 
 CFLAGS := -EL -march=mips32 -mtune=mips32 -msoft-float
 CFLAGS += -Os -G0 -mno-abicalls -fno-pic -ffreestanding
+CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -I libs/libretro-common/include
 # CFLAGS += -Wall
 
@@ -76,14 +78,24 @@ loader.elf: $(LOADER_OBJS)
 loader.bin: loader.elf
 	$(Q)$(OBJCOPY) -O binary -j .text -j .rodata -j .data loader.elf loader.bin
 
-bisrv.asd: loader.bin crc
+bisrv.asd: loader.bin lcd_font.bin crc
 	@$(call echo_i,"patching $@")
 
+# check that loader's .bss does not exceeds LOADER_ADDR_MAX
 	@BSSEND=$(shell grep -w "_end =" loader.elf.map | awk '{print $$1}'); \
 	if [ $$(($${BSSEND})) -gt $$(($(LOADER_ADDR_MAX))) ]; then \
 		$(call echo_e,"error: loader is too big. \
-		bss ending $${BSSEND} exceeds $(LOADER_ADDR_MAX)" by \
-		$$(( $${BSSEND} - $(LOADER_ADDR_MAX) )) bytes) ; \
+		bss ending $${BSSEND} exceeds $(LOADER_ADDR_MAX) by \
+		$$(( $${BSSEND} - $(LOADER_ADDR_MAX) )) bytes") ; \
+		exit 1; \
+	else \
+		echo "bss ending $${BSSEND}. still $$(( $(LOADER_ADDR_MAX) - $${BSSEND} )) bytes left" ; \
+	fi
+
+# check that lcd_font.bin has the anticipated size
+	@LCDFONT_SIZE=$(shell stat -c %s lcd_font.bin) ; \
+	if [ $${LCDFONT_SIZE} -ne 672 ]; then \
+		$(call echo_e,"error: lcd_font.bin size $${LCDFONT_SIZE}. should be 672") ; \
 		exit 1; \
 	fi
 
@@ -91,16 +103,21 @@ bisrv.asd: loader.bin crc
 
 	$(Q)dd if=loader.bin of=bisrv.asd bs=$$(($(LOADER_OFFSET))) seek=1 conv=notrunc 2>/dev/null
 
-	# note: this patch must match $(LOADER_ADDR)
-	# jal run_gba -> jal 0x800016d0
-	printf "\xB4\x05\x00\x0C" | dd of=bisrv.asd bs=1 seek=$$((0x35a900)) conv=notrunc
+	dd if=lcd_font.bin of=bisrv.asd bs=$$(($(LCDFONT_OFFSET))) seek=1 conv=notrunc
 
-	# endless loop in sys_watchdog_reboot -> j 0x800016d8
-	printf "\xB6\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x30d4)) conv=notrunc
-	# endless loop in INT_General_Exception_Hdlr -> j 0x800016e0
-	printf "\xB8\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x495a0)) conv=notrunc
+	# note: this patch must match $(LOADER_ADDR)
+	# jal run_gba -> jal 0x80001500
+	printf "\x40\x05\x00\x0C" | dd of=bisrv.asd bs=1 seek=$$((0x35a900)) conv=notrunc
+
+	# endless loop in sys_watchdog_reboot -> j 0x80001508
+	printf "\x42\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x30d4)) conv=notrunc
+	# endless loop in INT_General_Exception_Hdlr -> j 0x80001510
+	printf "\x44\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x495a0)) conv=notrunc
 
 	$(Q)./crc bisrv.asd
+
+lcd_font.bin: lcd_font.o
+	$(OBJCOPY) -O binary -j ".rodata.lcd_font" $< $@
 
 crc: crc.c
 	gcc -o crc crc.c
