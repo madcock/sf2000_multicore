@@ -1,9 +1,9 @@
 NPROC=$(shell nproc)
 SHELL:=/bin/bash
 
-LOADER_PATCH_BEGIN=0x16d0
-LOADER_PATCH_END=0x2180
-LOADER_PATCH_MAXSIZE = $(shell echo "$$(($(LOADER_PATCH_END) - $(LOADER_PATCH_BEGIN)))")
+LOADER_OFFSET=0x16d0
+LOADER_ADDR=0x800016d0
+LOADER_ADDR_MAX=0x80002180
 
 MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
 MIPS2=/home/icemano/x-tools/mipsel-unknown-elf/bin/mips-mti-elf-
@@ -47,21 +47,21 @@ CORE=cores/snes9x2005
 all: core_87000000 bisrv.asd install
 
 libretro_core:
-	$(call echo_c,"compiling $(CORE)")
+	@$(call echo_i,"compiling $(CORE)")
 	$(MAKE) -j$(NPROC) -C $(CORE) platform=sf2000
 
 libretro_core.a: libretro_core
 	cp -u $(CORE)/*.a libretro_core.a
 
 libretro-common:
-	$(call echo_c,"compiling $@")
+	@$(call echo_i,"compiling $@")
 	$(MAKE) -j$(NPROC) -C libs/libretro-common
 
 libretro-common.a: libretro-common
 	cp -u libs/libretro-common/$@ $@
 
 core.elf: libretro_core.a libretro-common.a $(CORE_OBJS)
-	$(call echo_c,"compiling $@")
+	@$(call echo_i,"compiling $@")
 	$(LD) -Map $@.map $(LDFLAGS) -e __core_entry__ -Ttext=0x87000000 bisrv_08_03.ld -o $@ \
 		--start-group $(LIBS) $(CORE_OBJS) libretro_core.a libretro-common.a --end-group
 
@@ -70,25 +70,28 @@ core_87000000: core.elf
 
 
 loader.elf: $(LOADER_OBJS)
-	$(call echo_c,"compiling $@")
-	$(LD) -Map $@.map $(LDFLAGS) -e __start -Ttext=0x800016d0 bisrv_08_03.ld $(LOADER_OBJS) -o loader.elf
+	@$(call echo_i,"compiling $@")
+	$(LD) -Map $@.map $(LDFLAGS) -e __start -Ttext=$(LOADER_ADDR) bisrv_08_03.ld $(LOADER_OBJS) -o loader.elf
 
 loader.bin: loader.elf
 	$(Q)$(OBJCOPY) -O binary -j .text -j .rodata -j .data loader.elf loader.bin
 
 bisrv.asd: loader.bin crc
-	$(call echo_c,"patching $@")
+	@$(call echo_i,"patching $@")
 
-	@if [ $$(stat -c %s loader.bin) -gt $(LOADER_PATCH_MAXSIZE) ]; then \
-        echo "Error: loader.bin size $$(stat -c %s loader.bin) exceeds $(LOADER_PATCH_MAXSIZE) bytes."; \
-        exit 1; \
-    fi
+	@BSSEND=$(shell grep -w "_end =" loader.elf.map | awk '{print $$1}'); \
+	if [ $$(($${BSSEND})) -gt $$(($(LOADER_ADDR_MAX))) ]; then \
+		$(call echo_e,"error: loader is too big. \
+		bss ending $${BSSEND} exceeds $(LOADER_ADDR_MAX)" by \
+		$$(( $${BSSEND} - $(LOADER_ADDR_MAX) )) bytes) ; \
+		exit 1; \
+	fi
 
 	$(Q)cp bisrv_08_03.asd bisrv.asd
 
-	$(Q)dd if=loader.bin of=bisrv.asd bs=$$(($(LOADER_PATCH_BEGIN))) seek=1 conv=notrunc 2>/dev/null
+	$(Q)dd if=loader.bin of=bisrv.asd bs=$$(($(LOADER_OFFSET))) seek=1 conv=notrunc 2>/dev/null
 
-	# note: this patch must match $(LOADER_PATCH_BEGIN)
+	# note: this patch must match $(LOADER_ADDR)
 	# jal run_gba -> jal 0x800016d0
 	printf "\xB4\x05\x00\x0C" | dd of=bisrv.asd bs=1 seek=$$((0x35a900)) conv=notrunc
 
@@ -103,9 +106,10 @@ crc: crc.c
 	gcc -o crc crc.c
 
 install:
-	$(call echo_c,"install to sdcard")
+	@$(call echo_i,"install to sdcard")
 	-$(call copy_if_updated,bisrv.asd,sdcard/bios/bisrv.asd)
 	-$(call copy_if_updated,core_87000000,sdcard/core_87000000)
+	-rm sdcard/log.txt
 
 # Clean intermediate files and the final executable
 clean:
@@ -118,8 +122,12 @@ clean:
 
 .PHONY: all clean
 
-define echo_c
-    @echo -e "\033[1;33m$(1)\033[0m"
+define echo_i
+    echo -e "\033[1;33m$(1)\033[0m"
+endef
+
+define echo_e
+    echo -e "\033[1;31m$(1)\033[0m"
 endef
 
 define copy_if_updated
