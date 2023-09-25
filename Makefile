@@ -7,10 +7,9 @@ LOADER_ADDR=0x80001500
 LOADER_ADDR_MAX=0x80002180
 
 MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
-MIPS2=/home/icemano/x-tools/mipsel-unknown-elf/bin/mips-mti-elf-
 
 CC = $(MIPS)gcc
-LD = $(MIPS2)ld
+LD = $(MIPS)ld
 OBJCOPY = $(MIPS)objcopy
 
 CFLAGS := -EL -march=mips32 -mtune=mips32 -msoft-float
@@ -35,9 +34,10 @@ CORE_OBJS=core_api.o lib.o debug.o
 LOADER_OBJS=init.o main.o debug.o
 
 # CORE=cores/gpsp
+# CONSOLE=gba
+
 CORE=cores/snes9x2005
-# CORE=cores/snes9x2010
-# CORE=cores/snes9x2002
+CONSOLE=snes
 
 %.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
@@ -125,8 +125,8 @@ crc: crc.c
 install:
 	@$(call echo_i,"install to sdcard")
 	-$(call copy_if_updated,bisrv.asd,sdcard/bios/bisrv.asd)
-	-$(call copy_if_updated,core_87000000,sdcard/core_87000000)
-	-rm sdcard/log.txt
+	-$(call copy_if_updated,core_87000000,sdcard/cores/$(CONSOLE)/core_87000000)
+	-rm -f sdcard/log.txt
 
 # Clean intermediate files and the final executable
 clean:
@@ -148,5 +148,5 @@ define echo_e
 endef
 
 define copy_if_updated
-	diff -q $(1) $(2) || (cp $(1) $(2) && echo "$(1) updated")
+	diff -q $(1) $(2) || (mkdir -p $$(dirname $(2)) && cp $(1) $(2) && echo "$(1) updated")
 endef

@@ -13,6 +13,7 @@ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND! */
 #include "debug.h"
 
 static void callonce_init();
+static void xcache_flush(void *addr, size_t size);
 
 static int state_stub(const char *path) {
 	return 1;
@@ -43,14 +44,33 @@ void load_and_run_core(const char *file_path, int load_state)
 	/* FIXME! all of it!! */
 	RAMSIZE = 0x87000000;
 
-	pf = fopen("/mnt/sda1/core_87000000", "rb");
+	const char* corefile = NULL;
+	{
+		size_t len = strlen(file_path);
+		if (file_path[len-7]=='s' &&
+			file_path[len-6]=='f' &&
+			file_path[len-5]=='c')
+			corefile = "/mnt/sda1/cores/snes/core_87000000";
+		else
+			corefile = "/mnt/sda1/cores/gba/core_87000000";
+	}
+
+	xlog("core=%s\n", corefile);
+
+	pf = fopen(corefile, "rb");
 	fseeko(pf, 0, SEEK_END);
 	core_size = ftell(pf);
 	fseeko(pf, 0, SEEK_SET);
 	fread(core_load_addr, 1, core_size, pf);
 	fclose(pf);
 
-	osal_tds2_cache_flush(core_load_addr, core_size);
+	xlog("core loaded\n");
+
+	xcache_flush(core_load_addr, core_size);
+
+	xlog("cache flushed\n");
+
+	//osal_tds2_cache_flush(core_load_addr, core_size);
 	/* TODO I-cache must be invalidated to load a different core over */
 
 	// address of the core entry function resides at the begining of the loaded core
@@ -69,6 +89,7 @@ void load_and_run_core(const char *file_path, int load_state)
 	core_api->retro_set_input_state(retro_input_state_cb);
 	core_api->retro_set_environment(retro_set_environment_cb);
 
+	xlog("retro_init\n");
 	core_api->retro_init();
 
 	g_retro_game_info.path = file_path;
@@ -81,7 +102,9 @@ void load_and_run_core(const char *file_path, int load_state)
 	gfn_retro_deinit	= core_api->retro_deinit;
 	gfn_retro_run	= core_api->retro_run;
 
+	xlog("run_emulator(%d)\n", load_state);
 	run_emulator(load_state);
+	xlog("run return\n");
 }
 
 /* FIXME gets repetitive but we really need this $ra (in lib.c, too) */
@@ -121,4 +144,17 @@ static void callonce_init()
 
 	clear_bss();
 	lcd_init();
+}
+
+static void xcache_flush(void *addr, size_t size)
+{
+	uintptr_t idx;
+	uintptr_t begin = (uintptr_t)addr;
+	uintptr_t end = begin + size - 1;
+	// Index_Writeback_Inv_D
+	for (idx = begin; idx <= end; idx += 16)
+		asm volatile("cache 1, 0(%0); cache 1, 0(%0)" : : "r"(idx));
+	// Index_Invalidate_I
+	for (idx = begin; idx <= end; idx += 16)
+		asm volatile("cache 0, 0(%0); cache 0, 0(%0)" : : "r"(idx));
 }
