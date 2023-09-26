@@ -55,6 +55,10 @@ void load_and_run_core(const char *file_path, int load_state)
 			file_path[len-6]=='c' &&
 			file_path[len-5]=='e')
 			corefile = "/mnt/sda1/cores/pce/core_87000000";
+		else if (file_path[len-7]=='g' &&
+			file_path[len-6]=='b' &&
+			(file_path[len-5]=='c' || file_path[len-5]=='_'))
+			corefile = "/mnt/sda1/cores/gb/core_87000000";
 		else
 			corefile = "/mnt/sda1/cores/gba/core_87000000";
 	}

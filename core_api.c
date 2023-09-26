@@ -1,10 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "libretro.h"
 #include "core_api.h"
 #include "debug.h"
 
+bool wrap_retro_load_game(const struct retro_game_info* info);
 
 struct retro_core_t core_exports = {
    .retro_init = retro_init,
@@ -26,7 +28,7 @@ struct retro_core_t core_exports = {
    .retro_unserialize = retro_unserialize,
    .retro_cheat_reset = retro_cheat_reset,
    .retro_cheat_set = retro_cheat_set,
-   .retro_load_game = retro_load_game,
+   .retro_load_game = wrap_retro_load_game,
    .retro_load_game_special = retro_load_game_special,
    .retro_unload_game = retro_unload_game,
    .retro_get_region = retro_get_region,
@@ -85,4 +87,48 @@ struct retro_core_t *__core_entry__(void)
 	clear_bss();
 	call_ctors();
 	return &core_exports;
+}
+
+bool wrap_retro_load_game(const struct retro_game_info* info)
+{
+	bool ret;
+	struct retro_system_info sysinfo;
+	retro_get_system_info(&sysinfo);
+
+	xlog("core=%s-%s need_fullpath=%d exts=%s\n", sysinfo.library_name, sysinfo.library_version, sysinfo.need_fullpath, sysinfo.valid_extensions);
+
+	// if core wants to load the content by itself directly from files, then let it
+	if (sysinfo.need_fullpath)
+	{
+		xlog("core loads content directly from file\n");
+		ret = retro_load_game(info);
+	}
+	else
+	{
+		// otherwise load the content into a temp buffer and pass it to the core
+
+		FILE *hfile = fopen(info->path, "rb");
+		fseeko(hfile, 0, SEEK_END);
+		long size = ftell(hfile);
+		fseeko(hfile, 0, SEEK_SET);
+
+		void *buffer = malloc(size);
+
+		fread(buffer, 1, size, hfile);
+		fclose(hfile);
+
+		struct retro_game_info gameinfo;
+		gameinfo.path = info->path;
+		gameinfo.data = buffer;
+		gameinfo.size = size;
+
+		xlog("game loaded into temp buffer. size=%u\n", size);
+
+		ret = retro_load_game(&gameinfo);
+
+		free(buffer);
+	}
+
+	xlog("retro_load_game: ret=%d\n", ret);
+	return ret;
 }

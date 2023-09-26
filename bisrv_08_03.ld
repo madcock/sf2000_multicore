@@ -62,6 +62,7 @@ write	= 0x802a5f28;
 lseek	= 0x802a6048;
 close	= 0x802a6188;
 fstat   = 0x802a5d34;
+stat    = 0x802a5d58;
 
 fs_sync = 0x802a58e4;
 

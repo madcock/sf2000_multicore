@@ -34,8 +34,12 @@ export LIBRETRO_COMM_DIR
 CORE_OBJS=core_api.o lib.o debug.o
 LOADER_OBJS=init.o main.o debug.o
 
-CORE=cores/beetle-pce-fast
-CONSOLE=pce
+# CORE=cores/beetle-pce-fast
+# CONSOLE=pce
+
+CORE=cores/gambatte
+# CORE=cores/tgbdual
+CONSOLE=gb
 
 # CORE=cores/gpsp
 # CONSOLE=gba
