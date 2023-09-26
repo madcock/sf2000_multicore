@@ -20,13 +20,16 @@ char *stpcpy(char *dst, const char *src)
 	return &dst[sz - 1];
 }
 
-/* localization, */
-extern char _ctype_[257];
+// TODO: this __locale_ctype_ptr collide with the one from libc
+// maybe defined it with attribute((weak)) or delete it all together
+//
+///* localization, */
+// extern char _ctype_[257];
 
-const char *__locale_ctype_ptr (void)
-{
-	return _ctype_;
-}
+// const char *__locale_ctype_ptr (void)
+// {
+	// return _ctype_;
+// }
 
 /* reentrant functions (newer builds fixed that), */
 extern int g_errno;
@@ -76,4 +79,9 @@ int remove(const char *path)
 int rename(const char *old, const char* new)
 {
 	return -1;
+}
+
+int isatty(int fd)
+{
+    return 0;
 }

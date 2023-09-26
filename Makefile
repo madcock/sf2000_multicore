@@ -26,6 +26,7 @@ LIBS+=-lgcc
 
 LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libc.a)))
 LIBS+=-lc -lm
+LIBS+=-lstdc++
 
 LIBRETRO_COMM_DIR=$(abspath libs/libretro-common)
 export LIBRETRO_COMM_DIR
@@ -33,11 +34,14 @@ export LIBRETRO_COMM_DIR
 CORE_OBJS=core_api.o lib.o debug.o
 LOADER_OBJS=init.o main.o debug.o
 
+CORE=cores/beetle-pce-fast
+CONSOLE=pce
+
 # CORE=cores/gpsp
 # CONSOLE=gba
 
-CORE=cores/snes9x2005
-CONSOLE=snes
+# CORE=cores/snes9x2005
+# CONSOLE=snes
 
 %.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
@@ -68,7 +72,7 @@ core.elf: libretro_core.a libretro-common.a $(CORE_OBJS)
 		--start-group $(LIBS) $(CORE_OBJS) libretro_core.a libretro-common.a --end-group
 
 core_87000000: core.elf
-	$(OBJCOPY) -O binary -j .text -j .rodata -j .data core.elf core_87000000
+	$(OBJCOPY) -O binary -j .text -j .rodata -j .data -j .eh_frame -j .gcc_except_table -j .init_array -j .fini_array core.elf core_87000000
 
 
 loader.elf: $(LOADER_OBJS)

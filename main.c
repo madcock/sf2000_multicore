@@ -51,6 +51,10 @@ void load_and_run_core(const char *file_path, int load_state)
 			file_path[len-6]=='f' &&
 			file_path[len-5]=='c')
 			corefile = "/mnt/sda1/cores/snes/core_87000000";
+		else if (file_path[len-7]=='p' &&
+			file_path[len-6]=='c' &&
+			file_path[len-5]=='e')
+			corefile = "/mnt/sda1/cores/pce/core_87000000";
 		else
 			corefile = "/mnt/sda1/cores/gba/core_87000000";
 	}

@@ -1,6 +1,10 @@
+#include <stdlib.h>
+#include <string.h>
+
 #include "libretro.h"
 #include "core_api.h"
-#include <string.h>
+#include "debug.h"
+
 
 struct retro_core_t core_exports = {
    .retro_init = retro_init,
@@ -30,7 +34,7 @@ struct retro_core_t core_exports = {
    .retro_get_memory_size = retro_get_memory_size,
 };
 
-static inline void clear_bss()
+static void clear_bss()
 {
 	extern void *__bss_start;
 	extern void *_end;
@@ -39,6 +43,34 @@ static inline void clear_bss()
     void *end = &_end;
 
 	memset(start, 0, end - start);
+}
+
+static void call_ctors()
+{
+	typedef void (*func_ptr) (void);
+	extern func_ptr __init_array_start;
+	extern func_ptr __init_array_end;
+
+	xlog("call_ctors: start=%p end=%p\n", &__init_array_start, &__init_array_end);
+
+	// call ctors from last to first
+	for (func_ptr *pfunc = &__init_array_end - 1; pfunc >= &__init_array_start; --pfunc) {
+		xlog("pfunc=%p func=%p\n", pfunc, *pfunc);
+		(*pfunc)();
+	}
+}
+
+// TODO: need a place to call dtors as well. maybe when retro_deinit is called?
+static void call_dtors()
+{
+	typedef void (*func_ptr) (void);
+	extern func_ptr __fini_array_start;
+	extern func_ptr __fini_array_end;
+
+	// dtors are called in reverse order of ctors
+	for (func_ptr *pfunc = &__fini_array_start; pfunc < &__fini_array_end; ++pfunc) {
+		(*pfunc)();
+	}
 }
 
 // __core_entry__ must be placed at a known location in the binary (at the beginning)
@@ -51,5 +83,6 @@ struct retro_core_t *__core_entry__(void) __attribute__((section(".text.unlikely
 struct retro_core_t *__core_entry__(void)
 {
 	clear_bss();
+	call_ctors();
 	return &core_exports;
 }

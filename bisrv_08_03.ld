@@ -30,6 +30,7 @@ isinf	= 0x801b1134;
 strtol	= 0x801b1184;
 strtoul	= 0x801b1374;
 
+sbrk    = 0x8028b5f8;	/* TODO: exposing and using sbrk might be dangerous? */
 malloc	= 0x8028b8b8;
 free	= 0x8028c4c8;
 realloc	= 0x8028c58c;
@@ -60,6 +61,7 @@ read	= 0x802a5e04;
 write	= 0x802a5f28;
 lseek	= 0x802a6048;
 close	= 0x802a6188;
+fstat   = 0x802a5d34;
 
 fs_sync = 0x802a58e4;
 
