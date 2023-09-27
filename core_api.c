@@ -108,6 +108,11 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 		// otherwise load the content into a temp buffer and pass it to the core
 
 		FILE *hfile = fopen(info->path, "rb");
+		if (!hfile) {
+			xlog("[core] Error opening rom file=%s\n", info->path);
+			return false;
+		}
+
 		fseeko(hfile, 0, SEEK_END);
 		long size = ftell(hfile);
 		fseeko(hfile, 0, SEEK_SET);

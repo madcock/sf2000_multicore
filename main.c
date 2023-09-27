@@ -6,6 +6,7 @@ for any purpose with or without fee is hereby granted.
 THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND! */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "libretro.h"
 #include "core_api.h"
@@ -17,6 +18,35 @@ static void xcache_flush(void *addr, size_t size);
 
 static int state_stub(const char *path) {
 	return 1;
+}
+
+#define MAXPATH 255
+static char *corefile = NULL;
+static char *romfile = NULL;
+static char *tmpbuffer = NULL;
+
+
+bool parse_filename(const char *file_path, const char**dir, const char **filename)
+{
+	char* s = strncpy(tmpbuffer, file_path, MAXPATH);
+	*dir = s;
+
+	char* p = strchr(s, ';');
+	if (!p) return false;
+	*(p++) = 0;
+
+	char* pp = strrchr(s, '/');
+	if (!pp) return false;
+	*(pp++) = 0;
+
+	*dir = pp;
+	*filename = p;
+
+	char* p2 = strrchr(p, '.');
+	if (!p2) return false;
+	*(p2) = 0;
+
+	return true;
 }
 
 void load_and_run_core(const char *file_path, int load_state)
@@ -44,28 +74,26 @@ void load_and_run_core(const char *file_path, int load_state)
 	/* FIXME! all of it!! */
 	RAMSIZE = 0x87000000;
 
-	const char* corefile = NULL;
-	{
-		size_t len = strlen(file_path);
-		if (file_path[len-7]=='s' &&
-			file_path[len-6]=='f' &&
-			file_path[len-5]=='c')
-			corefile = "/mnt/sda1/cores/snes/core_87000000";
-		else if (file_path[len-7]=='p' &&
-			file_path[len-6]=='c' &&
-			file_path[len-5]=='e')
-			corefile = "/mnt/sda1/cores/pce/core_87000000";
-		else if (file_path[len-7]=='g' &&
-			file_path[len-6]=='b' &&
-			(file_path[len-5]=='c' || file_path[len-5]=='_'))
-			corefile = "/mnt/sda1/cores/gb/core_87000000";
-		else
-			corefile = "/mnt/sda1/cores/gba/core_87000000";
+	// the expected template for file_path is - [console];[rom filename].gba
+	const char *console;
+	const char *filename;
+	if (!parse_filename(file_path, &console, &filename)) {
+		xlog("Error parsing filename\n");
+		return;
 	}
 
-	xlog("core=%s\n", corefile);
+	snprintf(corefile, MAXPATH, "/mnt/sda1/cores/%s/core_87000000", console);
+	snprintf(romfile, MAXPATH, "/mnt/sda1/ROMS/%s/%s", console, filename);
+
+	xlog("corefile=%s\n", corefile);
+	xlog("romfile=%s\n", romfile);
 
 	pf = fopen(corefile, "rb");
+	if (!pf) {
+		xlog("Error opening corefile\n");
+		return;
+	}
+
 	fseeko(pf, 0, SEEK_END);
 	core_size = ftell(pf);
 	fseeko(pf, 0, SEEK_SET);
@@ -100,7 +128,7 @@ void load_and_run_core(const char *file_path, int load_state)
 	xlog("retro_init\n");
 	core_api->retro_init();
 
-	g_retro_game_info.path = file_path;
+	g_retro_game_info.path = romfile;
 	g_retro_game_info.data = gp_buf_64m;
 	g_retro_game_info.size = g_run_file_size;
 
@@ -152,6 +180,10 @@ static void callonce_init()
 
 	clear_bss();
 	lcd_init();
+
+	corefile = malloc(MAXPATH);
+	romfile = malloc(MAXPATH);
+	tmpbuffer = malloc(MAXPATH);
 }
 
 static void xcache_flush(void *addr, size_t size)
