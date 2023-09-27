@@ -61,7 +61,7 @@ libretro_core:
 	$(MAKE) -j$(NPROC) -C $(CORE) platform=sf2000
 
 libretro_core.a: libretro_core
-	cp -u $(CORE)/*.a libretro_core.a
+	cp $(CORE)/*.a libretro_core.a
 
 libretro-common:
 	@$(call echo_i,"compiling $@")
@@ -138,11 +138,11 @@ install:
 
 # Clean intermediate files and the final executable
 clean:
-	-rm $(CORE_OBJS)
-	-rm $(LOADER_OBJS)
-	-rm loader.elf loader.bin core.elf core_87000000
-	-rm bisrv.asd
-	-rm libretro_core.a
+	-rm -f $(CORE_OBJS)
+	-rm -f $(LOADER_OBJS)
+	-rm -f loader.elf loader.bin core.elf core_87000000
+	-rm -f bisrv.asd
+	-rm -f libretro_core.a
 	$(MAKE) -j$(NPROC) -C $(CORE) clean platform=sf2000
 
 .PHONY: all clean
