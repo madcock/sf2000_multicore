@@ -1,15 +1,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include "libretro.h"
 #include "core_api.h"
 #include "debug.h"
 
+#define SYSTEM_DIR	"/mnt/sda1/bios"
+
 // this is needed when linking with a c++ project that have static objects with custom destructors
 void *__dso_handle = 0;
 
-bool wrap_retro_load_game(const struct retro_game_info* info);
+static retro_environment_t environ_cb;
+
+static void wrap_retro_set_environment(retro_environment_t cb);
+static bool wrap_retro_load_game(const struct retro_game_info* info);
+
+static bool wrap_environ_cb(unsigned cmd, void *data);
+
+static void log_cb(enum retro_log_level level, const char *fmt, ...);
 
 struct retro_core_t core_exports = {
    .retro_init = retro_init,
@@ -17,7 +27,7 @@ struct retro_core_t core_exports = {
    .retro_api_version = retro_api_version,
    .retro_get_system_info = retro_get_system_info,
    .retro_get_system_av_info = retro_get_system_av_info,
-   .retro_set_environment = retro_set_environment,
+   .retro_set_environment = wrap_retro_set_environment,
    .retro_set_video_refresh = retro_set_video_refresh,
    .retro_set_audio_sample = retro_set_audio_sample,
    .retro_set_audio_sample_batch = retro_set_audio_sample_batch,
@@ -139,4 +149,97 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 
 	xlog("retro_load_game: ret=%d\n", ret);
 	return ret;
+}
+
+void wrap_retro_set_environment(retro_environment_t cb)
+{
+	environ_cb = cb;
+	retro_set_environment(wrap_environ_cb);
+}
+
+bool wrap_environ_cb(unsigned cmd, void *data)
+{
+	switch (cmd)
+	{
+		case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
+		{
+			struct retro_log_callback *cb = (struct retro_log_callback*)data;
+			cb->log = log_cb;
+			return true;
+		}
+
+		case RETRO_ENVIRONMENT_SET_MESSAGE:
+		case RETRO_ENVIRONMENT_SET_MESSAGE_EXT:
+		{
+			const struct retro_message *msg = (const struct retro_message*)data;
+			log_cb(RETRO_LOG_INFO, "[Environ]: SET_MESSAGE: %s\n", msg->msg);
+			return true;
+		}
+
+		case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
+		{
+			const char *dir_system = SYSTEM_DIR;
+			*(const char**)data = dir_system;
+			log_cb(RETRO_LOG_INFO, "[Environ]: SYSTEM_DIRECTORY: \"%s\"\n", dir_system);
+			return true;
+		}
+
+		case RETRO_ENVIRONMENT_GET_CAN_DUPE:
+			*(bool*)data = true;
+			log_cb(RETRO_LOG_INFO, "[Environ]: GET_CAN_DUPE: true\n");
+			return true;
+
+		case RETRO_ENVIRONMENT_GET_VARIABLE:
+		{
+			struct retro_variable *var = (struct retro_variable*)data;
+			log_cb(RETRO_LOG_INFO, "[Environ]: GET_VARIABLE: %s\n", var->key);
+			return true;
+		}
+
+		case RETRO_ENVIRONMENT_SET_MEMORY_MAPS:
+		{
+			log_cb(RETRO_LOG_INFO, "[Environ]: SET_MEMORY_MAPS\n");
+			break;
+		}
+		case RETRO_ENVIRONMENT_SET_GEOMETRY:
+		{
+			const struct retro_game_geometry *geom = (const struct retro_game_geometry*)data;
+            log_cb(RETRO_LOG_INFO, "[Environ]: SET_GEOMETRY: %ux%u, Aspect: %.3f.\n",
+				geom->base_width, geom->base_height, geom->aspect_ratio);
+			break;
+		}
+	}
+	return environ_cb(cmd, data);
+}
+
+void log_cb(enum retro_log_level level, const char *fmt, ...)
+{
+	char buffer[500];
+
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(buffer, sizeof(buffer), fmt, args);
+	va_end(args);
+
+	switch (level)
+	{
+		case RETRO_LOG_DEBUG:
+			xlog("[core][DEBUG] %s", buffer);
+			break;
+
+		case RETRO_LOG_INFO:
+			xlog("[core][INFO] %s", buffer);
+			break;
+
+		case RETRO_LOG_WARN:
+			xlog("[core][WARN] %s", buffer);
+			break;
+
+		case RETRO_LOG_ERROR:
+			xlog("[core][ERROR] %s", buffer);
+			break;
+
+		default:
+			break;
+	}
 }
