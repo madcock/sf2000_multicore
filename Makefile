@@ -34,12 +34,15 @@ export LIBRETRO_COMM_DIR
 CORE_OBJS=core_api.o lib.o debug.o
 LOADER_OBJS=init.o main.o debug.o
 
+CORE=cores/stella2014
+CONSOLE=a26
+
 # CORE=cores/beetle-pce-fast
 # CONSOLE=pce
 
-CORE=cores/gambatte
+# CORE=cores/gambatte
 # CORE=cores/tgbdual
-CONSOLE=gb
+# CONSOLE=gb
 
 # CORE=cores/gpsp
 # CONSOLE=gba
@@ -76,7 +79,7 @@ core.elf: libretro_core.a libretro-common.a $(CORE_OBJS)
 		--start-group $(LIBS) $(CORE_OBJS) libretro_core.a libretro-common.a --end-group
 
 core_87000000: core.elf
-	$(OBJCOPY) -O binary -j .text -j .rodata -j .data -j .eh_frame -j .gcc_except_table -j .init_array -j .fini_array core.elf core_87000000
+	$(OBJCOPY) -O binary -j .text -j .rodata -j .data -j .sdata -j .eh_frame -j .gcc_except_table -j .init_array -j .fini_array core.elf core_87000000
 
 
 loader.elf: $(LOADER_OBJS)

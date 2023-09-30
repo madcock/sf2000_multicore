@@ -6,6 +6,9 @@
 #include "core_api.h"
 #include "debug.h"
 
+// this is needed when linking with a c++ project that have static objects with custom destructors
+void *__dso_handle = 0;
+
 bool wrap_retro_load_game(const struct retro_game_info* info);
 
 struct retro_core_t core_exports = {
