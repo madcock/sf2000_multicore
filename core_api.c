@@ -11,7 +11,8 @@
 #include "stockfw.h"
 
 #define MAXPATH 	255
-#define SYSTEM_DIR	"/mnt/sda1/bios"
+#define SYSTEM_DIRECTORY	"/mnt/sda1/bios"
+#define SAVE_DIRECTORY		"/mnt/sda1/ROMS/save"
 
 // this is needed when linking with a c++ project that have static objects with custom destructors
 void *__dso_handle = 0;
@@ -194,9 +195,17 @@ bool wrap_environ_cb(unsigned cmd, void *data)
 
 		case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
 		{
-			const char *dir_system = SYSTEM_DIR;
-			*(const char**)data = dir_system;
-			log_cb(RETRO_LOG_INFO, "[Environ]: SYSTEM_DIRECTORY: \"%s\"\n", dir_system);
+			const char *dir = SYSTEM_DIRECTORY;
+			*(const char**)data = dir;
+			log_cb(RETRO_LOG_INFO, "[Environ]: SYSTEM_DIRECTORY: \"%s\"\n", dir);
+			return true;
+		}
+
+		case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
+		{
+			const char *dir = SAVE_DIRECTORY;
+			*(const char**)data = dir;
+			log_cb(RETRO_LOG_INFO, "[Environ]: SAVE_DIRECTORY: \"%s\"\n", dir);
 			return true;
 		}
 
