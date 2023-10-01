@@ -111,8 +111,8 @@ gfn_state_save	= 0x80c1081c;
 
 gfn_retro_get_region	= 0x80c107f8;
 gfn_get_system_av_info	= 0x80c10808;
-gfn_retro_load_game	= 0x80c10828;
-gfn_retro_deinit	= 0x80c10830;
+gfn_retro_load_game		= 0x80c10828;
+gfn_retro_unload_game	= 0x80c10830;
 gfn_retro_run	= 0x80c10840;
 
 g_run_file_size	= 0x80c107d8;

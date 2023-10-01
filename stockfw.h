@@ -30,7 +30,7 @@ extern int (* gfn_state_save)(const char *);
 extern unsigned (* gfn_retro_get_region)(void);
 extern void (* gfn_get_system_av_info)(struct retro_system_av_info *info);
 extern bool (* gfn_retro_load_game)(const struct retro_game_info *game);
-extern void (* gfn_retro_deinit)(void);
+extern void (* gfn_retro_unload_game)(void);
 extern void (* gfn_retro_run)(void);
 
 extern int g_snd_task_flags;

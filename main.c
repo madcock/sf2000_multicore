@@ -134,13 +134,15 @@ void load_and_run_core(const char *file_path, int load_state)
 
 	gfn_retro_get_region	= core_api->retro_get_region;
 	gfn_get_system_av_info	= core_api->retro_get_system_av_info;
-	gfn_retro_load_game	= core_api->retro_load_game;
-	gfn_retro_deinit	= core_api->retro_deinit;
-	gfn_retro_run	= core_api->retro_run;
+	gfn_retro_load_game		= core_api->retro_load_game;
+	gfn_retro_unload_game	= core_api->retro_unload_game;
+	gfn_retro_run			= core_api->retro_run;
 
 	xlog("run_emulator(%d)\n", load_state);
 	run_emulator(load_state);
-	xlog("run return\n");
+
+	xlog("retro_deinit\n");
+	core_api->retro_deinit();
 }
 
 /* FIXME gets repetitive but we really need this $ra (in lib.c, too) */
