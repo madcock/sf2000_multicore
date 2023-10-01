@@ -4,9 +4,13 @@
 #include <stdarg.h>
 
 #include "libretro.h"
+#include "file/file_path.h"
+
 #include "core_api.h"
 #include "debug.h"
+#include "stockfw.h"
 
+#define MAXPATH 	255
 #define SYSTEM_DIR	"/mnt/sda1/bios"
 
 // this is needed when linking with a c++ project that have static objects with custom destructors
@@ -20,6 +24,11 @@ static bool wrap_retro_load_game(const struct retro_game_info* info);
 static bool wrap_environ_cb(unsigned cmd, void *data);
 
 static void log_cb(enum retro_log_level level, const char *fmt, ...);
+
+const char *s_game_filepath = NULL;
+int state_load(const char *frontend_state_filepath);
+int state_save(const char *frontend_state_filepath);
+
 
 struct retro_core_t core_exports = {
    .retro_init = retro_init,
@@ -109,6 +118,13 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 	retro_get_system_info(&sysinfo);
 
 	xlog("core=%s-%s need_fullpath=%d exts=%s\n", sysinfo.library_name, sysinfo.library_version, sysinfo.need_fullpath, sysinfo.valid_extensions);
+
+	// no need to strcpy, because info->path string should be valid during the execution of the game
+	s_game_filepath = info->path;
+
+	// setup load/save state handlers
+	gfn_state_load = state_load;
+	gfn_state_save = state_save;
 
 	// if core wants to load the content by itself directly from files, then let it
 	if (sysinfo.need_fullpath)
@@ -242,4 +258,71 @@ void log_cb(enum retro_log_level level, const char *fmt, ...)
 		default:
 			break;
 	}
+}
+
+
+void build_state_filepath(char *state_filepath, size_t size, const char *game_filepath, const char *frontend_state_filepath)
+{
+//	"/mnt/sda1/ROMS/pce/Alien Crush.pce"	->
+//	"/mnt/sda1/ROMS/save/Alien Crush.state[slot]"
+
+	// last char is the save slot number
+	char save_slot = frontend_state_filepath[strlen(frontend_state_filepath) - 1];
+
+	char basename[MAXPATH];
+	fill_pathname_base(basename, game_filepath, sizeof(basename));
+	path_remove_extension(basename);
+
+	snprintf(state_filepath, size, "/mnt/sda1/ROMS/save/%s.state%c", basename, save_slot);
+}
+
+int state_load(const char *frontend_state_filepath)
+{
+	char state_filepath[MAXPATH];
+	build_state_filepath(state_filepath, sizeof(state_filepath), s_game_filepath, frontend_state_filepath);
+	xlog("state_load: file=%s\n", state_filepath);
+
+	FILE *file = fopen(state_filepath, "rb");
+	if (!file)
+		return 0;
+
+	fseeko(file, 0, SEEK_END);
+	size_t size = ftell(file);
+	fseeko(file, 0, SEEK_SET);
+
+	void *data = malloc(size);
+
+	fread(data, 1, size, file);
+	fclose(file);
+
+	retro_unserialize(data, size);
+
+	free(data);
+
+	return 1;
+}
+
+int state_save(const char *frontend_state_filepath)
+{
+	char state_filepath[MAXPATH];
+	build_state_filepath(state_filepath, sizeof(state_filepath), s_game_filepath, frontend_state_filepath);
+	xlog("state_save: file=%s\n", state_filepath);
+
+	FILE *file = fopen(state_filepath, "wb");
+	if (!file)
+		return 0;
+
+	size_t size = retro_serialize_size();
+	void *data = calloc(size, 1);
+
+	retro_serialize(data, size);
+
+	fwrite(data, size, 1, file);
+	fclose(file);
+
+	free(data);
+
+	fs_sync(state_filepath);
+
+	return 1;
 }
