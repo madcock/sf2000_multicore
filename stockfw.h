@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+extern int fs_stat(const char *path, void *sbuf);
+extern int fs_fstat(int fd, void *sbuf);
 extern int fs_sync(const char *path);
 
 extern void osal_tds2_cache_flush(void *buf, unsigned sz);

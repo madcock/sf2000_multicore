@@ -61,8 +61,9 @@ read	= 0x802a5e04;
 write	= 0x802a5f28;
 lseek	= 0x802a6048;
 close	= 0x802a6188;
-fstat   = 0x802a5d34;
-stat    = 0x802a5d58;
+
+fs_fstat   = 0x802a5d34;
+fs_stat    = 0x802a5d58;
 
 fs_sync = 0x802a58e4;
 
