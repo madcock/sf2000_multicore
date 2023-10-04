@@ -58,25 +58,40 @@ void rewind(FILE *stream)
 	fseeko(stream, 0, SEEK_SET);
 }
 
+typedef struct {
+	union {
+		struct {
+			uint8_t	_1[0x18];	// type is at offset 0x18
+			uint32_t type;		// 0x81b6 - file,	0x41ff - dir
+		};
+		struct {
+			uint8_t	_2[0x38];	// size is at offset 0x38
+			uint32_t size;		// filesize if type is a file
+		};
+		uint8_t	__[160];		// total struct size is 160
+	};
+} fs_stat_t;
+
 // wrap fs_stat to supply a more standard stat implementation
 // for now only `type` (for dir or file) and `size` fields of `struct stat` are filled
 int	stat(const char *path, struct stat *sbuf)
 {
-	struct _ {
-		union {
-			struct {
-				uint8_t	_1[0x18];	// type is at offset 0x18
-				uint32_t type;		// 0x81b6 - file,	0x41ff - dir
-			};
-			struct {
-				uint8_t	_2[0x38];	// size is at offset 0x38
-				uint32_t size;		// filesize if type is a file
-			};
-			uint8_t	__[160];		// total struct size is 160
-		};
-	} buffer = {0};
-
+	fs_stat_t buffer = {0};
 	int ret = fs_stat(path, &buffer);
+	if (ret == 0)
+	{
+		memset(sbuf, 0, sizeof(*sbuf));
+		sbuf->st_mode = S_ISREG(buffer.type)*S_IFREG | S_ISDIR(buffer.type)*S_IFDIR;
+		sbuf->st_size = buffer.size;
+	}
+
+	return ret;
+}
+
+int	fstat(int fd, struct stat *sbuf)
+{
+	fs_stat_t buffer = {0};
+	int ret = fs_fstat(fd, &buffer);
 	if (ret == 0)
 	{
 		memset(sbuf, 0, sizeof(*sbuf));
