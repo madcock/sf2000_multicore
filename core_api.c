@@ -5,6 +5,7 @@
 
 #include "libretro.h"
 #include "file/file_path.h"
+#include "file/config_file.h"
 
 #include "core_api.h"
 #include "debug.h"
@@ -13,27 +14,33 @@
 #define MAXPATH 	255
 #define SYSTEM_DIRECTORY	"/mnt/sda1/bios"
 #define SAVE_DIRECTORY		"/mnt/sda1/ROMS/save"
+#define CONFIG_DIRECTORY	"/mnt/sda1/cores/config"
 
 // this is needed when linking with a c++ project that have static objects with custom destructors
 void *__dso_handle = 0;
+
+static config_file_t *s_core_config = NULL;
+static void config_load();
+static void config_free();
+static bool config_get_var(struct retro_variable *var);
 
 static retro_environment_t environ_cb;
 
 static void wrap_retro_set_environment(retro_environment_t cb);
 static bool wrap_retro_load_game(const struct retro_game_info* info);
-
 static bool wrap_environ_cb(unsigned cmd, void *data);
+static void wrap_retro_init(void);
+static void wrap_retro_deinit(void);
 
 static void log_cb(enum retro_log_level level, const char *fmt, ...);
 
-const char *s_game_filepath = NULL;
-int state_load(const char *frontend_state_filepath);
-int state_save(const char *frontend_state_filepath);
-
+static const char *s_game_filepath = NULL;
+static int state_load(const char *frontend_state_filepath);
+static int state_save(const char *frontend_state_filepath);
 
 struct retro_core_t core_exports = {
-   .retro_init = retro_init,
-   .retro_deinit = retro_deinit,
+   .retro_init = wrap_retro_init,
+   .retro_deinit = wrap_retro_deinit,
    .retro_api_version = retro_api_version,
    .retro_get_system_info = retro_get_system_info,
    .retro_get_system_av_info = retro_get_system_av_info,
@@ -217,8 +224,9 @@ bool wrap_environ_cb(unsigned cmd, void *data)
 		case RETRO_ENVIRONMENT_GET_VARIABLE:
 		{
 			struct retro_variable *var = (struct retro_variable*)data;
-			log_cb(RETRO_LOG_INFO, "[Environ]: GET_VARIABLE: %s\n", var->key);
-			return true;
+			bool ret = config_get_var(var);
+			log_cb(RETRO_LOG_INFO, "[Environ]: GET_VARIABLE: %s=%s\n", var->key, ret ? var->value : "");
+			return ret;
 		}
 
 		case RETRO_ENVIRONMENT_SET_MEMORY_MAPS:
@@ -282,7 +290,7 @@ void build_state_filepath(char *state_filepath, size_t size, const char *game_fi
 	fill_pathname_base(basename, game_filepath, sizeof(basename));
 	path_remove_extension(basename);
 
-	snprintf(state_filepath, size, "/mnt/sda1/ROMS/save/%s.state%c", basename, save_slot);
+	snprintf(state_filepath, size, SAVE_DIRECTORY "/%s.state%c", basename, save_slot);
 }
 
 int state_load(const char *frontend_state_filepath)
@@ -334,4 +342,51 @@ int state_save(const char *frontend_state_filepath)
 	fs_sync(state_filepath);
 
 	return 1;
+}
+
+void build_config_filepath(char *filepath, size_t size)
+{
+	struct retro_system_info sysinfo;
+	retro_get_system_info(&sysinfo);
+
+	snprintf(filepath, size, CONFIG_DIRECTORY "/%s.opt", sysinfo.library_name);
+}
+
+void config_load()
+{
+	char config_filepath[MAXPATH];
+	build_config_filepath(config_filepath, sizeof(config_filepath));
+
+	s_core_config = config_file_new_from_path_to_string(config_filepath);
+	xlog("config_load: %s %s\n", config_filepath, s_core_config ? "loaded" : "not found");
+}
+
+void config_free()
+{
+	config_file_free(s_core_config);
+}
+
+bool config_get_var(struct retro_variable *var)
+{
+	if (!s_core_config)
+		return false;
+
+	const struct config_entry_list *entry = config_get_entry(s_core_config, var->key);
+	if (!entry)
+		return false;
+
+	var->value = entry->value;
+	return true;
+}
+
+void wrap_retro_init(void)
+{
+	config_load();
+	retro_init();
+}
+
+void wrap_retro_deinit(void)
+{
+	retro_deinit();
+	config_free();
 }
