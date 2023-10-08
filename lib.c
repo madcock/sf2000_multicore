@@ -102,6 +102,11 @@ int	fstat(int fd, struct stat *sbuf)
 	return ret;
 }
 
+int mkdir(const char *path, mode_t mode)
+{
+	return fs_mkdir(path, mode);
+}
+
 void abort(void)
 {
 	unsigned ra;
@@ -130,4 +135,9 @@ int rename(const char *old, const char* new)
 int isatty(int fd)
 {
     return 0;
+}
+
+clock_t clock(void)
+{
+	return (clock_t)os_get_tick_count();
 }

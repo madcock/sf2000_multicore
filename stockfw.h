@@ -6,10 +6,12 @@
 extern int fs_stat(const char *path, void *sbuf);
 extern int fs_fstat(int fd, void *sbuf);
 extern int fs_sync(const char *path);
+extern int fs_mkdir(const char *path, mode_t mode);
 
 extern void osal_tds2_cache_flush(void *buf, unsigned sz);
 extern int dly_tsk(unsigned ms);
 extern void os_disable_interrupt(void);
+extern uint32_t os_get_tick_count(void);
 
 extern int run_emulator(int load_state);
 

@@ -62,8 +62,9 @@ write	= 0x802a5f28;
 lseek	= 0x802a6048;
 close	= 0x802a6188;
 
-fs_fstat   = 0x802a5d34;
-fs_stat    = 0x802a5d58;
+fs_fstat = 0x802a5d34;
+fs_stat  = 0x802a5d58;
+fs_mkdir = 0x802a5b68;
 
 fs_sync = 0x802a58e4;
 
@@ -81,6 +82,8 @@ fwrite	= 0x802adf60;
 osal_tds2_cache_flush	= 0x80049214;
 os_disable_interrupt	= 0x802da404;
 os_enable_interrupt		= 0x802da42c;
+
+os_get_tick_count = 0x80309b7c;
 
 dly_tsk	= 0x80309134;
 
