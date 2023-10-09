@@ -24,11 +24,16 @@ static void config_load();
 static void config_free();
 static bool config_get_var(struct retro_variable *var);
 
-static retro_environment_t environ_cb;
+static retro_environment_t 			environ_cb;
+static retro_audio_sample_batch_t	audio_batch_cb;
 
 static void wrap_retro_set_environment(retro_environment_t cb);
-static bool wrap_retro_load_game(const struct retro_game_info* info);
+static void wrap_retro_set_audio_sample_batch(retro_audio_sample_batch_t cb);
+
 static bool wrap_environ_cb(unsigned cmd, void *data);
+static size_t wrap_audio_batch_cb(const int16_t *data, size_t frames);
+
+static bool wrap_retro_load_game(const struct retro_game_info* info);
 static void wrap_retro_init(void);
 static void wrap_retro_deinit(void);
 
@@ -47,7 +52,7 @@ struct retro_core_t core_exports = {
    .retro_set_environment = wrap_retro_set_environment,
    .retro_set_video_refresh = retro_set_video_refresh,
    .retro_set_audio_sample = retro_set_audio_sample,
-   .retro_set_audio_sample_batch = retro_set_audio_sample_batch,
+   .retro_set_audio_sample_batch = wrap_retro_set_audio_sample_batch,
    .retro_set_input_poll = retro_set_input_poll,
    .retro_set_input_state = retro_set_input_state,
    .retro_set_controller_port_device = retro_set_controller_port_device,
@@ -389,4 +394,25 @@ void wrap_retro_deinit(void)
 {
 	retro_deinit();
 	config_free();
+}
+
+void wrap_retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
+{
+	audio_batch_cb = cb;
+	retro_set_audio_sample_batch(wrap_audio_batch_cb);
+}
+
+size_t wrap_audio_batch_cb(const int16_t *data, size_t frames)
+{
+	// TODO: data assumed to be s16bit dual channel buffer?
+
+	for (size_t i=0; i < frames*2; i+=2)
+	{
+		// for single speaker output, mix to mono both channels into the first channel
+		((int16_t*)data)[i] = (data[i] >> 1) + (data[i+1] >> 1);
+		// leave the second channel as is because it is not heard anyway
+		//((int16_t*)data)[i+1] = 0;
+	}
+
+	return audio_batch_cb(data, frames);
 }
