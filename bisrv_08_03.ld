@@ -66,6 +66,10 @@ fs_fstat = 0x802a5d34;
 fs_stat  = 0x802a5d58;
 fs_mkdir = 0x802a5b68;
 
+fs_opendir  = 0x802a5adc;
+fs_closedir = 0x802a61a4;
+fs_readdir  = 0x802a60ec;
+
 fs_sync = 0x802a58e4;
 
 strdup	= 0x802acb40; /* only needed for vfs it seems */

@@ -8,6 +8,10 @@ extern int fs_fstat(int fd, void *sbuf);
 extern int fs_sync(const char *path);
 extern int fs_mkdir(const char *path, mode_t mode);
 
+extern int fs_opendir(const char *path);
+extern int fs_closedir(int fd);
+extern ssize_t fs_readdir(int fd, void *buffer);
+
 extern void osal_tds2_cache_flush(void *buf, unsigned sz);
 extern int dly_tsk(unsigned ms);
 extern void os_disable_interrupt(void);

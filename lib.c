@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include "debug.h"
 #include "stockfw.h"
+#include "dirent.h"
 
 extern void osal_tds2_cache_flush(void *buf, unsigned sz);
 
@@ -92,7 +93,7 @@ int	fstat(int fd, struct stat *sbuf)
 {
 	fs_stat_t buffer = {0};
 	int ret = fs_fstat(fd, &buffer);
-	if (ret == 0)
+	if (ret == 0)	// 0 means success
 	{
 		memset(sbuf, 0, sizeof(*sbuf));
 		sbuf->st_mode = S_ISREG(buffer.type)*S_IFREG | S_ISDIR(buffer.type)*S_IFDIR;
@@ -140,4 +141,53 @@ int isatty(int fd)
 clock_t clock(void)
 {
 	return (clock_t)os_get_tick_count();
+}
+
+DIR *opendir(const char *path)
+{
+	int fd = fs_opendir(path);
+	if (fd < 0)
+		return NULL;
+
+	return (DIR*)(fd + 1);
+}
+
+int closedir(DIR *dir)
+{
+	int fd = (int)dir - 1;
+	if (fd < 0)
+		return -1;
+
+	return fs_closedir(fd);
+}
+
+struct dirent *readdir(DIR *dir)
+{
+	int fd = (int)dir - 1;
+	if (fd < 0)
+		return NULL;
+
+	struct {
+		union {
+			struct {
+				uint8_t _1[0x10];
+				uint32_t type;
+			};
+			struct {
+				uint8_t _2[0x22];
+				char    d_name[0x225];
+			};
+			uint8_t __[0x428];
+		};
+	} buffer = {0};
+
+	if (fs_readdir(fd, &buffer) < 0)
+		return NULL;
+
+	// TODO: not thread safe
+	static struct dirent d;
+
+	d.d_type = S_ISREG(buffer.type)*DTYPE_FILE | S_ISDIR(buffer.type)*DTYPE_DIRECTORY;
+	strncpy(d.d_name, buffer.d_name, sizeof(d.d_name));
+	return &d;
 }
