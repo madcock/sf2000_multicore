@@ -43,6 +43,9 @@ static const char *s_game_filepath = NULL;
 static int state_load(const char *frontend_state_filepath);
 static int state_save(const char *frontend_state_filepath);
 
+static void enable_xrgb8888_support();
+static void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, size_t stride);
+
 struct retro_core_t core_exports = {
    .retro_init = wrap_retro_init,
    .retro_deinit = wrap_retro_deinit,
@@ -239,11 +242,23 @@ bool wrap_environ_cb(unsigned cmd, void *data)
 			log_cb(RETRO_LOG_INFO, "[Environ]: SET_MEMORY_MAPS\n");
 			break;
 		}
+
 		case RETRO_ENVIRONMENT_SET_GEOMETRY:
 		{
 			const struct retro_game_geometry *geom = (const struct retro_game_geometry*)data;
             log_cb(RETRO_LOG_INFO, "[Environ]: SET_GEOMETRY: %ux%u, Aspect: %.3f.\n",
 				geom->base_width, geom->base_height, geom->aspect_ratio);
+			break;
+		}
+
+		case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
+		{
+			enum retro_pixel_format fmt = *(enum retro_pixel_format*)data;
+			if (RETRO_PIXEL_FORMAT_XRGB8888)
+			{
+				enable_xrgb8888_support();
+				return true;
+			}
 			break;
 		}
 	}
@@ -415,4 +430,36 @@ size_t wrap_audio_batch_cb(const int16_t *data, size_t frames)
 	}
 
 	return audio_batch_cb(data, frames);
+}
+
+void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, size_t stride)
+{
+	uint32_t* xrgb8888_buffer = (uint32_t*)buffer;
+	uint16_t* rgb565_buffer = (uint16_t*)buffer;
+
+    for (int y = 0; y < height; y++)
+	{
+        for (int x = 0; x < width; x++)
+		{
+            int index = y * stride / sizeof(uint32_t) + x;
+
+            uint32_t xrgbPixel = xrgb8888_buffer[index];
+
+            uint16_t rgb565Pixel = ((xrgbPixel >> 8) & 0xF800) | ((xrgbPixel >> 5) & 0x07E0) | ((xrgbPixel >> 3) & 0x001F);
+
+            rgb565_buffer[index] = rgb565Pixel;
+        }
+    }
+}
+
+void wrap_retro_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch)
+{
+	convert_xrgb8888_to_rgb565((void*)data, width, height, pitch);
+	retro_video_refresh_cb(data, width, height, width * 2);		// each pixel is now 16bit, so pass the pitch as width*2
+}
+
+static void enable_xrgb8888_support()
+{
+	xlog("support for XRGB8888 enabled\n");
+	retro_set_video_refresh(wrap_retro_video_refresh_cb);
 }
