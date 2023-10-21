@@ -28,17 +28,27 @@ LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libc.a)))
 LIBS+=-lc -lm
 LIBS+=-lstdc++
 
-LIBRETRO_COMM_DIR=$(abspath libs/libretro-common)
-export LIBRETRO_COMM_DIR
-
 CORE_OBJS=core_api.o lib.o debug.o
 LOADER_OBJS=init.o main.o debug.o
 
-CORE=cores/stella2014
-CONSOLE=a26
+# CORE=cores/vice
+# CONSOLE=c64
+
+CORE=cores/2048
+MAKEFILE=-f Makefile.libretro
+CONSOLE=2048
+
+# CORE=cores/lowres-nx/platform/LibRetro
+# CONSOLE=lownx
+
+# CORE=cores/stella2014
+# CONSOLE=a26
 
 # CORE=cores/beetle-pce-fast
 # CONSOLE=pce
+
+# CORE=cores/beetle-supergrafx
+# CONSOLE=pcesgx
 
 # CORE=cores/gambatte
 # CORE=cores/tgbdual
@@ -61,7 +71,7 @@ all: core_87000000 bisrv.asd install
 
 libretro_core:
 	@$(call echo_i,"compiling $(CORE)")
-	$(MAKE) -j$(NPROC) -C $(CORE) platform=sf2000
+	$(MAKE) -j$(NPROC) -C $(CORE) $(MAKEFILE) platform=sf2000
 
 libretro_core.a: libretro_core
 	cp $(CORE)/*.a libretro_core.a
@@ -146,7 +156,7 @@ clean:
 	-rm -f loader.elf loader.bin core.elf core_87000000
 	-rm -f bisrv.asd
 	-rm -f libretro_core.a
-	$(MAKE) -j$(NPROC) -C $(CORE) clean platform=sf2000
+	$(MAKE) -j$(NPROC) -C $(CORE) $(MAKEFILE) clean platform=sf2000
 
 .PHONY: all clean
 
