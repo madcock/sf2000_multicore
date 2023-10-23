@@ -254,7 +254,7 @@ bool wrap_environ_cb(unsigned cmd, void *data)
 		case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
 		{
 			enum retro_pixel_format fmt = *(enum retro_pixel_format*)data;
-			if (RETRO_PIXEL_FORMAT_XRGB8888)
+			if (fmt == RETRO_PIXEL_FORMAT_XRGB8888)
 			{
 				enable_xrgb8888_support();
 				return true;
