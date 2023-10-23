@@ -83,6 +83,8 @@ static void clear_bss()
     void *end = &_end;
 
 	memset(start, 0, end - start);
+
+	xlog("clear_bss: start=%p end=%p\n", &__bss_start, &_end);
 }
 
 static void call_ctors()

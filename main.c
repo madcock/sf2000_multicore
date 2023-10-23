@@ -53,7 +53,7 @@ void load_and_run_core(const char *file_path, int load_state)
 {
 	callonce_init();
 
-	xlog("run file=%s\n", file_path);
+	xlog("loader: run file=%s\n", file_path);
 
 	// this will show a blueish flickering at the top of the screen when loading a rom.
 	// it will act as an indicator that a custom core and not a stock emulator is running.
@@ -100,14 +100,11 @@ void load_and_run_core(const char *file_path, int load_state)
 	fread(core_load_addr, 1, core_size, pf);
 	fclose(pf);
 
-	xlog("core loaded\n");
+	xlog("loader: core loaded\n");
 
 	xcache_flush(core_load_addr, core_size);
 
-	xlog("cache flushed\n");
-
-	//osal_tds2_cache_flush(core_load_addr, core_size);
-	/* TODO I-cache must be invalidated to load a different core over */
+	xlog("loader: cache flushed\n");
 
 	// address of the core entry function resides at the begining of the loaded core
 	core_entry_t core_entry = core_load_addr;
@@ -125,7 +122,7 @@ void load_and_run_core(const char *file_path, int load_state)
 	core_api->retro_set_input_state(retro_input_state_cb);
 	core_api->retro_set_environment(retro_set_environment_cb);
 
-	xlog("retro_init\n");
+	xlog("loader: retro_init\n");
 	core_api->retro_init();
 
 	g_retro_game_info.path = romfile;
@@ -138,10 +135,10 @@ void load_and_run_core(const char *file_path, int load_state)
 	gfn_retro_unload_game	= core_api->retro_unload_game;
 	gfn_retro_run			= core_api->retro_run;
 
-	xlog("run_emulator(%d)\n", load_state);
+	xlog("loader: run_emulator(%d)\n", load_state);
 	run_emulator(load_state);
 
-	xlog("retro_deinit\n");
+	xlog("loader: retro_deinit\n");
 	core_api->retro_deinit();
 }
 
