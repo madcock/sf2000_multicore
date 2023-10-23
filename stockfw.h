@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+extern size_t fw_fread(void *ptr, size_t size, size_t count, FILE *stream);
+
 extern int fs_stat(const char *path, void *sbuf);
 extern int fs_fstat(int fd, void *sbuf);
 extern int fs_sync(const char *path);

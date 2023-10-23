@@ -59,6 +59,15 @@ void rewind(FILE *stream)
 	fseeko(stream, 0, SEEK_SET);
 }
 
+// stock fw_fread returns the wrong value on success
+// it should return the count of elements, but it returns the number of bytes instead
+size_t fread(void *ptr, size_t size, size_t count, FILE *stream)
+{
+	size_t ret = fw_fread(ptr, size, count, stream);
+	// TODO: check if this is correct for all cases
+	return ret / size;
+}
+
 typedef struct {
 	union {
 		struct {

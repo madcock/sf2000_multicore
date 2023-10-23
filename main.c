@@ -97,7 +97,7 @@ void load_and_run_core(const char *file_path, int load_state)
 	fseeko(pf, 0, SEEK_END);
 	core_size = ftell(pf);
 	fseeko(pf, 0, SEEK_SET);
-	fread(core_load_addr, 1, core_size, pf);
+	fw_fread(core_load_addr, 1, core_size, pf);
 	fclose(pf);
 
 	xlog("loader: core loaded\n");
