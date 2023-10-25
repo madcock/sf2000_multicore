@@ -46,6 +46,9 @@ static int state_save(const char *frontend_state_filepath);
 static void enable_xrgb8888_support();
 static void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, size_t stride);
 
+static void wrap_retro_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
+static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id);
+
 struct retro_core_t core_exports = {
    .retro_init = wrap_retro_init,
    .retro_deinit = wrap_retro_deinit,
@@ -83,7 +86,6 @@ static void clear_bss()
     void *end = &_end;
 
 	memset(start, 0, end - start);
-
 	xlog("clear_bss: start=%p end=%p\n", &__bss_start, &_end);
 }
 
@@ -143,6 +145,9 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 	// setup load/save state handlers
 	gfn_state_load = state_load;
 	gfn_state_save = state_save;
+
+	// install custom input handler to filter out all requests for non-joypad devices
+	retro_set_input_state(wrap_input_state_cb);
 
 	// if core wants to load the content by itself directly from files, then let it
 	if (sysinfo.need_fullpath)
@@ -421,8 +426,7 @@ void wrap_retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
 
 size_t wrap_audio_batch_cb(const int16_t *data, size_t frames)
 {
-	// TODO: data assumed to be s16bit dual channel buffer?
-
+	// TODO: is data is always assumed to be s16bit dual channel buffer?
 	for (size_t i=0; i < frames*2; i+=2)
 	{
 		// for single speaker output, mix to mono both channels into the first channel
@@ -464,4 +468,12 @@ static void enable_xrgb8888_support()
 {
 	xlog("support for XRGB8888 enabled\n");
 	retro_set_video_refresh(wrap_retro_video_refresh_cb);
+}
+
+static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id)
+{
+	if ((port == 0) && (device == RETRO_DEVICE_JOYPAD))
+		return retro_input_state_cb(port, device, index, id);
+	else
+		return 0;
 }
