@@ -26,6 +26,7 @@ static bool config_get_var(struct retro_variable *var);
 
 static retro_environment_t 			environ_cb;
 static retro_audio_sample_batch_t	audio_batch_cb;
+static retro_audio_buffer_status_callback_t	audio_buff_status_cb;
 
 static void wrap_retro_set_environment(retro_environment_t cb);
 static void wrap_retro_set_audio_sample_batch(retro_audio_sample_batch_t cb);
@@ -48,6 +49,8 @@ static void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned he
 
 static void wrap_retro_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
 static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id);
+
+static void frameskip_cb(bool flag);
 
 struct retro_core_t core_exports = {
    .retro_init = wrap_retro_init,
@@ -145,6 +148,8 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 	// setup load/save state handlers
 	gfn_state_load = state_load;
 	gfn_state_save = state_save;
+
+	gfn_frameskip = NULL;
 
 	// install custom input handler to filter out all requests for non-joypad devices
 	retro_set_input_state(wrap_input_state_cb);
@@ -267,6 +272,21 @@ bool wrap_environ_cb(unsigned cmd, void *data)
 				return true;
 			}
 			break;
+		}
+
+		case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
+		{
+			struct retro_audio_buffer_status_callback *buff_status_cb = (struct retro_audio_buffer_status_callback*)data;
+			if (buff_status_cb)
+			{
+				audio_buff_status_cb = buff_status_cb->callback;
+				gfn_frameskip = frameskip_cb;
+			}
+			else
+				gfn_frameskip = NULL;
+
+			xlog("support for auto frameskipping %s\n", buff_status_cb ? "enabled" : "disabled" );
+			return true;
 		}
 	}
 	return environ_cb(cmd, data);
@@ -476,4 +496,9 @@ static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned inde
 		return retro_input_state_cb(port, device, index, id);
 	else
 		return 0;
+}
+
+static void frameskip_cb(bool flag)
+{
+	audio_buff_status_cb(flag /*active*/, 0 /*occupancy*/, true /*underrun_likely*/);
 }

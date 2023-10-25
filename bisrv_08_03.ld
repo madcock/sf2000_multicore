@@ -122,6 +122,7 @@ gfn_get_system_av_info	= 0x80c10808;
 gfn_retro_load_game		= 0x80c10828;
 gfn_retro_unload_game	= 0x80c10830;
 gfn_retro_run	= 0x80c10840;
+gfn_frameskip	= 0x80c1083c;
 
 g_run_file_size	= 0x80c107d8;
 gp_buf_64m	= 0x80c10834;
