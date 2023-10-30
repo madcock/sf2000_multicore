@@ -50,7 +50,7 @@ static void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned he
 static void wrap_retro_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
 static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id);
 
-static void frameskip_cb(bool flag);
+static void frameskip_cb(BOOL flag);
 
 struct retro_core_t core_exports = {
    .retro_init = wrap_retro_init,
@@ -446,7 +446,7 @@ void wrap_retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
 
 size_t wrap_audio_batch_cb(const int16_t *data, size_t frames)
 {
-	// TODO: is data is always assumed to be s16bit dual channel buffer?
+	// TODO: is data always assumed to be s16bit dual channel buffer?
 	for (size_t i=0; i < frames*2; i+=2)
 	{
 		// for single speaker output, mix to mono both channels into the first channel
@@ -498,7 +498,7 @@ static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned inde
 		return 0;
 }
 
-static void frameskip_cb(bool flag)
+static void frameskip_cb(BOOL flag)
 {
-	audio_buff_status_cb(flag /*active*/, 0 /*occupancy*/, true /*underrun_likely*/);
+	audio_buff_status_cb(flag == 1 /*active*/, 0 /*occupancy*/, true /*underrun_likely*/);
 }

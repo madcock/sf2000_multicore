@@ -3,12 +3,14 @@
 
 #include <stdbool.h>
 
+typedef int BOOL;
+
 extern size_t fw_fread(void *ptr, size_t size, size_t count, FILE *stream);
 
 extern int fs_stat(const char *path, void *sbuf);
 extern int fs_fstat(int fd, void *sbuf);
 extern int fs_sync(const char *path);
-extern int fs_mkdir(const char *path, mode_t mode);
+extern int fs_mkdir(const char *path, int mode);
 
 extern int fs_opendir(const char *path);
 extern int fs_closedir(int fd);
@@ -42,7 +44,7 @@ extern void (* gfn_get_system_av_info)(struct retro_system_av_info *info);
 extern bool (* gfn_retro_load_game)(const struct retro_game_info *game);
 extern void (* gfn_retro_unload_game)(void);
 extern void (* gfn_retro_run)(void);
-extern void (* gfn_frameskip)(bool flag);
+extern void (* gfn_frameskip)(BOOL flag);
 
 extern int g_snd_task_flags;
 
