@@ -22,6 +22,7 @@ extern void os_disable_interrupt(void);
 extern uint32_t os_get_tick_count(void);
 
 extern int run_emulator(int load_state);
+extern void run_gba(const char *filename, int load_state);
 
 extern void retro_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
 extern size_t retro_audio_sample_batch_cb(const int16_t *data, size_t frames);

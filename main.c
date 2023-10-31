@@ -26,10 +26,10 @@ static char *romfile = NULL;
 static char *tmpbuffer = NULL;
 
 
-bool parse_filename(const char *file_path, const char**dir, const char **filename)
+bool parse_filename(const char *file_path, const char**corename, const char **filename)
 {
 	char* s = strncpy(tmpbuffer, file_path, MAXPATH);
-	*dir = s;
+	*corename = s;
 
 	char* p = strchr(s, ';');
 	if (!p) return false;
@@ -39,7 +39,7 @@ bool parse_filename(const char *file_path, const char**dir, const char **filenam
 	if (!pp) return false;
 	*(pp++) = 0;
 
-	*dir = pp;
+	*corename = pp;
 	*filename = p;
 
 	char* p2 = strrchr(p, '.');
@@ -54,6 +54,15 @@ void load_and_run_core(const char *file_path, int load_state)
 	callonce_init();
 
 	xlog("loader: run file=%s\n", file_path);
+
+	// the expected template for file_path is - [corename];[rom filename].gba
+	const char *corename;
+	const char *filename;
+	if (!parse_filename(file_path, &corename, &filename)) {
+		xlog("filename is not a multicore stub...calling original run_gba\n");
+		run_gba(file_path, load_state);
+		return;
+	}
 
 	// this will show a blueish flickering at the top of the screen when loading a rom.
 	// it will act as an indicator that a custom core and not a stock emulator is running.
@@ -74,16 +83,8 @@ void load_and_run_core(const char *file_path, int load_state)
 	/* FIXME! all of it!! */
 	RAMSIZE = 0x87000000;
 
-	// the expected template for file_path is - [console];[rom filename].gba
-	const char *console;
-	const char *filename;
-	if (!parse_filename(file_path, &console, &filename)) {
-		xlog("Error parsing filename\n");
-		return;
-	}
-
-	snprintf(corefile, MAXPATH, "/mnt/sda1/cores/%s/core_87000000", console);
-	snprintf(romfile, MAXPATH, "/mnt/sda1/ROMS/%s/%s", console, filename);
+	snprintf(corefile, MAXPATH, "/mnt/sda1/cores/%s/core_87000000", corename);
+	snprintf(romfile, MAXPATH, "/mnt/sda1/ROMS/%s/%s", corename, filename);
 
 	xlog("corefile=%s\n", corefile);
 	xlog("romfile=%s\n", romfile);
