@@ -52,6 +52,9 @@ static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned inde
 
 static void frameskip_cb(BOOL flag);
 
+static void dummy_retro_run(void);
+
+
 struct retro_core_t core_exports = {
    .retro_init = wrap_retro_init,
    .retro_deinit = wrap_retro_deinit,
@@ -191,7 +194,15 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 		free(buffer);
 	}
 
-	xlog("retro_load_game: ret=%d\n", ret);
+
+	if (!ret)
+	{
+		xlog("retro_load_game failed\n");
+		gfn_retro_run = dummy_retro_run;
+	}
+	else
+		xlog("retro_load_game ok\n");
+
 	return ret;
 }
 
@@ -501,4 +512,10 @@ static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned inde
 static void frameskip_cb(BOOL flag)
 {
 	audio_buff_status_cb(flag == 1 /*active*/, 0 /*occupancy*/, true /*underrun_likely*/);
+}
+
+static void dummy_retro_run(void)
+{
+	dly_tsk(1);
+	//environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
 }
