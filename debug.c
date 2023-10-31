@@ -184,9 +184,10 @@ void xlog(const char *fmt, ...)
 	// should consider changing hlog to be static and only open the log file once.
 	// but in that case the cores should not have their own xlog, but rather the loader
 	// would pass its xlog to the cores, so that there would be only one open hlog handle.
-	FILE* hlog = NULL;
+
+	FILE* hlog = fopen(LOG_FILENAME, "a");
 	if (!hlog)
-		hlog = fopen(LOG_FILENAME, "a");
+		return;
 
 	char buffer[999];
 
@@ -196,8 +197,6 @@ void xlog(const char *fmt, ...)
 	va_end(args);
 
 	fwrite(buffer, strlen(buffer), 1, hlog);
-	fflush(hlog);
-
 	fclose(hlog);
 
 	fs_sync(LOG_FILENAME);
