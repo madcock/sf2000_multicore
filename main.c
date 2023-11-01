@@ -13,8 +13,8 @@ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND! */
 #include "stockfw.h"
 #include "debug.h"
 
-static void callonce_init();
-static void core_cache_flush();
+static void init_once();
+static void full_cache_flush();
 
 static int state_stub(const char *path) {
 	return 1;
@@ -51,7 +51,7 @@ bool parse_filename(const char *file_path, const char**corename, const char **fi
 
 void load_and_run_core(const char *file_path, int load_state)
 {
-	callonce_init();
+	init_once();
 
 	xlog("loader: run file=%s\n", file_path);
 
@@ -103,7 +103,7 @@ void load_and_run_core(const char *file_path, int load_state)
 
 	xlog("loader: core loaded\n");
 
-	core_cache_flush();
+	full_cache_flush();
 
 	xlog("loader: cache flushed\n");
 
@@ -170,13 +170,13 @@ static void clear_bss()
 	memset(start, 0, end - start);
 }
 
-static void callonce_init()
+static void init_once()
 {
-	static bool do_init = true;
-	if (!do_init)
+	static bool first_call = true;
+	if (!first_call)
 		return;
 
-	do_init = false;
+	first_call = false;
 
 	clear_bss();
 	lcd_init();
@@ -188,7 +188,7 @@ static void callonce_init()
 	tmpbuffer = malloc(MAXPATH);
 }
 
-static void core_cache_flush()
+static void full_cache_flush()
 {
 	unsigned idx;
 
