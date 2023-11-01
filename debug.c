@@ -174,9 +174,19 @@ void lcd_bsod(const char *fmt, ...)
 	} while (1);
 }
 
+
+#define LOG_FILENAME "/mnt/sda1/log.txt"
+
+void xlog_clear()
+{
+	// we don't have a fs delete function, so instead just truncate the log file
+	FILE *hlog = fopen(LOG_FILENAME, "w");
+	if (hlog)
+		fclose(hlog);
+}
+
 void xlog(const char *fmt, ...)
 {
-#define LOG_FILENAME "/mnt/sda1/log.txt"
 	// TODO: currently simply open and close the log file after each print.
 	// yes it might be slow, but it also allows both the loader and the dynamically
 	// loaded cores to have and use their own copy of xlog without conflicts.

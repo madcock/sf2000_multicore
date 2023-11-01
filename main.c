@@ -181,6 +181,8 @@ static void callonce_init()
 	clear_bss();
 	lcd_init();
 
+	xlog_clear();
+
 	corefile = malloc(MAXPATH);
 	romfile = malloc(MAXPATH);
 	tmpbuffer = malloc(MAXPATH);

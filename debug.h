@@ -13,6 +13,7 @@ void dbg_print(const char *fmt, ...);
 void dbg_show();
 void dbg_show_noblock();
 
+void xlog_clear();
 void xlog(const char *fmt, ...);
 #define XLOG(format, ...) xlog("%s:%d:%s " format, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 
