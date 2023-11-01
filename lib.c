@@ -59,6 +59,11 @@ void rewind(FILE *stream)
 	fseeko(stream, 0, SEEK_SET);
 }
 
+void setbuf(FILE *stream, char *buffer)
+{
+	// ignore calls setbuf
+}
+
 // stock fw_fread returns the wrong value on success
 // it should return the count of elements, but it returns the number of bytes instead
 size_t fread(void *ptr, size_t size, size_t count, FILE *stream)
