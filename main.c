@@ -14,7 +14,7 @@ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND! */
 #include "debug.h"
 
 static void callonce_init();
-static void xcache_flush(void *addr, size_t size);
+static void core_cache_flush();
 
 static int state_stub(const char *path) {
 	return 1;
@@ -103,7 +103,7 @@ void load_and_run_core(const char *file_path, int load_state)
 
 	xlog("loader: core loaded\n");
 
-	xcache_flush(core_load_addr, core_size);
+	core_cache_flush();
 
 	xlog("loader: cache flushed\n");
 
@@ -186,15 +186,14 @@ static void callonce_init()
 	tmpbuffer = malloc(MAXPATH);
 }
 
-static void xcache_flush(void *addr, size_t size)
+static void core_cache_flush()
 {
-	uintptr_t idx;
-	uintptr_t begin = (uintptr_t)addr;
-	uintptr_t end = begin + size - 1;
+	unsigned idx;
+
 	// Index_Writeback_Inv_D
-	for (idx = begin; idx <= end; idx += 16)
+	for (idx = 0x80000000; idx <= 0x80004000; idx += 16)
 		asm volatile("cache 1, 0(%0); cache 1, 0(%0)" : : "r"(idx));
 	// Index_Invalidate_I
-	for (idx = begin; idx <= end; idx += 16)
+	for (idx = 0x80000000; idx <= 0x80004000; idx += 16)
 		asm volatile("cache 0, 0(%0); cache 0, 0(%0)" : : "r"(idx));
 }
