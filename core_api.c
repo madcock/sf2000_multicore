@@ -466,7 +466,10 @@ size_t wrap_audio_batch_cb(const int16_t *data, size_t frames)
 		//((int16_t*)data)[i+1] = 0;
 	}
 
-	return audio_batch_cb(data, frames);
+	// NOTE: stock frontend audio_batch_cb always return 0!
+	audio_batch_cb(data, frames);
+	// return `frames` as if all data was consumed
+	return frames;
 }
 
 void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, size_t stride)
