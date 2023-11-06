@@ -6,6 +6,9 @@ More information about the SF2000 handheld gaming system can be found [here](htt
 ## Status
 Some cores build and work well, others build and have issues (no sound, slowness, etc.), some build but do not currently work, and others do not build at all. For current information on the state of each core, please see the [spreadsheet](https://docs.google.com/spreadsheets/d/1BDPqLwRcY2cN7tObuyW7RzLw8oGyY9XGLS1D4jLgz2Q/edit?usp=sharing).
 
+## Releases
+Multicore releases can be found here: https://github.com/madcock/sf2000_multicore_cores/releases
+
 ## Setup
 (This is the top level project, forked from: https://gitlab.com/kobily/sf2000_multicore)
 - choose a directory to contain all this
