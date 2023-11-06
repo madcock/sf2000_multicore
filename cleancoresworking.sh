@@ -43,7 +43,13 @@ make clean CONSOLE=o2em		CORE=cores/libretro-o2em	&& \
 make clean CONSOLE=pcesgx	CORE=cores/libretro-beetle-supergrafx	&& \
 make clean CONSOLE=pcfx		CORE=cores/libretro-beetle-pcfx	&& \
 make clean CONSOLE=vb		CORE=cores/libretro-beetle-vb	&& \
+make clean CONSOLE=sms		CORE=cores/smsplus-gx	MAKEFILE=-fMakefile.libretro	&& \
 make clean CONSOLE=gpgx		CORE=cores/Genesis-Plus-GX	MAKEFILE=-fMakefile.libretro	&& \
 make clean CONSOLE=xmil		CORE=cores/libretro-xmil/libretro	&& \
+
+#test cores
+make clean CONSOLE=testadv		CORE=cores/libretro-samples/tests/test_advanced	&& \
+make clean CONSOLE=testwav		CORE=cores/libretro-samples/audio/audio_playback_wav	&& \
+
 
 true
