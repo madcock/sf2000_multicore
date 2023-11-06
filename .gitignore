@@ -2,7 +2,6 @@
 *.o
 *.map
 cores/*
-libs/*
 sdcard
 
 *.asd
