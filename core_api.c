@@ -519,7 +519,7 @@ static void enable_xrgb8888_support()
 
 static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id)
 {
-	if ((port == 0) && (device == RETRO_DEVICE_JOYPAD))
+	if ((port == 0 || port == 1) && (device == RETRO_DEVICE_JOYPAD))
 		return retro_input_state_cb(port, device, index, id);
 	else
 		return 0;
