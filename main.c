@@ -193,9 +193,14 @@ static void full_cache_flush()
 	unsigned idx;
 
 	// Index_Writeback_Inv_D
-	for (idx = 0x80000000; idx <= 0x80004000; idx += 16)
+	for (idx = 0x80000000; idx <= 0x80004000; idx += 16) // all of D-cache
 		asm volatile("cache 1, 0(%0); cache 1, 0(%0)" : : "r"(idx));
+
+	asm volatile("sync 0; nop; nop");
+
 	// Index_Invalidate_I
-	for (idx = 0x80000000; idx <= 0x80004000; idx += 16)
+	for (idx = 0x80000000; idx <= 0x80004000; idx += 16) // all of I-cache
 		asm volatile("cache 0, 0(%0); cache 0, 0(%0)" : : "r"(idx));
+
+	asm volatile("nop; nop; nop; nop; nop"); // ehb may be nop on this core
 }
