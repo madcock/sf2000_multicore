@@ -9,7 +9,7 @@ Some cores build and work well, others build and have issues (no sound, slowness
 ## Releases
 Multicore releases can be found here: https://github.com/madcock/sf2000_multicore_cores/releases
 
-## Setup
+## Setup (before building)
 (This is the top level project, forked from: https://gitlab.com/kobily/sf2000_multicore)
 - choose a directory to contain all this
 - decide if you want EVERYTHING (there are a lot of cores!)
