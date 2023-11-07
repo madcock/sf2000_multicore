@@ -19,7 +19,7 @@ CFLAGS += -I libs/libretro-common/include
 # CFLAGS += -Wall
 
 LDFLAGS := -EL -nostdlib -z max-page-size=32
-LDFLAGS += --gc-sections
+LDFLAGS += --gc-sections --build-id
 
 LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libgcc.a)))
 LIBS+=-lgcc
@@ -34,9 +34,9 @@ LOADER_OBJS=init.o main.o debug.o
 # CORE=cores/vice
 # CONSOLE=c64
 
-CORE=cores/2048
-MAKEFILE=-f Makefile.libretro
-CONSOLE=2048
+# CORE=cores/2048
+# MAKEFILE=-f Makefile.libretro
+# CONSOLE=2048
 
 # CORE=cores/lowres-nx/platform/LibRetro
 # CONSOLE=lownx
