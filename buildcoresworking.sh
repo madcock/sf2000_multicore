@@ -25,6 +25,7 @@ make CONSOLE=gg			CORE=cores/Gearsystem/platforms/libretro	&& \
 make CONSOLE=spec		CORE=cores/libretro-fuse	&& \
 make CONSOLE=thom		CORE=cores/theodore	&& \
 make CONSOLE=wsv		CORE=cores/potator/platform/libretro	&& \
+make CONSOLE=m2k		CORE=cores/libretro-mame2000	&& \
 
 #working but issues
 make CONSOLE=amstrad	CORE=cores/libretro-crocods	&& \

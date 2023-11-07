@@ -44,6 +44,7 @@ static const char *s_game_filepath = NULL;
 static int state_load(const char *frontend_state_filepath);
 static int state_save(const char *frontend_state_filepath);
 
+static uint16_t* s_rgb565_convert_buffer = NULL;
 static void enable_xrgb8888_support();
 static void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, size_t stride);
 
@@ -193,7 +194,6 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 
 		free(buffer);
 	}
-
 
 	if (!ret)
 	{
@@ -447,6 +447,9 @@ void wrap_retro_deinit(void)
 {
 	retro_deinit();
 	config_free();
+
+	if (s_rgb565_convert_buffer)
+		free(s_rgb565_convert_buffer);
 }
 
 void wrap_retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
@@ -475,7 +478,7 @@ size_t wrap_audio_batch_cb(const int16_t *data, size_t frames)
 void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, size_t stride)
 {
 	uint32_t* xrgb8888_buffer = (uint32_t*)buffer;
-	uint16_t* rgb565_buffer = (uint16_t*)buffer;
+	uint16_t* rgb565_buffer = s_rgb565_convert_buffer;
 
     for (int y = 0; y < height; y++)
 	{
@@ -495,18 +498,28 @@ void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, s
 void wrap_retro_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch)
 {
 	convert_xrgb8888_to_rgb565((void*)data, width, height, pitch);
-	retro_video_refresh_cb(data, width, height, width * 2);		// each pixel is now 16bit, so pass the pitch as width*2
+
+	retro_video_refresh_cb(s_rgb565_convert_buffer, width, height, width * 2);		// each pixel is now 16bit, so pass the pitch as width*2
 }
 
 static void enable_xrgb8888_support()
 {
 	xlog("support for XRGB8888 enabled\n");
+
+	struct retro_system_av_info av_info;
+	retro_get_system_av_info(&av_info);
+
+	s_rgb565_convert_buffer = (uint16_t*)malloc(av_info.geometry.max_width * av_info.geometry.max_height * sizeof(uint16_t));
+
+	xlog("created rgb565_convert_buffer=%p width=%u height=%u\n",
+		s_rgb565_convert_buffer, av_info.geometry.max_width, av_info.geometry.max_height);
+
 	retro_set_video_refresh(wrap_retro_video_refresh_cb);
 }
 
 static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id)
 {
-	if ((port == 0) && (device == RETRO_DEVICE_JOYPAD))
+	if ((port == 0 || port == 1) && (device == RETRO_DEVICE_JOYPAD))
 		return retro_input_state_cb(port, device, index, id);
 	else
 		return 0;

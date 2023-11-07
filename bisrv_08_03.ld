@@ -31,10 +31,12 @@ strtol	= 0x801b1184;
 strtoul	= 0x801b1374;
 
 sbrk    = 0x8028b5f8;	/* TODO: exposing and using sbrk might be dangerous? */
+
 malloc	= 0x8028b8b8;
 free	= 0x8028c4c8;
 realloc	= 0x8028c58c;
 calloc	= 0x8028c844;
+
 vsnprintf	= 0x8028e2d8;
 sprintf	= 0x8028e38c;
 vprintf	= 0x8028e434;
@@ -81,6 +83,7 @@ fseeko	= 0x802ad4b8;
 ftell	= 0x802adbd0;
 ftello	= 0x802adbec;
 fwrite	= 0x802adf60;
+fgets	= 0x802acec0;
 
 /* TDS2 */
 osal_tds2_cache_flush	= 0x80049214;
