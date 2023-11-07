@@ -19,11 +19,11 @@ Multicore releases can be found here: https://github.com/madcock/sf2000_multicor
     - NO, I want to select individual cores
         - `git clone https://github.com/madcock/sf2000_multicore`
         - `cd sf2000_multicore/libs/libretro-common`
-        - `git submodule update --init --recursive`
+        - `git submodule update --init`
         - `cd ../..`
         - choose a core to grab, for example, picodrive
         - `cd cores/picodrive`
-        - `git submodule update --init --recursive`
+        - `git submodule update --init`
         - repeat this process for as many cores as you want
 - from the top level of this repo, install the compiler tools
     - `./install-toolchain.sh`
