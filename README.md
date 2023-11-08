@@ -35,13 +35,21 @@ Multicore releases can be found here: https://github.com/madcock/sf2000_multicor
 If setup properly, there are a few ways to build.
 
 If all the core sources for working cores are available:
-- clean them with `./cleancoresworking.sh`
-- and build them with `./buildcoresworking.sh`
+- `./cleancoresworking.sh` to clean only working cores
+- `./buildcoresworking.sh` to build only working cores
+
+Or use the scripts to clean and build all the buildable cores:
+- `./cleancores.sh` to clean all cores
+- `./buildcores.sh` to build all cores
 
 If only some of the core sources are available:
 - edit the Makefile as necessary to point to the core(s) you want to build
 - the Makefile must include one entry for `CORE` and one for `CONSOLE` with an optional `MAKEFILE` entry
 - the easiest thing to do is just uncomment a single core
+
+Optionally, use the Makefile.everything:
+- uncomment a single core, as described above
+- `make -f Makefile.everything`
 
 All of the cores are independent.
 
