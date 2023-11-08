@@ -21,7 +21,8 @@ make clean CONSOLE=bk			CORE=cores/bk-emulator	MAKEFILE=-fMakefile.libretro	&& \
 make clean CONSOLE=fake08		CORE=cores/fake-08/platform/libretro	&& \
 make clean CONSOLE=glxy		CORE=cores/libretro-galaxy	&& \
 make clean CONSOLE=tennis		CORE=cores/retro-tennis	&& \
-make clean CONSOLE=wolf		CORE=cores/ecwolf/src/libretro	&& \
+#make clean CONSOLE=wolf		CORE=cores/ecwolf/src/libretro	&& \
+
 make clean CONSOLE=int		CORE=cores/FreeIntv	&& \
 make clean CONSOLE=mgba		CORE=cores/mgba	&& \
 make clean CONSOLE=snesn		CORE=cores/snes9x-next	&& \
