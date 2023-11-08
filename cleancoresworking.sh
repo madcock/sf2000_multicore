@@ -25,6 +25,7 @@ make clean CONSOLE=gg		CORE=cores/Gearsystem/platforms/libretro	&& \
 make clean CONSOLE=spec		CORE=cores/libretro-fuse	&& \
 make clean CONSOLE=thom		CORE=cores/theodore	&& \
 make clean CONSOLE=wsv		CORE=cores/potator/platform/libretro	&& \
+make clean CONSOLE=m2k		CORE=cores/libretro-mame2000	&& \
 
 #working but issues
 make clean CONSOLE=amstrad	CORE=cores/libretro-crocods	&& \
