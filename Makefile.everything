@@ -212,6 +212,10 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-cap32
 #CONSOLE=amstradb
 #
+#####################################
+# must generate files before building
+#####################################
+#make -C cores/fbalpha2012/svn-current/trunk platform=sf2000 -fmakefile.libretro generate-files
 #CORE=cores/fbalpha2012/svn-current/trunk
 #MAKEFILE=-f makefile.libretro
 #CONSOLE=fba
@@ -229,9 +233,13 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/fbalpha2012_neogeo
 #CONSOLE=neogeo
 #
+#####################################
+# must generate files before building
+# see: https://github.com/libretro/FBNeo/issues/900
+#####################################
+#make -C cores/FBNeo/src/burner/libretro platform=sf2000 generate-files
 #CORE=cores/FBNeo/src/burner/libretro
 #CONSOLE=fbn
-# see: https://github.com/libretro/FBNeo/issues/900
 #
 #CORE=cores/mame2003_midway
 #CONSOLE=mame2003mw
