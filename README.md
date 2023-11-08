@@ -56,3 +56,5 @@ All the latest information can be found in the [dev channel on Discord](https://
 ## Notes
 This repo was forked from the official repo in github that kobil maintains at https://gitlab.com/kobily/sf2000_multicore
 I will try to keep things here in sync.
+
+Here are some useful notes on dealing with submodules: <https://www.vogella.com/tutorials/GitSubmodules/article.html>
