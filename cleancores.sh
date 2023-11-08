@@ -29,8 +29,8 @@ make clean CONSOLE=snesn		CORE=cores/snes9x-next	&& \
 make clean CONSOLE=x68k		CORE=cores/libretro-px68k	&& \
 make clean CONSOLE=psx		CORE=cores/libretro-beetle-psx	&& \
 make clean CONSOLE=vec		CORE=cores/libretro-vecx	&& \
-make clean CONSOLE=fba		CORE=cores/fbalpha2012/svn-current/trunk	MAKEFILE=-fmake cleanfile.libretro	&& \
-#make clean -j5 -C cores/FBNeo/src/burner/libretro platform=sf2000 generate-files	&& make clean CONSOLE=fbn		CORE=cores/FBNeo/src/burner/libretro	&& \
+make clean CONSOLE=fba		CORE=cores/fbalpha2012/svn-current/trunk	MAKEFILE=-fmakefile.libretro	&& \
+#make clean CONSOLE=fbn		CORE=cores/FBNeo/src/burner/libretro	&& \
 
 #fully working
 make clean CONSOLE=a26		CORE=cores/libretro-stella2014	&& \
