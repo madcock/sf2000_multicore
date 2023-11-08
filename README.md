@@ -28,7 +28,7 @@ Multicore releases can be found here: https://github.com/madcock/sf2000_multicor
     - Note: libretro-mrboom takes a very long time to receive, even with `--shallow-submodules`, so I guess be patient!
 - from the top level of this repo, install the compiler tools
     - `./install-toolchain.sh`
-
+ 
 ## Building
 If setup properly, there are a few ways to build.
 
@@ -42,6 +42,13 @@ If only some of the core sources are available:
 - the easiest thing to do is just uncomment a single core
 
 All of the cores are independent.
+
+## Updating
+- update EVERYTHING from the top level of this repo:
+    - `git pull --recurse-submodules`
+    - wait for a while
+- you can still pull from individual directories (like a core), as usual, but you may want to grab submodule updates too:
+    - `git pull; git submodule update --remote`
 
 ## Discussion
 All the latest information can be found in the [dev channel on Discord](https://discord.com/channels/741895796315914271/1099465777825972347) which is part of [Retro Handhelds](https://discord.gg/retrohandhelds).
