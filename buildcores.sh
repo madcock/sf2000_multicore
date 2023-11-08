@@ -29,8 +29,8 @@ make CONSOLE=snesn		CORE=cores/snes9x-next	&& \
 make CONSOLE=x68k		CORE=cores/libretro-px68k	&& \
 make CONSOLE=psx		CORE=cores/libretro-beetle-psx	&& \
 make CONSOLE=vec		CORE=cores/libretro-vecx	&& \
-make -j5 -C cores/fbalpha2012/svn-current/trunk/src/burner/libretro platform=sf2000 generate-files	&& make CONSOLE=fba		CORE=cores/fbalpha2012/svn-current/trunk	MAKEFILE=-fmake cleanfile.libretro	&& \
-#make -j5 -C cores/FBNeo/src/burner/libretro platform=sf2000 generate-files	&& make CONSOLE=fbn		CORE=cores/FBNeo/src/burner/libretro	&& \
+make -C cores/fbalpha2012/svn-current/trunk platform=sf2000 -fmakefile.libretro generate-files	&& make	CONSOLE=fba		CORE=cores/fbalpha2012/svn-current/trunk	MAKEFILE=-fmakefile.libretro	&& \
+#make -C cores/FBNeo/src/burner/libretro platform=sf2000 generate-files	&& make CONSOLE=fbn		CORE=cores/FBNeo/src/burner/libretro	&& \
 
 #fully working
 make CONSOLE=a26		CORE=cores/libretro-stella2014	&& \
@@ -68,7 +68,8 @@ make CONSOLE=a78		CORE=cores/libretro-prosystem	&& \
 make CONSOLE=lnxb		CORE=cores/libretro-beetle-lynx	&& \
 make CONSOLE=wswan		CORE=cores/libretro-beetle-wswan	&& \
 make CONSOLE=lowres-nx	CORE=cores/lowres-nx/platform/LibRetro	&& \
-make CONSOLE=mrboom		CORE=cores/libretro-mrboom	&& \
+#make CONSOLE=mrboom		CORE=cores/libretro-mrboom	&& \
+
 make CONSOLE=jnb		CORE=cores/libretro-jumpnbump	&& \
 make CONSOLE=cavestory	CORE=cores/libretro-nxengine	&& \
 make CONSOLE=flashback	CORE=cores/REminiscence	&& \
