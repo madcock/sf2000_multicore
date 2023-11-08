@@ -29,8 +29,7 @@ make CONSOLE=snesn		CORE=cores/snes9x-next	&& \
 make CONSOLE=x68k		CORE=cores/libretro-px68k	&& \
 make CONSOLE=psx		CORE=cores/libretro-beetle-psx	&& \
 make CONSOLE=vec		CORE=cores/libretro-vecx	&& \
-
-#make CONSOLE=fba		CORE=cores/fbalpha2012/svn-current/trunk	MAKEFILE=-fmakefile.libretro	&& \
+make -j5 -C cores/fbalpha2012/svn-current/trunk/src/burner/libretro platform=sf2000 generate-files	&& make CONSOLE=fba		CORE=cores/fbalpha2012/svn-current/trunk	MAKEFILE=-fmake cleanfile.libretro	&& \
 #make -j5 -C cores/FBNeo/src/burner/libretro platform=sf2000 generate-files	&& make CONSOLE=fbn		CORE=cores/FBNeo/src/burner/libretro	&& \
 
 #fully working
