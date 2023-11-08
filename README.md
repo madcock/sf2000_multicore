@@ -16,6 +16,9 @@ Multicore releases can be found here: https://github.com/madcock/sf2000_multicor
     - YES, I want ALL the cores!
         - `git clone --recurse-submodules --shallow-submodules https://github.com/madcock/sf2000_multicore`
         - wait for a long while
+        - `cd sf2000_multicore`
+        - `git submodule update --init --recursive`
+        - wait for a long while
     - NO, I want to select individual cores
         - `git clone https://github.com/madcock/sf2000_multicore`
         - `cd sf2000_multicore/libs/libretro-common`
