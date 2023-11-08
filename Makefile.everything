@@ -230,6 +230,10 @@ LOADER_OBJS=init.o main.o debug.o
 #MAKEFILE=-f makefile.libretro
 #CONSOLE=cps3
 #
+#####################################
+# must generate files before building
+#####################################
+#make -C cores/fbalpha2012_neogeo platform=sf2000 generate-files
 #CORE=cores/fbalpha2012_neogeo
 #CONSOLE=neogeo
 #
