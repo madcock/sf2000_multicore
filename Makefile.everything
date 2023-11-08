@@ -1,0 +1,551 @@
+NPROC=$(shell nproc)
+SHELL:=/bin/bash
+
+LCDFONT_OFFSET=0x2260
+LOADER_OFFSET=0x1500
+LOADER_ADDR=0x80001500
+LOADER_ADDR_MAX=0x80002180
+
+MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
+
+CC = $(MIPS)gcc
+LD = $(MIPS)ld
+OBJCOPY = $(MIPS)objcopy
+
+CFLAGS := -EL -march=mips32 -mtune=mips32 -msoft-float
+CFLAGS += -Os -G0 -mno-abicalls -fno-pic -ffreestanding
+CFLAGS += -ffunction-sections -fdata-sections
+CFLAGS += -I libs/libretro-common/include
+# CFLAGS += -Wall
+
+LDFLAGS := -EL -nostdlib -z max-page-size=32
+LDFLAGS += --gc-sections --build-id
+
+LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libgcc.a)))
+LIBS+=-lgcc
+
+LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libc.a)))
+LIBS+=-lc -lm
+LIBS+=-lstdc++
+
+CORE_OBJS=core_api.o lib.o debug.o
+LOADER_OBJS=init.o main.o debug.o
+
+
+
+
+## doesn't build yet
+####################
+#CORE=sf2000_multicore_cores/libretro-superbroswar
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=sbw
+#
+#CORE=sf2000_multicore_cores/libretro-simcoupe
+#CONSOLE=sam
+#
+#CORE=sf2000_multicore_cores/mame2003Wii
+#CONSOLE=mame2003Wii
+#
+#CORE=sf2000_multicore_cores/libretro-atari800
+#CONSOLE=a800
+#
+#CORE=sf2000_multicore_cores/libretro-atari800lib
+#CONSOLE=a800l
+#
+#CORE=sf2000_multicore_cores/hatari
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=atarist
+#
+#CORE=sf2000_multicore_cores/libretro-uae
+#CONSOLE=uae
+#
+#CORE=sf2000_multicore_cores/libretro-frodo
+#CONSOLE=c64f
+#
+#CORE=sf2000_multicore_cores/libretro-vice
+#CONSOLE=c64
+#
+#CORE=sf2000_multicore_cores/dosbox-pure
+#CONSOLE=dos
+#
+#CORE=sf2000_multicore_cores/dosbox-svn/libretro
+#CONSOLE=dossvn
+#
+#CORE=sf2000_multicore_cores/ep128emu-core
+#CONSOLE=ep128
+#
+#CORE=sf2000_multicore_cores/meg4/platform/libretro
+#CONSOLE=meg4
+#
+
+######
+#todo: add to git, update to point to new location, and build
+######
+#
+#CORE=cores/libretro-nogg
+#CONSOLE=nogg
+#
+#CORE=cores/libretro-superflappybirds
+#CONSOLE=flappyb
+#
+#CORE=cores/libretro-chailove
+#CONSOLE=love
+#
+#CORE=cores/Dinothawr
+#CONSOLE=dinothawr
+#
+#CORE=cores/libretro-lutro
+#CONSOLE=lut
+#
+#CORE=cores/libretro-onscripter
+#CONSOLE=ons
+#
+#CORE=cores/pzretro
+#CONSOLE=pzscr
+#
+#CORE=cores/scummvm/backends/platform/libretro
+#CONSOLE=scumm
+#
+#CORE=cores/tyrquake
+#CONSOLE=quake
+#
+#CORE=cores/vitaquake2
+#CONSOLE=quake2
+#
+#CORE=cores/libretro-xrick
+#CONSOLE=xrick
+#
+#CORE=cores/libretro-zc210
+#CONSOLE=zeldab
+#
+#CORE=cores/libretro-zc250x
+#CONSOLE=zelda
+#
+#CORE=cores/libretro-x48
+#CONSOLE=x48
+#
+#CORE=cores/libretro-minivmac
+#CONSOLE=mac
+#
+#CORE=cores/libretro-fmsx
+#CONSOLE=fmsx
+#
+#CORE=cores/libretro-blueMSX
+#CONSOLE=msx
+#
+#CORE=cores/libretro-quasi88
+#CONSOLE=pc8800
+#
+#CORE=cores/neocd_libretro
+#CONSOLE=neocd
+#
+#CORE=cores/desmume2015/desmume
+#CONSOLE=nds
+#
+#CORE=cores/PokeMini
+#CONSOLE=pokem
+#
+#CORE=cores/oberon-risc-emu
+#CONSOLE=risc
+#
+#CORE=cores/Mu/libretroBuildSystem
+#CONSOLE=mu
+#
+#CORE=cores/numero
+#CONSOLE=numero
+#
+#CORE=cores/libretro-uzem
+#CONSOLE=uzem
+#
+#CORE=cores/daphne
+#CONSOLE=daph
+#
+#CORE=cores/libretro-wolfenstein3d
+#CONSOLE=wolf3d
+#
+#CORE=cores/libretro-pcem/src
+#CONSOLE=pcem
+#
+#CORE=cores/libretro-gfxprim
+#CONSOLE=gfxprim
+#
+#CORE=cores/pntr
+#CONSOLE=pntr
+#
+#CORE=cores/DirkSimple
+#CONSOLE=DirkSimple
+#
+#CORE=cores/dosbox-core/libretro
+#CONSOLE=dosc
+#
+#CORE=cores/virtualxt
+#CONSOLE=xt
+#
+#CORE=cores/FFmpeg/libretro
+#CONSOLE=ffmpeg
+
+
+## build but doesn't work
+#########################
+#CORE=sf2000_multicore_cores/libretro-virtualjaguar
+#CONSOLE=jag
+#
+#CORE=sf2000_multicore_cores/libretro-uw8
+#CONSOLE=uw8
+#
+#CORE=sf2000_multicore_cores/libretro-galaxy
+#CONSOLE=glxy
+#
+#CORE=sf2000_multicore_cores/retro-tennis
+#CONSOLE=tennis
+#
+#CORE=sf2000_multicore_cores/FreeIntv
+#CONSOLE=int
+# 
+#CORE=sf2000_multicore_cores/libretro-imageviewer-legacy
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=img
+#
+#CORE=sf2000_multicore_cores/libretro-vecx
+#CONSOLE=vec
+#
+#CORE=sf2000_multicore_cores/libretro-cap32
+#CONSOLE=amstradb
+#
+#CORE=sf2000_multicore_cores/fbalpha2012/svn-current/trunk
+#MAKEFILE=-f makefile.libretro
+#CONSOLE=fba
+#
+#CORE=sf2000_multicore_cores/fbalpha2012_cps1
+#CONSOLE=cps1
+#
+#CORE=sf2000_multicore_cores/fbalpha2012_cps2
+#CONSOLE=cps2
+#
+#CORE=sf2000_multicore_cores/fbalpha2012_cps3/svn-current/trunk
+#MAKEFILE=-f makefile.libretro
+#CONSOLE=cps3
+#
+#CORE=sf2000_multicore_cores/fbalpha2012_neogeo
+#CONSOLE=neogeo
+#
+#CORE=sf2000_multicore_cores/FBNeo/src/burner/libretro
+#CONSOLE=fbn
+# see: https://github.com/libretro/FBNeo/issues/900
+#
+#CORE=sf2000_multicore_cores/mame2003_midway
+#CONSOLE=mame2003mw
+#
+#CORE=sf2000_multicore_cores/bk-emulator
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=bk
+#
+#CORE=sf2000_multicore_cores/cannonball
+#CONSOLE=cball
+#
+#CORE=sf2000_multicore_cores/mojozork
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=zork
+#
+#CORE=sf2000_multicore_cores/libretro-gw
+#CONSOLE=gw
+#
+#CORE=sf2000_multicore_cores/mgba
+#CONSOLE=mgba
+#
+#CORE=sf2000_multicore_cores/chimerasnes
+#CONSOLE=snesc
+#
+#CORE=sf2000_multicore_cores/snes9x-next
+#CONSOLE=snesn
+#
+#CORE=sf2000_multicore_cores/libretro-vemulator
+#CONSOLE=vmu
+#
+#CORE=sf2000_multicore_cores/libretro-px68k
+#CONSOLE=x68k
+#
+#CORE=sf2000_multicore_cores/libretro-81
+#CONSOLE=zx81
+#
+#CORE=sf2000_multicore_cores/libretro-opera
+#CONSOLE=3do
+#
+#CORE=sf2000_multicore_cores/fake-08/platform/libretro
+#CONSOLE=fake08
+#
+#CORE=sf2000_multicore_cores/ecwolf/src/libretro
+#CONSOLE=wolf
+#
+#CORE=sf2000_multicore_cores/libretro-beetle-psx
+#CONSOLE=psx
+#
+#CORE=sf2000_multicore_cores/libretro-mame2000
+#CONSOLE=m2k
+#
+
+
+## builds and sorta works
+#########################
+#CORE=sf2000_multicore_cores/Genesis-Plus-GX
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=gpgx
+#
+#CORE=sf2000_multicore_cores/libretro-crocods
+#CONSOLE=amstrad
+#
+#CORE=sf2000_multicore_cores/libretro-mame2003-plus
+#CONSOLE=mame2003
+#
+#CORE=sf2000_multicore_cores/arduous
+#CONSOLE=arduboy
+#
+#CORE=sf2000_multicore_cores/a5200
+#CONSOLE=a5200
+#
+#CORE=sf2000_multicore_cores/libretro-prosystem
+#CONSOLE=a78
+#
+#CORE=sf2000_multicore_cores/libretro-beetle-lynx
+#CONSOLE=lnxb
+#
+#CORE=sf2000_multicore_cores/lowres-nx/platform/LibRetro
+#CONSOLE=lowres-nx
+#
+#CORE=sf2000_multicore_cores/libretro-jumpnbump
+#CONSOLE=jnb
+#
+#CORE=sf2000_multicore_cores/libretro-nxengine
+#CONSOLE=cavestory
+#
+#CORE=sf2000_multicore_cores/libretro-o2em
+#CONSOLE=o2em
+#
+#CORE=sf2000_multicore_cores/libretro-beetle-supergrafx
+#CONSOLE=pcesgx
+#
+#CORE=sf2000_multicore_cores/libretro-beetle-pcfx
+#CONSOLE=pcfx
+#
+#CORE=sf2000_multicore_cores/libretro-beetle-vb
+#CONSOLE=vb
+#
+#CORE=sf2000_multicore_cores/libretro-xmil/libretro
+#CONSOLE=xmil
+#
+#CORE=sf2000_multicore_cores/REminiscence
+#CONSOLE=flashback
+#
+#CORE=sf2000_multicore_cores/libretro-beetle-wswan
+#CONSOLE=wswan
+#
+#CORE=cores/libretro-mrboom
+#CONSOLE=mrboom
+#
+#CORE=sf2000_multicore_cores/smsplus-gx
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=sms
+#
+
+## builds and works
+###################
+#CORE=sf2000_multicore_cores/FreeChaF
+#CONSOLE=fcf
+#
+#CORE=sf2000_multicore_cores/Gearcoleco/platforms/libretro
+#CONSOLE=col
+#
+#CORE=sf2000_multicore_cores/gong
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=gong
+#
+#CORE=sf2000_multicore_cores/jaxe
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=chip8
+#
+#CORE=sf2000_multicore_cores/libretro-2048
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=2048
+#
+#CORE=sf2000_multicore_cores/libretro-handy
+#CONSOLE=lnx
+#
+#CORE=sf2000_multicore_cores/retro8
+#CONSOLE=retro8
+#
+#CORE=sf2000_multicore_cores/libretro-stella2014
+#CONSOLE=a26
+#
+#CORE=sf2000_multicore_cores/vaporspec/machine
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=vapor
+#
+#CORE=sf2000_multicore_cores/libretro-pocketcdg
+#CONSOLE=cdg
+#
+#CORE=sf2000_multicore_cores/libretro-gme
+#CONSOLE=gme
+#
+#CORE=sf2000_multicore_cores/libretro-beetle-pce-fast
+#CONSOLE=pce
+#
+#CORE=sf2000_multicore_cores/gpsp
+#CONSOLE=gba
+#
+#CORE=sf2000_multicore_cores/RACE
+#CONSOLE=ngpc
+#
+#CORE=sf2000_multicore_cores/libretro-tgbdual
+#CONSOLE=gb
+#
+#CORE=sf2000_multicore_cores/libretro-fceumm
+#CONSOLE=nes
+#
+#CORE=sf2000_multicore_cores/snes9x2002
+#CONSOLE=snes02
+#
+#CORE=sf2000_multicore_cores/snes9x2005
+#CONSOLE=snes
+#
+#CORE=sf2000_multicore_cores/picodrive
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=sega
+#
+#CORE=sf2000_multicore_cores/Gearsystem/platforms/libretro
+#CONSOLE=gg
+#
+#CORE=sf2000_multicore_cores/libretro-fuse
+#CONSOLE=spec
+#
+#CORE=sf2000_multicore_cores/theodore
+#CONSOLE=thom
+#
+#CORE=sf2000_multicore_cores/potator/platform/libretro
+#CONSOLE=wsv
+#
+#CORE=sf2000_multicore_cores/libretro-prboom
+#CONSOLE=prboom
+#
+
+
+## test samples
+###############
+#CORE=sf2000_multicore_cores/libretro-samples/tests/test_advanced
+#CONSOLE=testadv
+#
+#CORE=sf2000_multicore_cores/libretro-samples/audio/audio_playback_wav
+#CONSOLE=testwav
+#
+
+
+%.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+%.o: %.s
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+# Default target
+all: core_87000000 bisrv.asd install
+
+libretro_core:
+	@$(call echo_i,"compiling $(CORE)")
+	$(MAKE) -j$(NPROC) -C $(CORE) $(MAKEFILE) platform=sf2000
+
+libretro_core.a: libretro_core
+	cp $(CORE)/*.a libretro_core.a
+
+libretro-common:
+	@$(call echo_i,"compiling $@")
+	$(MAKE) -j$(NPROC) -C libs/libretro-common
+
+libretro-common.a: libretro-common
+	cp -u libs/libretro-common/$@ $@
+
+core.elf: libretro_core.a libretro-common.a $(CORE_OBJS)
+	@$(call echo_i,"compiling $@")
+	$(LD) -Map $@.map $(LDFLAGS) -e __core_entry__ -Ttext=0x87000000 bisrv_08_03.ld -o $@ \
+		--start-group $(LIBS) $(CORE_OBJS) libretro_core.a libretro-common.a --end-group
+
+core_87000000: core.elf
+	$(OBJCOPY) -O binary -j .text -j .rodata -j .data -j .sdata -j .eh_frame -j .gcc_except_table -j .init_array -j .fini_array core.elf core_87000000
+
+
+loader.elf: $(LOADER_OBJS)
+	@$(call echo_i,"compiling $@")
+	$(LD) -Map $@.map $(LDFLAGS) -e __start -Ttext=$(LOADER_ADDR) bisrv_08_03.ld $(LOADER_OBJS) -o loader.elf
+
+loader.bin: loader.elf
+	$(Q)$(OBJCOPY) -O binary -j .text -j .rodata -j .data loader.elf loader.bin
+
+bisrv.asd: loader.bin lcd_font.bin crc
+	@$(call echo_i,"patching $@")
+
+# check that loader's .bss does not exceeds LOADER_ADDR_MAX
+	@BSSEND=$(shell grep -w "_end =" loader.elf.map | awk '{print $$1}'); \
+	if [ $$(($${BSSEND})) -gt $$(($(LOADER_ADDR_MAX))) ]; then \
+		$(call echo_e,"error: loader is too big. \
+		bss ending $${BSSEND} exceeds $(LOADER_ADDR_MAX) by \
+		$$(( $${BSSEND} - $(LOADER_ADDR_MAX) )) bytes") ; \
+		exit 1; \
+	else \
+		echo "bss ending $${BSSEND}. still $$(( $(LOADER_ADDR_MAX) - $${BSSEND} )) bytes left" ; \
+	fi
+
+# check that lcd_font.bin has the anticipated size
+	@LCDFONT_SIZE=$(shell stat -c %s lcd_font.bin) ; \
+	if [ $${LCDFONT_SIZE} -ne 672 ]; then \
+		$(call echo_e,"error: lcd_font.bin size $${LCDFONT_SIZE}. should be 672") ; \
+		exit 1; \
+	fi
+
+	$(Q)cp bisrv_08_03.asd bisrv.asd
+
+	$(Q)dd if=loader.bin of=bisrv.asd bs=$$(($(LOADER_OFFSET))) seek=1 conv=notrunc 2>/dev/null
+
+	dd if=lcd_font.bin of=bisrv.asd bs=$$(($(LCDFONT_OFFSET))) seek=1 conv=notrunc
+
+	# note: this patch must match $(LOADER_ADDR)
+	# jal run_gba -> jal 0x80001500
+	printf "\x40\x05\x00\x0C" | dd of=bisrv.asd bs=1 seek=$$((0x35a900)) conv=notrunc
+
+	# endless loop in sys_watchdog_reboot -> j 0x80001508
+	printf "\x42\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x30d4)) conv=notrunc
+	# endless loop in INT_General_Exception_Hdlr -> j 0x80001510
+	printf "\x44\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x495a0)) conv=notrunc
+
+	$(Q)./crc bisrv.asd
+
+lcd_font.bin: lcd_font.o
+	$(OBJCOPY) -O binary -j ".rodata.lcd_font" $< $@
+
+crc: crc.c
+	gcc -o crc crc.c
+
+install:
+	@$(call echo_i,"install to sdcard")
+	-$(call copy_if_updated,bisrv.asd,sdcard/bios/bisrv.asd)
+	-$(call copy_if_updated,core_87000000,sdcard/cores/$(CONSOLE)/core_87000000)
+	-rm -f sdcard/log.txt
+
+# Clean intermediate files and the final executable
+clean:
+	-rm -f $(CORE_OBJS)
+	-rm -f $(LOADER_OBJS)
+	-rm -f loader.elf loader.bin core.elf core_87000000
+	-rm -f bisrv.asd
+	-rm -f libretro_core.a
+	$(MAKE) -j$(NPROC) -C $(CORE) $(MAKEFILE) clean platform=sf2000
+
+.PHONY: all clean
+
+define echo_i
+    echo -e "\033[1;33m$(1)\033[0m"
+endef
+
+define echo_e
+    echo -e "\033[1;31m$(1)\033[0m"
+endef
+
+define copy_if_updated
+	diff -q $(1) $(2) || (mkdir -p $$(dirname $(2)) && cp $(1) $(2) && echo "$(1) updated")
+endef
