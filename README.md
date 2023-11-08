@@ -25,6 +25,7 @@ Multicore releases can be found here: https://github.com/madcock/sf2000_multicor
         - `cd cores/picodrive`
         - `git submodule update --init .`
         - repeat this process for as many cores as you want
+    - Note: libretro-mrboom takes a very long time to receive, even with `--shallow-submodules`, so I guess be patient!
 - from the top level of this repo, install the compiler tools
     - `./install-toolchain.sh`
 
@@ -32,8 +33,8 @@ Multicore releases can be found here: https://github.com/madcock/sf2000_multicor
 If setup properly, there are a few ways to build.
 
 If all the core sources for working cores are available:
-- clean everything with `./cleancoresworking.sh`
-- and build everything with `./buildcoresworking.sh`
+- clean them with `./cleancoresworking.sh`
+- and build them with `./buildcoresworking.sh`
 
 If only some of the core sources are available:
 - edit the Makefile as necessary to point to the core(s) you want to build
