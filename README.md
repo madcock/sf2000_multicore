@@ -14,7 +14,7 @@ Multicore releases can be found here: https://github.com/madcock/sf2000_multicor
 - choose a directory to contain all this
 - decide if you want EVERYTHING (there are a lot of cores!)
     - YES, I want ALL the cores!
-        - `git clone --recursive https://github.com/madcock/sf2000_multicore`
+        - `git clone --recurse-submodules --shallow-submodules https://github.com/madcock/sf2000_multicore`
         - wait for a long while
     - NO, I want to select individual cores
         - `git clone https://github.com/madcock/sf2000_multicore`
