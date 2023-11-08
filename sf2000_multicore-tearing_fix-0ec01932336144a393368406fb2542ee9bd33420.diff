@@ -1,0 +1,224 @@
+diff --git a/Makefile b/Makefile
+index ee4a900..914e82e 100644
+--- a/Makefile
++++ b/Makefile
+@@ -34,9 +34,12 @@ LOADER_OBJS=init.o main.o debug.o
+ # CORE=cores/vice
+ # CONSOLE=c64
+ 
+-CORE=cores/2048
++CORE=cores/Genesis-Plus-GX
++CONSOLE=gpgx
++
++#CORE=cores/2048
+ MAKEFILE=-f Makefile.libretro
+-CONSOLE=2048
++#CONSOLE=2048
+ 
+ # CORE=cores/lowres-nx/platform/LibRetro
+ # CONSOLE=lownx
+@@ -120,7 +123,7 @@ bisrv.asd: loader.bin lcd_font.bin crc
+ 		exit 1; \
+ 	fi
+ 
+-	$(Q)cp bisrv_08_03.asd bisrv.asd
++	$(Q)cp ../bisrv_08_03_SNES_battery.asd bisrv.asd
+ 
+ 	$(Q)dd if=loader.bin of=bisrv.asd bs=$$(($(LOADER_OFFSET))) seek=1 conv=notrunc 2>/dev/null
+ 
+@@ -135,6 +138,66 @@ bisrv.asd: loader.bin lcd_font.bin crc
+ 	# endless loop in INT_General_Exception_Hdlr -> j 0x80001510
+ 	printf "\x44\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x495a0)) conv=notrunc
+ 
++	# jal st7789v_80i_register_vsync_isr -> hook_lcd
++	printf "\x50\x05\x00\x0c" | dd of=bisrv.asd bs=1 seek=$$((0x29ab50)) conv=notrunc
++
++	# rgb_clock
++	#printf "\x08\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d5c)) conv=notrunc
++	# v_total_len
++	#printf "\x30\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d64)) conv=notrunc
++	printf "\xbc\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d64)) conv=notrunc
++	# h_total_len
++	#printf "\xbc\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d6c)) conv=notrunc
++	printf "\x30\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d6c)) conv=notrunc
++	# v_active_len
++	#printf "\xf0\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d74)) conv=notrunc
++	printf "\x40\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d74)) conv=notrunc
++	# h_active_len, lcd_width
++	#printf "\x40\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d7c)) conv=notrunc
++	printf "\xf0\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d7c)) conv=notrunc
++	# v_front_len
++	#printf "\x12\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d84)) conv=notrunc
++	# v_sync_len
++	#printf "\x24\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d8c)) conv=notrunc
++	# v_back_len
++	#printf "\x0a\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d94)) conv=notrunc
++	# h_front_len
++	#printf "\x17\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d9c)) conv=notrunc
++	# h_sync_len
++	#printf "\x02\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9da4)) conv=notrunc
++	# h_back_len
++	#printf "\x05\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9dac)) conv=notrunc
++
++	# MADCTL
++	#printf "\x60" | dd of=bisrv.asd bs=1 seek=$$((0xa1627a)) conv=notrunc
++	printf "\x00" | dd of=bisrv.asd bs=1 seek=$$((0xa1627a)) conv=notrunc
++	# PORCTRL
++	#printf "\x0c\x00\x0c" | dd of=bisrv.asd bs=1 seek=$$((0xa1628a)) conv=notrunc
++	# FRCTRL2
++	#printf "\x0f" | dd of=bisrv.asd bs=1 seek=$$((0xa162ae)) conv=notrunc
++	# CASET
++	#printf "\x01\x00\x3f" | dd of=bisrv.asd bs=1 seek=$$((0xa162fc)) conv=notrunc
++	printf "\x00\x00\xef" | dd of=bisrv.asd bs=1 seek=$$((0xa162fc)) conv=notrunc
++	printf "\x00\x00\x05\x24" | dd of=bisrv.asd bs=1 seek=$$((0x29a6e0)) conv=notrunc
++	printf "\xef\x00\x05\x24" | dd of=bisrv.asd bs=1 seek=$$((0x29a6ec)) conv=notrunc
++	# RASET
++	#printf "\x00\x00\xef" | dd of=bisrv.asd bs=1 seek=$$((0xa16306)) conv=notrunc
++	printf "\x01\x00\x3f" | dd of=bisrv.asd bs=1 seek=$$((0xa16306)) conv=notrunc
++	printf "\x01\x00\x05\x24" | dd of=bisrv.asd bs=1 seek=$$((0x29a71c)) conv=notrunc
++	printf "\x3f\x00\x05\x24" | dd of=bisrv.asd bs=1 seek=$$((0x29a728)) conv=notrunc
++
++	# run_osd_create_region osdpara flags
++	#printf "\x00\x00\x02\x24\x16\x00\xa2\xa7\x00\x00\x02\x24\x18\x00\xa2\xa7" | dd of=bisrv.asd bs=1 seek=$$((0x355e94)) conv=notrunc
++
++	# g_run_osd_scale.h_mul, v_mul
++	#printf "\x40\x01\xf0\x00" | dd of=bisrv.asd bs=1 seek=$$((0xa19212)) conv=notrunc
++	printf "\xf0\x00\x40\x01" | dd of=bisrv.asd bs=1 seek=$$((0xa19212)) conv=notrunc
++
++	# jal run_osd_create_region -> hook_region
++	printf "\x52\x05\x00\x0c" | dd of=bisrv.asd bs=1 seek=$$((0x3560c8)) conv=notrunc
++	# j run_osd_region_write -> hook_rotate
++	printf "\x54\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x356118)) conv=notrunc
++
+ 	$(Q)./crc bisrv.asd
+ 
+ lcd_font.bin: lcd_font.o
+@@ -149,6 +212,9 @@ install:
+ 	-$(call copy_if_updated,core_87000000,sdcard/cores/$(CONSOLE)/core_87000000)
+ 	-rm -f sdcard/log.txt
+ 
++upload:
++	./ul bisrv.asd
++
+ # Clean intermediate files and the final executable
+ clean:
+ 	-rm -f $(CORE_OBJS)
+diff --git a/bisrv_08_03.ld b/bisrv_08_03.ld
+index a614161..0ea70ed 100644
+--- a/bisrv_08_03.ld
++++ b/bisrv_08_03.ld
+@@ -132,3 +132,8 @@ PINMUXL	= 0xb88004a0;
+ PINMUXT	= 0xb8800500;
+ GPIOLCTRL	= 0xb8800044;
+ GPIOTCTRL	= 0xb8800344;
++
++st7789v_restart_frame	= 0x8029a8d0;
++joy_init	= 0x80357b4c;
++run_osd_create_region	= 0x80355e54;
++run_osd_region_write	= 0x80355fdc;
+diff --git a/init.s b/init.s
+index e7b495d..341fc3d 100644
+--- a/init.s
++++ b/init.s
+@@ -1,11 +1,11 @@
+ .set noreorder
+ .globl __start
+ __start:
+-	j	load_and_run_core	# 0x800016d0
++	j	load_and_run_core	# 0x80001500
+ 	nop
+-	j	hook_sys_watchdog_reboot	# 0x800016d8
++	j	hook_sys_watchdog_reboot	# 0x80001508
+ 	nop
+-# 0x800016e0
++# 0x80001510
+ 	mfc0	$ra, $14	# EPC
+ # curiously enough this core actually supports ehb but we won't use it atm
+ 	nop
+@@ -18,3 +18,13 @@ __start:
+ 	nop
+ 	j	hook_exception_handler	# 0x800016e0
+ 	srl	$a0, $k1, 2	# masked Cause from INT_General_Exception_Hdlr
++	nop
++# 0x80001540
++	j	hook_lcd
++	nop
++# 0x80001548
++	j	hook_region
++	nop
++# 0x80001550
++	j	hook_rotate
++	nop
+diff --git a/main.c b/main.c
+index da16aef..9068c30 100644
+--- a/main.c
++++ b/main.c
+@@ -58,7 +58,7 @@ void load_and_run_core(const char *file_path, int load_state)
+ 	// this will show a blueish flickering at the top of the screen when loading a rom.
+ 	// it will act as an indicator that a custom core and not a stock emulator is running.
+ 	dbg_cls();
+-	dbg_show_noblock();
++	//dbg_show_noblock();
+ 
+ 	void *core_load_addr = (void*)0x87000000;
+ 
+@@ -169,9 +169,10 @@ static void clear_bss()
+ 	memset(start, 0, end - start);
+ }
+ 
++static bool do_init = true;
++
+ static void callonce_init()
+ {
+-	static bool do_init = true;
+ 	if (!do_init)
+ 		return;
+ 
+@@ -197,3 +198,47 @@ static void xcache_flush(void *addr, size_t size)
+ 	for (idx = begin; idx <= end; idx += 16)
+ 		asm volatile("cache 0, 0(%0); cache 0, 0(%0)" : : "r"(idx));
+ }
++
++extern unsigned long GPIOLCTRL;
++extern void st7789v_restart_frame(void);
++extern void joy_init(void);
++
++void hook_lcd(void)
++{
++	st7789v_restart_frame(); // sets active-polarity = <0>
++	dly_tsk(30); // wait a frame or two
++	os_disable_interrupt();
++	*((volatile unsigned *)&GPIOLCTRL + 5) = // L08 (VSync) input
++		*((volatile unsigned *)&GPIOLCTRL + 5) & ~(1 << 8);
++	// rising VSync edge
++	while ((*((volatile unsigned *)&GPIOLCTRL + 3) & (1 << 8)) != 0) ;
++	while ((*((volatile unsigned *)&GPIOLCTRL + 3) & (1 << 8)) == 0) ;
++	st7789v_restart_frame();
++	os_enable_interrupt();
++}
++
++extern void run_osd_create_region(short, short);
++extern void run_osd_region_write(void *, short, short, int);
++
++void hook_region(short width, short height)
++{
++	run_osd_create_region(height, width);
++}
++
++void hook_rotate(void *buf, short width, short height, short pixel_pitch)
++{
++	static short *rotbuf = NULL;
++	short *row = buf;
++	uint x, y;
++
++	if (rotbuf == NULL) rotbuf = malloc(480 * 640 * 2);
++	for (y = height; y > 0; y--) {
++		short *src = row, *dst = rotbuf + y - 1; // column
++		for (x = width; x > 0; x--) {
++			*dst = *src++;
++			dst += height;
++		}
++		row += pixel_pitch;
++	}
++	run_osd_region_write(rotbuf, height, width, height);
++}
