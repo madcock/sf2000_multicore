@@ -286,8 +286,8 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/fake-08/platform/libretro
 #CONSOLE=fake08
 #
-CORE=cores/ecwolf/src/libretro
-CONSOLE=wolf
+#CORE=cores/ecwolf/src/libretro
+#CONSOLE=wolf
 #
 #CORE=cores/libretro-beetle-psx
 #CONSOLE=psx
