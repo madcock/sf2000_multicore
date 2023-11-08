@@ -20,6 +20,8 @@ CFLAGS += -I libs/libretro-common/include
 
 LDFLAGS := -EL -nostdlib -z max-page-size=32
 LDFLAGS += --gc-sections
+# needed for .text LMA = VMA
+LDFLAGS += --build-id
 
 LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libgcc.a)))
 LIBS+=-lgcc
@@ -31,12 +33,15 @@ LIBS+=-lstdc++
 CORE_OBJS=core_api.o lib.o debug.o
 LOADER_OBJS=init.o main.o debug.o
 
+CORE=cores/mame2000
+CONSOLE=m2k
+
 # CORE=cores/vice
 # CONSOLE=c64
 
-CORE=cores/2048
-MAKEFILE=-f Makefile.libretro
-CONSOLE=2048
+# CORE=cores/2048
+# MAKEFILE=-f Makefile.libretro
+# CONSOLE=2048
 
 # CORE=cores/lowres-nx/platform/LibRetro
 # CONSOLE=lownx
