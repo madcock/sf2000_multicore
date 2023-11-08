@@ -355,9 +355,9 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/Gearcoleco/platforms/libretro
 #CONSOLE=col
 #
-CORE=cores/gong
-MAKEFILE=-f Makefile.libretro
-CONSOLE=gong
+#CORE=cores/gong
+#MAKEFILE=-f Makefile.libretro
+#CONSOLE=gong
 #
 #CORE=cores/jaxe
 #MAKEFILE=-f Makefile.libretro
