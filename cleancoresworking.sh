@@ -11,6 +11,7 @@ make clean CONSOLE=vapor	CORE=cores/vaporspec/machine	MAKEFILE=-fMakefile.libret
 make clean CONSOLE=2048		CORE=cores/libretro-2048	MAKEFILE=-fMakefile.libretro	&& \
 make clean CONSOLE=gong		CORE=cores/gong	MAKEFILE=-fMakefile.libretro	&& \
 make clean CONSOLE=prboom	CORE=cores/libretro-prboom	&& \
+make clean CONSOLE=flashback	CORE=cores/REminiscence	&& \
 make clean CONSOLE=cdg		CORE=cores/libretro-pocketcdg	&& \
 make clean CONSOLE=gme		CORE=cores/libretro-gme	&& \
 make clean CONSOLE=pce		CORE=cores/libretro-beetle-pce-fast	&& \
@@ -25,10 +26,10 @@ make clean CONSOLE=gg		CORE=cores/Gearsystem/platforms/libretro	&& \
 make clean CONSOLE=spec		CORE=cores/libretro-fuse	&& \
 make clean CONSOLE=thom		CORE=cores/theodore	&& \
 make clean CONSOLE=wsv		CORE=cores/potator/platform/libretro	&& \
-make clean CONSOLE=m2k		CORE=cores/libretro-mame2000	&& \
 
 #working but issues
 make clean CONSOLE=amstrad	CORE=cores/libretro-crocods	&& \
+make clean CONSOLE=m2k		CORE=cores/libretro-mame2000	&& \
 make clean CONSOLE=mame2003	CORE=cores/libretro-mame2003-plus	&& \
 make clean CONSOLE=arduboy	CORE=cores/arduous	&& \
 make clean CONSOLE=a5200	CORE=cores/a5200	&& \
@@ -39,12 +40,10 @@ make clean CONSOLE=lowres-nx	CORE=cores/lowres-nx/platform/LibRetro	&& \
 make clean CONSOLE=mrboom	CORE=cores/libretro-mrboom	&& \
 make clean CONSOLE=jnb		CORE=cores/libretro-jumpnbump	&& \
 make clean CONSOLE=cavestory	CORE=cores/libretro-nxengine	&& \
-make clean CONSOLE=flashback	CORE=cores/REminiscence	&& \
 make clean CONSOLE=o2em		CORE=cores/libretro-o2em	&& \
 make clean CONSOLE=pcesgx	CORE=cores/libretro-beetle-supergrafx	&& \
 make clean CONSOLE=pcfx		CORE=cores/libretro-beetle-pcfx	&& \
 make clean CONSOLE=vb		CORE=cores/libretro-beetle-vb	&& \
-make clean CONSOLE=sms		CORE=cores/smsplus-gx	MAKEFILE=-fMakefile.libretro	&& \
 make clean CONSOLE=gpgx		CORE=cores/Genesis-Plus-GX	MAKEFILE=-fMakefile.libretro	&& \
 make clean CONSOLE=xmil		CORE=cores/libretro-xmil/libretro	&& \
 
