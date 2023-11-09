@@ -3,8 +3,10 @@ SHELL:=/bin/bash
 
 # clear the log file every boot
 CLEAR_LOG_ON_BOOT = 0
-# experimental tearing fix
+# experimental tearing fix (turns off loader logging)
 TEARING_FIX = 0
+# debug logging with xlog
+DEBUG_XLOG = 1
 
 LCDFONT_OFFSET=0x2260
 LOADER_OFFSET=0x1500
@@ -27,6 +29,9 @@ CFLAGS += -DTEARING_FIX=1 -DSPACE_OPTIMIZED=1
 endif
 ifeq ($(CLEAR_LOG_ON_BOOT), 1)
 CFLAGS += -DCLEAR_LOG_ON_BOOT=1
+endif
+ifeq ($(DEBUG_XLOG), 1)
+CFLAGS += -DDEBUG_XLOG=1
 endif
 
 LDFLAGS := -EL -nostdlib -z max-page-size=32

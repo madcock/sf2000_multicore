@@ -305,6 +305,7 @@ bool wrap_environ_cb(unsigned cmd, void *data)
 
 void log_cb(enum retro_log_level level, const char *fmt, ...)
 {
+#if defined(DEBUG_XLOG)
 	char buffer[500];
 
 	va_list args;
@@ -333,6 +334,7 @@ void log_cb(enum retro_log_level level, const char *fmt, ...)
 		default:
 			break;
 	}
+#endif
 }
 
 
