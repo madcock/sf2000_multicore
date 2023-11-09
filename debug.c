@@ -101,6 +101,11 @@ static void lcd_flush(void)
 	*((volatile unsigned *)&PINMUXT + 2) &= 0xff; // T09-11 (D5-D7)
 	*((volatile unsigned *)&PINMUXT + 3) &= 0xff000000; // T12-14 (D8-10)
 
+#if defined(TEARING_FIX)
+	lcd_send_cmd(0x36); // MADCTL
+	lcd_send_data(0x60); // MX (X mirror) MV (rotation)
+#endif
+
 	lcd_send_cmd(0x2a); // CASET
 	lcd_send_data(0);
 	lcd_send_data(0);

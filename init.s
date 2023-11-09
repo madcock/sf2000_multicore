@@ -16,5 +16,5 @@ __start:
 	nop
 	nop
 	nop
-	j	hook_exception_handler	# 0x800016e0
+	j	hook_exception_handler
 	srl	$a0, $k1, 2	# masked Cause from INT_General_Exception_Hdlr

@@ -135,3 +135,30 @@ PINMUXL	= 0xb88004a0;
 PINMUXT	= 0xb8800500;
 GPIOLCTRL	= 0xb8800044;
 GPIOTCTRL	= 0xb8800344;
+
+
+api_audio_set_mute	= 0x801b3b28;
+
+switch_tv_mode	= 0x801b5a2c;
+
+osddrv_open	= 0x802719c8;
+osddrv_close	= 0x80271aa8;
+osddrv_3x_create_region	= 0x802721bc;
+osddrv_3x_region_write	= 0x80272ab4;
+osddrv_scale	= 0x80272dd8;
+
+dev_get_by_id	= 0x802730b0;
+
+st7789v_restart_frame	= 0x8029a8d0;
+
+fgets	= 0x802acec0;
+
+
+os_create_thread	= 0x80309324;
+os_register_isr	= 0x802da654;
+
+GPIORCTRL	= 0xb88000e4;
+
+gp_run_vscr	= 0x80c100cc;
+font_out	= 0x8034c508;
+run_screen_write	= 0x80356058;
