@@ -2,8 +2,10 @@
 #define __STOCKFW_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef int BOOL;
+typedef uintptr_t HANDLE;
 
 extern size_t fw_fread(void *ptr, size_t size, size_t count, FILE *stream);
 
@@ -17,9 +19,14 @@ extern int fs_closedir(int fd);
 extern ssize_t fs_readdir(int fd, void *buffer);
 
 extern void osal_tds2_cache_flush(void *buf, unsigned sz);
-extern int dly_tsk(unsigned ms);
 extern void os_disable_interrupt(void);
+extern void os_enable_interrupt(void);
+
+extern int dly_tsk(unsigned ms);
+
 extern uint32_t os_get_tick_count(void);
+
+extern HANDLE dev_get_by_id(uint32_t, uint16_t);
 
 extern int run_emulator(int load_state);
 extern void run_gba(const char *filename, int load_state);

@@ -68,6 +68,18 @@ static void lcd_printf(const char *fmt, ...)
 	va_end(ap);
 }
 
+void lcd_pinmux_gpio(void)
+{
+	*((volatile unsigned *)&PINMUXL + 0) &= 0xffff; // L02-03 (D0-1)
+	*((volatile unsigned *)&PINMUXL + 1) = 0; // L04-07 (D2-4, WR)
+	*((volatile unsigned *)&PINMUXL + 2) &= 0xff00ffff; // L10 (CS)
+
+	*((volatile unsigned *)&PINMUXT + 0) &= 0xff; // T01-03 (RS, D11-12)
+	*((volatile unsigned *)&PINMUXT + 1) &= 0xff000000; // T04-06 (D13-15)
+	*((volatile unsigned *)&PINMUXT + 2) &= 0xff; // T09-11 (D5-D7)
+	*((volatile unsigned *)&PINMUXT + 3) &= 0xff000000; // T12-14 (D8-10)
+}
+
 static void lcd_send(unsigned short data)
 {
 	*((volatile unsigned *)&GPIOLCTRL + 4) = // clear L10 (CS), L07 (WR); L02-06 <- D0-4
@@ -78,13 +90,13 @@ static void lcd_send(unsigned short data)
 	*((volatile unsigned *)&GPIOLCTRL + 4) |= 1 << 10; // set L10 (CS)
 }
 
-static void lcd_send_cmd(unsigned char cmd)
+void lcd_send_cmd(unsigned char cmd)
 {
 	*((volatile unsigned *)&GPIOTCTRL + 4) &= ~(1 << 1); // clear T01 (RS)
 	lcd_send(cmd);
 }
 
-static void lcd_send_data(unsigned short data)
+void lcd_send_data(unsigned short data)
 {
 	*((volatile unsigned *)&GPIOTCTRL + 4) |= 1 << 1; // set T01 (RS)
 	lcd_send(data);
@@ -92,19 +104,11 @@ static void lcd_send_data(unsigned short data)
 
 static void lcd_flush(void)
 {
-	*((volatile unsigned *)&PINMUXL + 0) &= 0xffff; // L02-03 (D0-1)
-	*((volatile unsigned *)&PINMUXL + 1) = 0; // L04-07 (D2-4, WR)
-	*((volatile unsigned *)&PINMUXL + 2) &= 0xff00ffff; // L10 (CS)
+	lcd_pinmux_gpio();
 
-	*((volatile unsigned *)&PINMUXT + 0) &= 0xff; // T01-03 (RS, D11-12)
-	*((volatile unsigned *)&PINMUXT + 1) &= 0xff000000; // T04-06 (D13-15)
-	*((volatile unsigned *)&PINMUXT + 2) &= 0xff; // T09-11 (D5-D7)
-	*((volatile unsigned *)&PINMUXT + 3) &= 0xff000000; // T12-14 (D8-10)
-
-#if defined(TEARING_FIX)
+	// applicable ONLY to SF2000's screen FIXME
 	lcd_send_cmd(0x36); // MADCTL
 	lcd_send_data(0x60); // MX (X mirror) MV (rotation)
-#endif
 
 	lcd_send_cmd(0x2a); // CASET
 	lcd_send_data(0);
