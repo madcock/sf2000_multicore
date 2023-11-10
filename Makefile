@@ -74,8 +74,8 @@ endif
 # CORE=cores/tgbdual
 # CONSOLE=gb
 
-# CORE=cores/gpsp
-# CONSOLE=gba
+CORE=cores/gpsp
+CONSOLE=gba
 
 # CORE=cores/snes9x2005
 # CONSOLE=snes
