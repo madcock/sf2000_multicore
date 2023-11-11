@@ -155,6 +155,10 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 
 	gfn_frameskip = NULL;
 
+	// make sure the first two controllers are configured as gamepads
+	retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
+	retro_set_controller_port_device(1, RETRO_DEVICE_JOYPAD);
+
 	// install custom input handler to filter out all requests for non-joypad devices
 	retro_set_input_state(wrap_input_state_cb);
 
