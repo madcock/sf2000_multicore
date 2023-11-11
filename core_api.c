@@ -10,6 +10,7 @@
 #include "core_api.h"
 #include "debug.h"
 #include "stockfw.h"
+#include "video.h"
 
 #define MAXPATH 	255
 #define SYSTEM_DIRECTORY	"/mnt/sda1/bios"
@@ -443,10 +444,12 @@ void wrap_retro_init(void)
 {
 	config_load();
 	retro_init();
+	video_options(s_core_config);
 }
 
 void wrap_retro_deinit(void)
 {
+	video_cleanup();
 	retro_deinit();
 	config_free();
 

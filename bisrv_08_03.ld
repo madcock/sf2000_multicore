@@ -88,11 +88,26 @@ fgets	= 0x802acec0;
 /* TDS2 */
 osal_tds2_cache_flush	= 0x80049214;
 os_disable_interrupt	= 0x802da404;
-os_enable_interrupt		= 0x802da42c;
+os_enable_interrupt	= 0x802da42c;
+
+dly_tsk	= 0x80309134;
 
 os_get_tick_count = 0x80309b7c;
 
-dly_tsk	= 0x80309134;
+/* drivers */
+vpo_ioctl	= 0x80271314;
+
+osddrv_open	= 0x802719c8;
+osddrv_close	= 0x80271aa8;
+osddrv_3x_create_region	= 0x802721bc;
+osddrv_3x_region_write	= 0x80272ab4;
+osddrv_scale	= 0x80272dd8;
+
+dev_get_by_id	= 0x802730b0;
+
+switch_lcd_or_tv	= 0x801b9dd0;
+
+run_osd_region_write	= 0x80355fdc;
 
 /* libretro frontend */
 retro_video_refresh_cb	= 0x803583a8;
