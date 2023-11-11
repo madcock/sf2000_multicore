@@ -84,12 +84,12 @@ static void config_load(config_file_t *conf)
 
 static HANDLE m_osd_dev;
 
-static void region_create(int tvsys, uint16_t width, uint16_t height)
+static void recreate_region(enum tvsystem tvsys, uint16_t width, uint16_t height)
 {
 	struct osdrect r = { 0, 0, width, height };
 	struct osdpara para = { .e_mode = OSD_HD_RGB565 };
 	struct {
-		uint16_t tv_sys; // specifically NOT enum tvsystem
+		uint16_t tv_sys; // specifically NOT enum tvsystem here
 		uint16_t h_div;
 		uint16_t v_div;
 		uint16_t h_mul;
@@ -109,14 +109,15 @@ static void region_create(int tvsys, uint16_t width, uint16_t height)
 	}
 	else {
 		scale_param.h_mul = 720;
-		scale_param.v_mul = tvsys ? 576 : 480;
+		scale_param.v_mul = tvsys == PAL ? 576 : 480;
 	}
 	osddrv_scale(m_osd_dev, OSD_SCALE_WITH_PARAM, (uintptr_t)&scale_param);
 
 	osddrv_scale(m_osd_dev, OSD_SET_SCALE_MODE, filtered ? 1 : 0);
 }
 
-static void region_write(void *buf, uint16_t width, uint16_t height, uint16_t pixel_pitch)
+static void region_write(const void *buf,
+	uint16_t width, uint16_t height, uint16_t pixel_pitch)
 {
 	struct osd_vscr vscr = { 0, 0, pixel_pitch, height, buf };
 	struct osdrect r = { 0, 0, width, height };
@@ -127,31 +128,27 @@ static void region_write(void *buf, uint16_t width, uint16_t height, uint16_t pi
 
 static HANDLE m_vpo_dev;
 
-void apply_rgb_timings(void)
-{
-	int tvsys;
+static enum tvsystem get_cur_tvsys(void) {
+	enum tvsystem tvsys;
 
 	vpo_ioctl(m_vpo_dev, VPO_IO_GET_OUT_MODE, (uintptr_t)&tvsys);
-	if (tvsys == RGB_LCD) {
-		switch_lcd_or_tv(1, RGB_LCD);
-		region_create(RGB_LCD, 640, 480); // FIXME
-	}
+	return tvsys;
 }
 
 static uint16_t *rot_buf;
+// do we have a sane way to determine menu region resolution in init? TODO
+static uint16_t cur_width = 640, cur_height = 480;
 
-static void hook_region_write(void *buf, uint16_t width, uint16_t height, uint16_t pixel_pitch)
+static void hooked_run_osd_region_write(const void *buf,
+	uint16_t width, uint16_t height, uint16_t pixel_pitch)
 {
-	static uint16_t cur_width, cur_height;
-	int tvsys; // enum tvsystem
-
-	vpo_ioctl(m_vpo_dev, VPO_IO_GET_OUT_MODE, (uintptr_t)&tvsys);
-	if (tvsys == RGB_LCD && tearing_fix == ROTATE) {
-		uint16_t *row = buf;
+	if (get_cur_tvsys() == RGB_LCD && tearing_fix == ROTATE) {
+		const uint16_t *row = buf;
 		unsigned x, y;
 
 		for (y = height; y > 0; y--) {
-			uint16_t *src = row, *dst = rot_buf + y - 1; // column
+			const uint16_t *src = row;
+			uint16_t *dst = rot_buf + y - 1; // column
 			for (x = width; x > 0; x--) {
 				*dst = *src++;
 				dst += height; // rot_buf pixel pitch
@@ -166,25 +163,28 @@ static void hook_region_write(void *buf, uint16_t width, uint16_t height, uint16
 	if (cur_width != width || cur_height != height) {
 		cur_width = width;
 		cur_height = height;
-		region_create(tvsys, width, height);
+		recreate_region(get_cur_tvsys(), width, height);
 	}
 	region_write(buf, width, height, pixel_pitch);
 }
 
-// all the patches are for the August's bisrv.asd ONLY FIXME
+// patch rationale: joy_task switching to TV and back asynchronously
+// (and annotating all of vp_init_info for 0x82 ioctl seems overkill)
 static void patch__get_vp_init_low_lcd_para(uint16_t rgb_clock,
 	uint16_t h_total_len, uint16_t v_total_len,
 	uint16_t h_active_len, uint16_t v_active_len)
 {
+	uint8_t *pfn = (uint8_t *)&get_vp_init_low_lcd_para;
+
 	os_disable_interrupt(); // avoid mode switch inbetween
 
-	*(volatile uint16_t *)0x801b9d5c = rgb_clock;
-	*(volatile uint16_t *)0x801b9d64 = v_total_len;
-	*(volatile uint16_t *)0x801b9d6c = h_total_len;
-	*(volatile uint16_t *)0x801b9d74 = v_active_len;
-	*(volatile uint16_t *)0x801b9d7c = h_active_len; // used for lcd_width, too
+	*(volatile uint16_t *)(pfn + 0x50) = rgb_clock;
+	*(volatile uint16_t *)(pfn + 0x58) = v_total_len;
+	*(volatile uint16_t *)(pfn + 0x60) = h_total_len;
+	*(volatile uint16_t *)(pfn + 0x68) = v_active_len;
+	*(volatile uint16_t *)(pfn + 0x70) = h_active_len; // used for lcd_width, too
 
-	__builtin___clear_cache((void *)0x801b9d0c, (void *)0x801b9dd0);
+	__builtin___clear_cache(pfn, &switch_lcd_or_tv);
 
 	os_enable_interrupt();
 }
@@ -193,14 +193,18 @@ static void patch__get_vp_init_low_lcd_para(uint16_t rgb_clock,
 
 static void patch__st7789v_caset_raset(uint16_t cols, uint16_t rows)
 {
-	os_disable_interrupt(); // called in a gpio interrupt!
+	uint8_t *pfn = (uint8_t *)&st7789v_caset_raset;
 
-	*(volatile uint32_t *)0x8029a6e0 = MIPS_LI_A0 | cols >> 8 & 255;
-	*(volatile uint32_t *)0x8029a6ec = MIPS_LI_A0 | cols & 255;
-	*(volatile uint32_t *)0x8029a71c = MIPS_LI_A0 | rows >> 8 & 255;
-	*(volatile uint32_t *)0x8029a728 = MIPS_LI_A0 | rows & 255;
+	os_disable_interrupt(); // patch rationale: called in a VSync GPIO ISR!
 
-	__builtin___clear_cache((void *)0x8029a69c, (void *)0x8029a740);
+	*(volatile uint32_t *)(pfn + 0x44) = MIPS_LI_A0 | cols >> 8 & 255;
+	*(volatile uint32_t *)(pfn + 0x50) = MIPS_LI_A0 | cols & 255;
+
+	// this one actually was addu a1, $0, $0 hence the full instructions
+	*(volatile uint32_t *)(pfn + 0x80) = MIPS_LI_A0 | rows >> 8 & 255;
+	*(volatile uint32_t *)(pfn + 0x8c) = MIPS_LI_A0 | rows & 255;
+
+	__builtin___clear_cache(pfn, &st7789v_ramwr);
 
 	os_enable_interrupt();
 }
@@ -209,12 +213,15 @@ static void patch__st7789v_caset_raset(uint16_t cols, uint16_t rows)
 
 static void patch__run_screen_write(void *pregion_write)
 {
-	os_disable_interrupt(); // avoid screen writes in joy_task inbetween
+	uint8_t *pfn = (uint8_t *)&run_screen_write;
+	extern void run_sound_advance(void *, unsigned); // happens to be next fn
 
-	*(volatile uint32_t *)0x80356118 = MIPS_J |
+	os_disable_interrupt(); // avoid screen writes inbetween
+
+	*(volatile uint32_t *)(pfn + 0xc0) = MIPS_J |
 		(uint32_t)pregion_write >> 2 & ((1 << 26) - 1);
 
-	__builtin___clear_cache((void *)0x80356058, (void *)0x80356168);
+	__builtin___clear_cache(pfn, &run_sound_advance);
 
 	os_enable_interrupt();
 }
@@ -229,6 +236,18 @@ static void lcd_memory_data_access_ctl(uint8_t data)
 	lcd_send_data(data);
 
 	os_enable_interrupt();
+}
+
+inline static void apply_rgb_timings(void)
+{
+	if (get_cur_tvsys() == RGB_LCD)
+		switch_lcd_or_tv(1, RGB_LCD);
+}
+
+inline static void rotate_region(void)
+{
+	if (get_cur_tvsys() == RGB_LCD)
+		recreate_region(RGB_LCD, cur_height, cur_width);
 }
 
 void video_options(config_file_t *conf)
@@ -254,31 +273,41 @@ void video_options(config_file_t *conf)
 		apply_rgb_timings();
 	}
 	else if (tearing_fix == ROTATE) {
+		enum tvsystem tvsys;
+
 		patch__get_vp_init_low_lcd_para(rgb_clock,
 			v_total_len, h_total_len, 240, 320
 		);
 		apply_rgb_timings();
+
 		patch__st7789v_caset_raset(240, 320);
 		lcd_memory_data_access_ctl(0); // fb write order == scan order
-		rot_buf = malloc(640 * 480 * 2); // magic numbers FIXME
+
+		rotate_region(); // also clears garbled "Loading..."
+
+		rot_buf = malloc(cur_width * cur_height * sizeof rot_buf[0]);
 	}
 
-	patch__run_screen_write(&hook_region_write);
+	// scaling needs the hook even with the tearing fixes disabled
+	patch__run_screen_write(&hooked_run_osd_region_write);
 }
 
 void video_cleanup(void)
 {
 	patch__run_screen_write(&run_osd_region_write);
 
-	if (tearing_fix == ROTATE) {
-		tearing_fix = FAST;
-		// leave the fast patch active for the stock cores
-		patch__get_vp_init_low_lcd_para(rgb_clock,
-			h_total_len, v_total_len, 320, 240
-		);
-		apply_rgb_timings();
-		patch__st7789v_caset_raset(320, 240);
-		lcd_memory_data_access_ctl(0x60); // SF2000
-		free(rot_buf);
-	}
+	if (tearing_fix != ROTATE) return; // that's all folks! fast patch stays
+	tearing_fix = FAST; // ROTATE affects recreate_region's scaling
+
+	patch__get_vp_init_low_lcd_para(rgb_clock,
+		h_total_len, v_total_len, 320, 240
+	);
+	apply_rgb_timings();
+
+	patch__st7789v_caset_raset(320, 240);
+	lcd_memory_data_access_ctl(0x60); // only for SF2000 FIXME
+
+	rotate_region();
+
+	free(rot_buf);
 }
