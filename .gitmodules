@@ -1,9 +1,8 @@
-[submodule "libs/-f"]
-	path = libs/-f
-	url = https://github.com/madcock/libretro-common
 [submodule "libs/libretro-common"]
 	path = libs/libretro-common
 	url = https://github.com/madcock/libretro-common
+	branch = master
 [submodule "cores"]
 	path = cores
 	url = https://github.com/madcock/sf2000_multicore_cores
+	branch = main
