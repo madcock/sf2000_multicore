@@ -2,6 +2,7 @@
 #define __STOCKFW_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef int BOOL;
 
