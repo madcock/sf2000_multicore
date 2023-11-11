@@ -18,7 +18,7 @@ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND! */
 
 #include "stockfw.h"
 #include "debug.h"
-#include "video.h"
+#include "video_sf2000.h"
 
 // some are only used once, a temporary structure is more appropriate TODO
 static enum {

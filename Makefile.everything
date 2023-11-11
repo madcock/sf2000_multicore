@@ -39,7 +39,7 @@ LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libc.a)))
 LIBS+=-lc -lm
 LIBS+=-lstdc++
 
-CORE_OBJS=core_api.o lib.o debug.o video.o
+CORE_OBJS=core_api.o lib.o debug.o video_sf2000.o
 LOADER_OBJS=init.o main.o debug.o
 
 

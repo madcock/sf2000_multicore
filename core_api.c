@@ -10,7 +10,7 @@
 #include "core_api.h"
 #include "debug.h"
 #include "stockfw.h"
-#include "video.h"
+#include "video_sf2000.h"
 
 #define MAXPATH 	255
 #define SYSTEM_DIRECTORY	"/mnt/sda1/bios"
