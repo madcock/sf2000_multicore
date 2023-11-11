@@ -1,0 +1,38 @@
+diff --git a/Makefile.libretro b/Makefile.libretro
+index f9b7806..58c9760 100644
+--- a/Makefile.libretro
++++ b/Makefile.libretro
+@@ -353,6 +353,17 @@ else ifeq ($(platform), retrofw)
+ 	CFLAGS += -ffast-math -march=mips32 -mtune=mips32 -mhard-float
+ 	LIBS = -lm
+ 
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS:=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	AR = $(MIPS)ar
++	CFLAGS := -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -DSF2000
++	STATIC_LINKING = 1
++
+ else ifeq ($(platform), genode)
+ 	TARGET  := $(TARGET_NAME)_libretro.lib.so
+ 	CC      := $(shell pkg-config genode-base --variable=cc)
+diff --git a/libretro.c b/libretro.c
+index fc3ee65..4f4e39b 100644
+--- a/libretro.c
++++ b/libretro.c
+@@ -224,7 +224,11 @@ void retro_get_system_info(struct retro_system_info *info)
+ void retro_get_system_av_info(struct retro_system_av_info *info)
+ {
+    info->timing.fps = game_fps;
++#if defined(SF2000)
++   info->timing.sample_rate = 22050;
++#else
+    info->timing.sample_rate = 0.0;
++#endif
+ 
+    info->geometry.base_width   = SCREEN_WIDTH;
+    info->geometry.base_height  = SCREEN_HEIGHT;
