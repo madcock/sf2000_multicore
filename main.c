@@ -53,17 +53,13 @@ void load_and_run_core(const char *file_path, int load_state)
 {
 	init_once();
 
-#if !defined(SPACE_OPTIMIZED)
 	xlog("loader: run file=%s\n", file_path);
-#endif
 
 	// the expected template for file_path is - [corename];[rom filename].gba
 	const char *corename;
 	const char *filename;
 	if (!parse_filename(file_path, &corename, &filename)) {
-#if !defined(SPACE_OPTIMIZED)
 		xlog("filename is not a multicore stub...calling original run_gba\n");
-#endif
 		run_gba(file_path, load_state);
 		return;
 	}
@@ -71,9 +67,7 @@ void load_and_run_core(const char *file_path, int load_state)
 	// this will show a blueish flickering at the top of the screen when loading a rom.
 	// it will act as an indicator that a custom core and not a stock emulator is running.
 	dbg_cls();
-#if !defined(SPACE_OPTIMIZED)
 	dbg_show_noblock();
-#endif
 
 	void *core_load_addr = (void*)0x87000000;
 
@@ -92,16 +86,12 @@ void load_and_run_core(const char *file_path, int load_state)
 	snprintf(corefile, MAXPATH, "/mnt/sda1/cores/%s/core_87000000", corename);
 	snprintf(romfile, MAXPATH, "/mnt/sda1/ROMS/%s/%s", corename, filename);
 
-#if !defined(SPACE_OPTIMIZED)
 	xlog("corefile=%s\n", corefile);
 	xlog("romfile=%s\n", romfile);
-#endif
 
 	pf = fopen(corefile, "rb");
 	if (!pf) {
-#if !defined(SPACE_OPTIMIZED)
 		xlog("Error opening corefile\n");
-#endif
 		return;
 	}
 
@@ -111,15 +101,11 @@ void load_and_run_core(const char *file_path, int load_state)
 	fw_fread(core_load_addr, 1, core_size, pf);
 	fclose(pf);
 
-#if !defined(SPACE_OPTIMIZED)
 	xlog("loader: core loaded\n");
-#endif
 
 	full_cache_flush();
 
-#if !defined(SPACE_OPTIMIZED)
 	xlog("loader: cache flushed\n");
-#endif
 
 	// address of the core entry function resides at the begining of the loaded core
 	core_entry_t core_entry = core_load_addr;
@@ -137,9 +123,7 @@ void load_and_run_core(const char *file_path, int load_state)
 	core_api->retro_set_input_state(retro_input_state_cb);
 	core_api->retro_set_environment(retro_set_environment_cb);
 
-#if !defined(SPACE_OPTIMIZED)
 	xlog("loader: retro_init\n");
-#endif
 	core_api->retro_init();
 
 	g_retro_game_info.path = romfile;
@@ -152,14 +136,10 @@ void load_and_run_core(const char *file_path, int load_state)
 	gfn_retro_unload_game	= core_api->retro_unload_game;
 	gfn_retro_run			= core_api->retro_run;
 
-#if !defined(SPACE_OPTIMIZED)
 	xlog("loader: run_emulator(%d)\n", load_state);
-#endif
 	run_emulator(load_state);
 
-#if !defined(SPACE_OPTIMIZED)
 	xlog("loader: retro_deinit\n");
-#endif
 	core_api->retro_deinit();
 }
 

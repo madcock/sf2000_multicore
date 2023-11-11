@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+void lcd_pinmux_gpio(void);
+void lcd_send_cmd(unsigned char);
+void lcd_send_data(unsigned short);
+
 void lcd_init();
 void lcd_bsod(const char *fmt, ...);
 

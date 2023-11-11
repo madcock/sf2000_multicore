@@ -3,8 +3,6 @@ SHELL:=/bin/bash
 
 # clear the log file every boot
 CLEAR_LOG_ON_BOOT = 0
-# experimental tearing fix (turns off loader logging)
-TEARING_FIX = 0
 # debug logging with xlog
 DEBUG_XLOG = 1
 
@@ -24,9 +22,6 @@ CFLAGS += -Os -G0 -mno-abicalls -fno-pic -ffreestanding
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -I libs/libretro-common/include
 # CFLAGS += -Wall
-ifeq ($(TEARING_FIX), 1)
-CFLAGS += -DTEARING_FIX=1 -DSPACE_OPTIMIZED=1
-endif
 ifeq ($(CLEAR_LOG_ON_BOOT), 1)
 CFLAGS += -DCLEAR_LOG_ON_BOOT=1
 endif
@@ -44,12 +39,8 @@ LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libc.a)))
 LIBS+=-lc -lm
 LIBS+=-lstdc++
 
-CORE_OBJS=core_api.o lib.o debug.o
-ifneq ($(TEARING_FIX), 1)
+CORE_OBJS=core_api.o lib.o debug.o video.o
 LOADER_OBJS=init.o main.o debug.o
-else
-LOADER_OBJS=init_tearing_fix.o main.o debug.o video.o
-endif
 
 # CORE=cores/vice
 # CONSOLE=c64
@@ -104,31 +95,16 @@ libretro-common.a: libretro-common
 	cp -u libs/libretro-common/$@ $@
 
 core.elf: libretro_core.a libretro-common.a $(CORE_OBJS)
-ifneq ($(TEARING_FIX), 1)
 	@$(call echo_i,"compiling $@")
 	$(LD) -Map $@.map $(LDFLAGS) -e __core_entry__ -Ttext=0x87000000 bisrv_08_03.ld -o $@ \
 		--start-group $(LIBS) $(CORE_OBJS) libretro_core.a libretro-common.a --end-group
-else
-	@$(call echo_i,"compiling $@ with TEARING_FIX")
-	$(LD) -Map $@.map $(LDFLAGS) -e __core_entry__ -Ttext=0x87000000 bisrv_08_03_tearing_fix.ld -o $@ \
-		--start-group $(LIBS) $(CORE_OBJS) libretro_core.a libretro-common.a --end-group
-endif
 
 core_87000000: core.elf
-ifneq ($(TEARING_FIX), 1)
-	$(OBJCOPY) -O binary -j .text -j .rodata -j .data -j .sdata -j .eh_frame -j .gcc_except_table -j .init_array -j .fini_array core.elf core_87000000
-else
 	$(OBJCOPY) -O binary -R .MIPS.abiflags -R .note.gnu.build-id core.elf core_87000000
-endif
 
 loader.elf: $(LOADER_OBJS)
-ifneq ($(TEARING_FIX), 1)
 	@$(call echo_i,"compiling $@")
 	$(LD) -Map $@.map $(LDFLAGS) -e __start -Ttext=$(LOADER_ADDR) bisrv_08_03.ld $(LOADER_OBJS) -o loader.elf
-else
-	@$(call echo_i,"compiling $@ with TEARING_FIX")
-	$(LD) -Map $@.map $(LDFLAGS) -e __start -Ttext=$(LOADER_ADDR) bisrv_08_03_tearing_fix.ld $(LOADER_OBJS) -o loader.elf
-endif
 
 loader.bin: loader.elf
 	$(Q)$(OBJCOPY) -O binary -j .text -j .rodata -j .data loader.elf loader.bin
@@ -169,83 +145,6 @@ bisrv.asd: loader.bin lcd_font.bin crc
 	# endless loop in INT_General_Exception_Hdlr -> j 0x80001510
 	printf "\x44\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x495a0)) conv=notrunc
 
-ifeq ($(TEARING_FIX), 1)
-	# jal switch_tv_mode -> hook_switch_tv
-	printf "\x50\x05\x00\x0c" | dd of=bisrv.asd bs=1 seek=$$((0x1b9ec0)) conv=notrunc
-
-	# j run_osd_region_write -> hook_rotate
-	printf "\x52\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x356118)) conv=notrunc
-
-	# jal st7789v_80i_register_vsync_isr -> hook_lcd_init
-	printf "\x54\x05\x00\x0c" | dd of=bisrv.asd bs=1 seek=$$((0x29ab50)) conv=notrunc
-
-	# get_vp_init_low_lcd_para
-	# rgb_clock
-	#printf "\x08\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d5c)) conv=notrunc
-	printf "\x09\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d5c)) conv=notrunc
-	# v_total_len
-	#printf "\x30\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d64)) conv=notrunc
-	printf "\xdd\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d64)) conv=notrunc
-	# h_total_len
-	#printf "\xbc\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d6c)) conv=notrunc
-	printf "\x46\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d6c)) conv=notrunc
-	# v_active_len
-	#printf "\xf0\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d74)) conv=notrunc
-	printf "\x40\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d74)) conv=notrunc
-	# h_active_len, lcd_width
-	#printf "\x40\x01" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d7c)) conv=notrunc
-	printf "\xf0\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d7c)) conv=notrunc
-	# v_front_len
-	#printf "\x12\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d84)) conv=notrunc
-	# v_sync_len
-	#printf "\x24\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d8c)) conv=notrunc
-	# v_back_len
-	#printf "\x0a\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d94)) conv=notrunc
-	# h_front_len
-	#printf "\x17\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9d9c)) conv=notrunc
-	# h_sync_len
-	#printf "\x02\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9da4)) conv=notrunc
-	# h_back_len
-	#printf "\x05\x00" | dd of=bisrv.asd bs=1 seek=$$((0x1b9dac)) conv=notrunc
-
-	# m_st7789v_init
-	# MADCTL
-	#printf "\x60" | dd of=bisrv.asd bs=1 seek=$$((0xa1627a)) conv=notrunc
-	printf "\x00" | dd of=bisrv.asd bs=1 seek=$$((0xa1627a)) conv=notrunc
-	# PORCTRL
-	#printf "\x0c\x00\x0c" | dd of=bisrv.asd bs=1 seek=$$((0xa1628a)) conv=notrunc
-	# FRCTRL2
-	#printf "\x0f" | dd of=bisrv.asd bs=1 seek=$$((0xa162ae)) conv=notrunc
-	# CASET
-	#printf "\x01\x00\x3f" | dd of=bisrv.asd bs=1 seek=$$((0xa162fc)) conv=notrunc
-	#printf "\x00\x00\xef" | dd of=bisrv.asd bs=1 seek=$$((0xa162fc)) conv=notrunc
-	# RASET
-	#printf "\x00\x00\xef" | dd of=bisrv.asd bs=1 seek=$$((0xa16306)) conv=notrunc
-	#printf "\x01\x00\x3f" | dd of=bisrv.asd bs=1 seek=$$((0xa16306)) conv=notrunc
-
-	# st7789v_320_240_caset_raset -> 240_320_caset_raset
-	printf "\x00\x00\x05\x24" | dd of=bisrv.asd bs=1 seek=$$((0x29a6e0)) conv=notrunc
-	printf "\xef\x00\x05\x24" | dd of=bisrv.asd bs=1 seek=$$((0x29a6ec)) conv=notrunc
-	printf "\x01\x00\x05\x24" | dd of=bisrv.asd bs=1 seek=$$((0x29a71c)) conv=notrunc
-	printf "\x3f\x00\x05\x24" | dd of=bisrv.asd bs=1 seek=$$((0x29a728)) conv=notrunc
-
-	# run_osd_create_region osdpara flags
-	#printf "\x00\x00\x02\x24\x16\x00\xa2\xa7\x00\x00\x02\x24\x18\x00\xa2\xa7" | dd of=bisrv.asd bs=1 seek=$$((0x355e94)) conv=notrunc
-
-	# g_run_osd_scale.h_mul, v_mul
-	#printf "\x40\x01\xf0\x00" | dd of=bisrv.asd bs=1 seek=$$((0xa19212)) conv=notrunc
-	#printf "\xf0\x00\x40\x01" | dd of=bisrv.asd bs=1 seek=$$((0xa19212)) conv=notrunc
-
-	# run_osd_scale_lcd_tv v_mul, h_mul
-	#printf "\xf0\x00" | dd of=bisrv.asd bs=1 seek=$$((0x355e14)) conv=notrunc
-	#printf "\x40\x01" | dd of=bisrv.asd bs=1 seek=$$((0x355e14)) conv=notrunc
-	#printf "\x40\x01" | dd of=bisrv.asd bs=1 seek=$$((0x355e1c)) conv=notrunc
-	#printf "\xf0\x00" | dd of=bisrv.asd bs=1 seek=$$((0x355e1c)) conv=notrunc
-
-	# remove g_run_osd_width = height = 0 from run_menu
-	printf "\x00\x00\x00\x00\x00\x00\x00\x00" | dd of=bisrv.asd bs=1 seek=$$((0x350168)) conv=notrunc
-endif
-
 	$(Q)./crc bisrv.asd
 
 lcd_font.bin: lcd_font.o
@@ -256,18 +155,10 @@ crc: crc.c
 
 install:
 	@$(call echo_i,"install to sdcard")
-ifeq ($(TEARING_FIX), 1)
-	-$(call copy_if_updated,bisrv.asd,sdcard/bios/bisrv_tearing_fix.asd)
-else
 	-$(call copy_if_updated,bisrv.asd,sdcard/bios/bisrv.asd)
-endif
 	-$(call copy_if_updated,core_87000000,sdcard/cores/$(CONSOLE)/core_87000000)
 	-rm -f sdcard/log.txt
-ifeq ($(TEARING_FIX), 1)
-	@$(call echo_d,"bisrv_tearing_fix")
-else
 	@$(call echo_d,"bisrv.asd")
-endif
 ifeq ($(CLEAR_LOG_ON_BOOT), 1)
 	@$(call echo_d,"log cleared on boot")
 else
@@ -278,9 +169,9 @@ endif
 # Clean intermediate files and the final executable
 clean:
 	-rm -f $(CORE_OBJS)
-	-rm -f $(LOADER_OBJS)
-	-rm -f loader.elf loader.bin core.elf core_87000000
-	-rm -f bisrv.asd
+	-rm -f $(LOADER_OBJS) lcd_font.o
+	-rm -f loader.elf loader.bin core.elf core.elf.map core_87000000
+	-rm -f bisrv.asd crc
 	-rm -f libretro_core.a
 	$(MAKE) -j$(NPROC) -C $(CORE) $(MAKEFILE) clean platform=sf2000
 
