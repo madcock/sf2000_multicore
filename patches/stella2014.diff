@@ -1,0 +1,199 @@
+diff --git a/Makefile b/Makefile
+index 18885d8..623b71a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -365,6 +365,19 @@ else ifeq ($(platform), retrofw)
+ 	FLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32 -mhard-float
+ 	fpic := -fPIC
+ 
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS:=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	CXX = $(MIPS)g++
++	AR = $(MIPS)ar
++	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -DSF2000 -DHAVE_STRL
++	CXXFLAGS := $(CFLAGS) -fno-use-cxa-atexit
++	STATIC_LINKING = 1
++
+ # MIYOO
+ else ifeq ($(platform), miyoo)
+ 	TARGET := $(TARGET_NAME)_libretro.so
+diff --git a/Makefile.common b/Makefile.common
+index e2d74a4..5e89e92 100644
+--- a/Makefile.common
++++ b/Makefile.common
+@@ -83,6 +83,7 @@ SOURCES_CXX := $(CORE_DIR)/src/common/Base.cxx \
+ 	       $(CORE_DIR)/src/emucore/TrackBall.cxx \
+ 	       $(LIBRETRO_DIR)/libretro.cxx
+ 
++ifneq ($(STATIC_LINKING), 1)
+ SOURCES_C := \
+ 	     $(LIBRETRO_COMM_DIR)/compat/compat_posix_string.c \
+ 	     $(LIBRETRO_COMM_DIR)/compat/compat_strcasestr.c \
+@@ -97,3 +98,4 @@ SOURCES_C := \
+ 	     $(LIBRETRO_COMM_DIR)/streams/file_stream_transforms.c \
+ 	     $(LIBRETRO_COMM_DIR)/string/stdstring.c \
+ 	     $(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c
++endif
+\ No newline at end of file
+diff --git a/libretro.cxx b/libretro.cxx
+index 15c6d12..63d72d0 100644
+--- a/libretro.cxx
++++ b/libretro.cxx
+@@ -1015,7 +1015,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
+ {
+    memset(info, 0, sizeof(*info));
+    info->timing.fps            = console->getFramerate();
+-   info->timing.sample_rate    = 31400;
++   info->timing.sample_rate    = 22050;
+    info->geometry.base_width   = 160 * 2;
+    info->geometry.base_height  = videoHeight;
+    info->geometry.max_width    = 320;
+@@ -1336,7 +1336,7 @@ void retro_run(void)
+ {
+    static int16_t sampleBuffer[2048];
+    //Get the number of samples in a frame
+-   static uint32_t tiaSamplesPerFrame = (uint32_t)(31400.0f/console->getFramerate());
++   static uint32_t tiaSamplesPerFrame = (uint32_t)(22050.0f/console->getFramerate());
+ 
+    //CORE OPTIONS
+    bool updated = false;
+diff --git a/stella/src/common/Sound.cxx b/stella/src/common/Sound.cxx
+index c4e8352..f245dee 100644
+--- a/stella/src/common/Sound.cxx
++++ b/stella/src/common/Sound.cxx
+@@ -65,7 +65,7 @@ void Sound::open()
+   }
+ 
+   // Now initialize the TIASound object which will actually generate sound
+-  myTIASound.outputFrequency(31400);
++  myTIASound.outputFrequency(22050);
+   const string& chanResult =
+       myTIASound.channels(2, myNumChannels == 2);
+ 
+@@ -179,7 +179,7 @@ void Sound::set(uInt16 addr, uInt8 value, Int32 cycle)
+ void Sound::processFragment(Int16* stream, uInt32 length)
+ {
+     const uInt32 channels = 2;
+-    double streamLengthInSecs = (double)length/(double)31400;
++    double streamLengthInSecs = (double)length/(double)22050;
+     double excessStreamSecs = myRegWriteQueue.duration() - streamLengthInSecs;
+     if(excessStreamSecs > 0.0)
+     {
+@@ -219,7 +219,7 @@ void Sound::processFragment(Int16* stream, uInt32 length)
+       RegWrite& info = myRegWriteQueue.front();
+ 
+       // How long will the remaining samples in the fragment take to play
+-      double duration = remaining / (double)31400;
++      double duration = remaining / (double)22050;
+ 
+       // Does the register update occur before the end of the fragment?
+       if(info.delta <= duration)
+@@ -230,7 +230,7 @@ void Sound::processFragment(Int16* stream, uInt32 length)
+         {
+           // Process the fragment upto the next TIA register write.  We
+           // round the count passed to process up if needed.
+-          double samples = (31400 * info.delta);
++          double samples = (22050 * info.delta);
+           myTIASound.process(stream + ((uInt32)position * channels),
+               (uInt32)samples + (uInt32)(position + samples) - 
+               ((uInt32)position + (uInt32)samples));
+@@ -274,7 +274,7 @@ void Sound::processFragment(Int16* stream, uInt32 length)
+ //            
+ //            // How long will the remaining samples in the fragment take to play
+ //            //      double duration = remaining / (double)myHardwareSpec.freq;
+-//            double duration = remaining / 31400.0;
++//            double duration = remaining / 22050.0;
+ //            
+ //            // Does the register update occur before the end of the fragment?
+ //            if(info.delta <= duration)
+@@ -286,7 +286,7 @@ void Sound::processFragment(Int16* stream, uInt32 length)
+ //                    // Process the fragment upto the next TIA register write.  We
+ //                    // round the count passed to process up if needed.
+ //                    //          double samples = (myHardwareSpec.freq * info.delta);
+-//                    double samples = (31400.0 * info.delta);
++//                    double samples = (22050.0 * info.delta);
+ //                    myTIASound.process(stream + ((uInt32)position * 2), (uInt32)samples + (uInt32)(position + samples) - ((uInt32)position + (uInt32)samples));
+ //                    
+ //                    position += samples;
+diff --git a/stella/src/emucore/Settings.cxx b/stella/src/emucore/Settings.cxx
+index 8966b4a..0c13b8a 100644
+--- a/stella/src/emucore/Settings.cxx
++++ b/stella/src/emucore/Settings.cxx
+@@ -75,7 +75,7 @@ Settings::Settings(OSystem* osystem)
+   // Sound options
+   setInternal("sound", "true");
+   setInternal("fragsize", "512");
+-  setInternal("freq", "31400");
++  setInternal("freq", "22050");
+   setInternal("volume", "100");
+ 
+   // Input event options
+diff --git a/stella/src/emucore/TIASnd.cxx b/stella/src/emucore/TIASnd.cxx
+index f5bc0ea..145e840 100644
+--- a/stella/src/emucore/TIASnd.cxx
++++ b/stella/src/emucore/TIASnd.cxx
+@@ -345,31 +345,31 @@ void TIASound::process(Int16* buffer, uInt32 samples)
+     switch(myChannelMode)
+     {
+       case Hardware2Mono:  // mono sampling with 2 hardware channels
+-        while((samples > 0) && (myOutputCounter >= 31400))
++        while((samples > 0) && (myOutputCounter >= 22050))
+         {
+           Int16 byte = v0 + v1;
+           *(buffer++) = byte;
+           *(buffer++) = byte;
+-          myOutputCounter -= 31400;
++          myOutputCounter -= 22050;
+           samples--;
+         }
+         break;
+ 
+       case Hardware2Stereo:  // stereo sampling with 2 hardware channels
+-        while((samples > 0) && (myOutputCounter >= 31400))
++        while((samples > 0) && (myOutputCounter >= 22050))
+         {
+           *(buffer++) = v0;
+           *(buffer++) = v1;
+-          myOutputCounter -= 31400;
++          myOutputCounter -= 22050;
+           samples--;
+         }
+         break;
+ 
+       case Hardware1:  // mono/stereo sampling with only 1 hardware channel
+-        while((samples > 0) && (myOutputCounter >= 31400))
++        while((samples > 0) && (myOutputCounter >= 22050))
+         {
+           *(buffer++) = v0 + v1;
+-          myOutputCounter -= 31400;
++          myOutputCounter -= 22050;
+           samples--;
+         }
+         break;
+diff --git a/stella/src/emucore/TIASnd.hxx b/stella/src/emucore/TIASnd.hxx
+index fc65a05..006468a 100644
+--- a/stella/src/emucore/TIASnd.hxx
++++ b/stella/src/emucore/TIASnd.hxx
+@@ -26,7 +26,7 @@
+   This class implements a fairly accurate emulation of the TIA sound
+   hardware.  This class uses code/ideas from z26 and MESS.
+ 
+-  Currently, the sound generation routines work at 31400Hz only.
++  Currently, the sound generation routines work at 22050Hz only.
+   Resampling can be done by passing in a different output frequency.
+ 
+   @author  Bradford W. Mott, Stephen Anthony, z26 and MESS teams
+@@ -38,7 +38,7 @@ class TIASound
+     /**
+       Create a new TIA Sound object using the specified output frequency
+     */
+-    TIASound(Int32 outputFrequency = 31400);
++    TIASound(Int32 outputFrequency = 22050);
+ 
+     /**
+       Destructor
