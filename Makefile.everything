@@ -180,9 +180,6 @@ endif
 #CORE=cores/daphne
 #CONSOLE=daph
 #
-#CORE=cores/libretro-wolfenstein3d
-#CONSOLE=wolf3d
-#
 #CORE=cores/libretro-pcem/src
 #CONSOLE=pcem
 #
