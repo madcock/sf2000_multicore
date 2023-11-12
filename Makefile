@@ -30,7 +30,9 @@ CFLAGS += -DDEBUG_XLOG=1
 endif
 
 LDFLAGS := -EL -nostdlib -z max-page-size=32
-LDFLAGS += --gc-sections --build-id
+LDFLAGS += --gc-sections
+# needed for .text LMA = VMA
+LDFLAGS += --build-id
 
 LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libgcc.a)))
 LIBS+=-lgcc
@@ -41,6 +43,9 @@ LIBS+=-lstdc++
 
 CORE_OBJS=core_api.o lib.o debug.o video_sf2000.o
 LOADER_OBJS=init.o main.o debug.o
+
+#CORE=cores/mame2000
+#CONSOLE=m2k
 
 # CORE=cores/vice
 # CONSOLE=c64
@@ -65,8 +70,8 @@ LOADER_OBJS=init.o main.o debug.o
 # CORE=cores/tgbdual
 # CONSOLE=gb
 
-CORE=cores/gpsp
-CONSOLE=gba
+#CORE=cores/gpsp
+#CONSOLE=gba
 
 # CORE=cores/snes9x2005
 # CONSOLE=snes
