@@ -95,6 +95,9 @@ dly_tsk	= 0x80309134;
 os_get_tick_count = 0x80309b7c;
 
 /* drivers */
+get_vp_init_low_lcd_para	= 0x801b9d0c;
+switch_lcd_or_tv	= 0x801b9dd0;
+
 vpo_ioctl	= 0x80271314;
 
 osddrv_open	= 0x802719c8;
@@ -105,11 +108,14 @@ osddrv_scale	= 0x80272dd8;
 
 dev_get_by_id	= 0x802730b0;
 
-switch_lcd_or_tv	= 0x801b9dd0;
-
-run_osd_region_write	= 0x80355fdc;
+st7789v_caset_raset	= 0x8029a69c;
+st7789v_ramwr	= 0x8029a740;
 
 /* libretro frontend */
+run_osd_region_write	= 0x80355fdc;
+run_screen_write	= 0x80356058;
+run_sound_advance	= 0x80356168;
+
 retro_video_refresh_cb	= 0x803583a8;
 retro_audio_sample_batch_cb	= 0x80358430;
 retro_input_poll_cb	= 0x80358688;
