@@ -83,7 +83,11 @@ LOADER_OBJS=init.o main.o debug.o
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 # Default target
+ifneq ($(CORE),)
 all: core_87000000 bisrv.asd install
+else
+all: bisrv.asd install
+endif
 
 libretro_core:
 	@$(call echo_i,"compiling $(CORE)")
