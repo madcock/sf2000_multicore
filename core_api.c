@@ -204,6 +204,8 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 	else
 	{
 		xlog("retro_load_game ok\n");
+		
+		video_options(s_core_config);
 
 		// make sure the first two controllers are configured as gamepads
 		retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
@@ -450,7 +452,6 @@ void wrap_retro_init(void)
 {
 	config_load();
 	retro_init();
-	video_options(s_core_config);
 }
 
 void wrap_retro_deinit(void)
