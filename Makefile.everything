@@ -30,7 +30,9 @@ CFLAGS += -DDEBUG_XLOG=1
 endif
 
 LDFLAGS := -EL -nostdlib -z max-page-size=32
-LDFLAGS += --gc-sections --build-id
+LDFLAGS += --gc-sections
+# needed for .text LMA = VMA
+LDFLAGS += --build-id
 
 LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libgcc.a)))
 LIBS+=-lgcc
