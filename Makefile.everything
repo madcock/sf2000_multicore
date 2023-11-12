@@ -489,7 +489,7 @@ core.elf: libretro_core.a libretro-common.a $(CORE_OBJS)
 		--start-group $(LIBS) $(CORE_OBJS) libretro_core.a libretro-common.a --end-group
 
 core_87000000: core.elf
-	$(OBJCOPY) -O binary -R .MIPS.abiflags -R .note.gnu.build-id core.elf core_87000000
+	$(OBJCOPY) -O binary -R .MIPS.abiflags -R .note.gnu.build-id -R ".rel*" core.elf core_87000000
 
 loader.elf: $(LOADER_OBJS)
 	@$(call echo_i,"compiling $@")
