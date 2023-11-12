@@ -10,7 +10,7 @@ void lcd_send_cmd(unsigned char);
 void lcd_send_data(unsigned short);
 
 void lcd_init();
-void lcd_bsod(const char *fmt, ...);
+void lcd_bsod(const char *fmt, ...) __attribute__((noreturn));
 
 void dbg_cls();
 void dbg_print(const char *fmt, ...);

@@ -1,0 +1,94 @@
+diff --git a/src/libretro/Makefile b/src/libretro/Makefile
+index ab06c30..753b886 100644
+--- a/src/libretro/Makefile
++++ b/src/libretro/Makefile
+@@ -370,6 +370,21 @@ else ifeq ($(platform), miyoo)
+ 	COMMON_CFLAGS += -fomit-frame-pointer -ffast-math -march=armv5te -mtune=arm926ej-s
+ 	COMMON_CFLAGS += -fno-common -ftree-vectorize -funswitch-loops
+    COMMON_CFLAGS += -Dstricmp=strcasecmp -Dstrnicmp=strncasecmp
++
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	CXX = $(MIPS)g++
++	AR = $(MIPS)ar
++	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -DSF2000 -DHAVE_STRL -DUSE_OWN_ADDED_SIZE
++	CXXFLAGS := $(CFLAGS) -fno-use-cxa-atexit
++	COMMON_CFLAGS += -Dstricmp=strcasecmp -Dstrnicmp=strncasecmp
++	STATIC_LINKING = 1
++
+ else
+    CC ?= gcc
+    TARGET := $(TARGET_NAME)_libretro.dll
+@@ -442,7 +457,7 @@ COMMON_CFLAGS   += -Wall -DLIBRETRO -D__LIBRETRO__ $(fpic) -DCORE=ON -DSDL2=ON -
+ 
+ ifeq (,$(findstring msvc,$(platform)))
+   COMMON_CFLAGS += -ffast-math -fno-strict-aliasing -fvisibility=hidden -fomit-frame-pointer -Wno-sign-compare -Wno-switch -Wno-format-security
+-  CXXFLAGS += -fpermissive -std=gnu++98
++  CXXFLAGS += -fpermissive -std=gnu++11
+ ifneq ($(platform), emscripten)
+   COMMON_CFLAGS += -fno-unsafe-math-optimizations
+ endif
+diff --git a/src/libretro/libretro-common b/src/libretro/libretro-common
+index 996376e..fce57fd 160000
+--- a/src/libretro/libretro-common
++++ b/src/libretro/libretro-common
+@@ -1 +1 @@
+-Subproject commit 996376e36d3f4f56eba202cb96230568628d2583
++Subproject commit fce57fdfb7514a62540781aecbc4a53aedee3dce
+diff --git a/src/libretro/libretro.cpp b/src/libretro/libretro.cpp
+index b6ad5cf..6899a3f 100644
+--- a/src/libretro/libretro.cpp
++++ b/src/libretro/libretro.cpp
+@@ -596,14 +596,14 @@ static void am_multiple_choice (const char *name, unsigned &var, bool &is_update
+ 
+ static void update_variables(bool startup)
+ {
+-#if defined(RS90)
++#if defined(RS90) || defined(SF2000)
+ 	store_files_in_memory = false;
+ #elif defined(_3DS) || defined(GEKKO)
+ 	store_files_in_memory = true;
+ #else
+ 	store_files_in_memory = get_bool_option("ecwolf-memstore");
+ #endif
+-#ifdef RS90
++#if defined(RS90) || defined(SF2000)
+ 	preload_digital_sounds = false;
+ #else
+ 	preload_digital_sounds = get_bool_option("ecwolf-preload-digisounds");
+@@ -1113,7 +1113,7 @@ static void mixChannel(long long tic, SoundChannelState *channel)
+ #define MB(x) ((x) << 20)
+ 
+ size_t limit_sound_cache_size =
+-#ifdef RS90
++#if defined(RS90) || defined(SF2000)
+ 	MB(5)
+ #else
+ 	MB(15)
+@@ -1134,7 +1134,7 @@ void generate_audio(long long tic)
+ 		// We don't want to keep dropping and reloading the same files every frame
+ 		if (limit_sound_cache_size <= (touched_sound_size * 3) / 2) {
+ 			limit_sound_cache_size = (touched_sound_size * 3) / 2;
+-#ifdef RS90
++#if defined(RS90) || defined(SF2000)
+ 			if (limit_sound_cache_size >= MB(7))
+ 				limit_sound_cache_size = MB(7);
+ #endif		
+diff --git a/src/libretro/libretro_core_options.h b/src/libretro/libretro_core_options.h
+index 8697c0d..5489c6b 100644
+--- a/src/libretro/libretro_core_options.h
++++ b/src/libretro/libretro_core_options.h
+@@ -108,6 +108,8 @@ struct retro_core_option_definition option_defs_us[] = {
+ 		},
+ #if defined(RS90)
+ 		"240x160",
++#elif defined(SF2000)
++		"320x240",
+ #elif defined(VITA) || defined(PSP)
+ 		"480x270",
+ #elif defined (_3DS)

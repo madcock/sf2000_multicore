@@ -1,0 +1,68 @@
+diff --git a/Makefile b/Makefile
+index 5e23834..ed146e2 100644
+--- a/Makefile
++++ b/Makefile
+@@ -266,6 +266,20 @@ else ifeq ($(platform), miyoo)
+    LDFLAGS += -lrt
+    FLAGS += -ffast-math -mcpu=arm926ej-s
+ 
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS:=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	CXX = $(MIPS)g++
++	AR = $(MIPS)ar
++	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -I../..
++	CFLAGS += -DSF2000
++	CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions
++	STATIC_LINKING = 1
++
+ # Windows MSVC 2017 all architectures
+ else ifneq (,$(findstring windows_msvc2017,$(platform)))
+ 
+diff --git a/Makefile.common b/Makefile.common
+index 24daaa4..86f88f9 100644
+--- a/Makefile.common
++++ b/Makefile.common
+@@ -24,8 +24,10 @@ else ifneq (,$(findstring msvc,$(platform)))
+ INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include/compat/msvc
+ endif
+ 
+-SOURCES_C :=	$(CORE_DIR)/3rdparty/libco/libco.c \
+-		$(CORE_DIR)/src/unpack.c \
++SOURCES_C := $(CORE_DIR)/src/unpack.c
++
++ifneq ($(STATIC_LINKING), 1)
++SOURCES_C += $(CORE_DIR)/3rdparty/libco/libco.c \
+ 		$(LIBRETRO_COMM_DIR)/file/file_path.c \
+ 		$(LIBRETRO_COMM_DIR)/string/stdstring.c \
+ 		$(LIBRETRO_COMM_DIR)/compat/compat_strcasestr.c \
+@@ -36,6 +38,7 @@ SOURCES_C :=	$(CORE_DIR)/3rdparty/libco/libco.c \
+ 		$(LIBRETRO_COMM_DIR)/streams/file_stream_transforms.c \
+ 		$(LIBRETRO_COMM_DIR)/time/rtime.c \
+ 		$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c
++endif
+ 
+ SOURCES_CXX := \
+ 	       $(CORE_DIR)/src/collision.cpp \
+diff --git a/src/libretro.cpp b/src/libretro.cpp
+index 7fafbfd..5f2912f 100644
+--- a/src/libretro.cpp
++++ b/src/libretro.cpp
+@@ -73,8 +73,13 @@ void retro_get_system_av_info(struct retro_system_av_info *info) {
+ 	info->timing.sample_rate    = kAudioHz;
+ 	info->geometry.base_width   = Video::GAMESCREEN_W;
+ 	info->geometry.base_height  = Video::GAMESCREEN_H;
++#if defined(SF2000)
++	info->geometry.max_width    = Video::GAMESCREEN_W;
++	info->geometry.max_height   = Video::GAMESCREEN_H;
++#else
+ 	info->geometry.max_width    = 1024;
+ 	info->geometry.max_height   = 768;
++#endif
+ 	info->geometry.aspect_ratio = 8.0f / 7.0f;
+ }
+ 

@@ -1,0 +1,393 @@
+diff --git a/.gitignore b/.gitignore
+index 9aeba4d..607234f 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,6 +1,6 @@
+ *.o
+ obj_*
+ retro.dll
+-libretro.*
++#libretro.*
+ *.so
+ *.a
+diff --git a/Makefile b/Makefile
+index 57163e4..41b613c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -321,6 +321,17 @@ else ifeq ($(platform), gcw0)
+    DISABLE_ERROR_LOGGING := 1
+    CFLAGS += -march=mips32 -mtune=mips32r2 -mhard-float
+ 
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS:=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	AR = $(MIPS)ar
++	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -DSF2000 -DDISABLE_ERROR_LOGGING
++	STATIC_LINKING = 1
++
+ # MIYOO
+ else ifeq ($(platform), miyoo)
+    TARGET := $(TARGET_NAME)_libretro.so
+diff --git a/Makefile.common b/Makefile.common
+index ad7793b..4b50282 100644
+--- a/Makefile.common
++++ b/Makefile.common
+@@ -1811,13 +1811,15 @@ SOURCES_C += $(CORE_DIR)/src/libretro/libretro.c \
+ 				 $(CORE_DIR)/src/libretro/shared.c
+ 
+ ifeq ($(WANT_LIBCO), 1)
+-	DEFS += -DWANT_LIBCO -I$(LIBRETRO_COMM_DIR)/include
+-	SOURCES_C += $(LIBRETRO_COMM_DIR)/libco/libco.c
+-else
+-	SOURCES_C += $(LIBRETRO_COMM_DIR)/rthreads/rthreads.c
++	DEFS += -DWANT_LIBCO
+ endif
+ 
+ ifneq ($(STATIC_LINKING), 1)
++	ifeq ($(WANT_LIBCO), 1)
++		SOURCES_C += $(LIBRETRO_COMM_DIR)/libco/libco.c
++	else
++		SOURCES_C += $(LIBRETRO_COMM_DIR)/rthreads/rthreads.c
++	endif
+ 	SOURCES_C += $(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
+ 		$(LIBRETRO_COMM_DIR)/compat/compat_strcasestr.c \
+ 		$(LIBRETRO_COMM_DIR)/file/file_path.c 
+diff --git a/src/libretro/fileio.c b/src/libretro/fileio.c
+index 4b47a30..1083a5d 100644
+--- a/src/libretro/fileio.c
++++ b/src/libretro/fileio.c
+@@ -1448,7 +1448,9 @@ int osd_display_loading_rom_message (const char *name, int current, int total)
+ 		printf ("loading %-12s\n", name);
+ 	else
+ 		printf ("             \n");
++#if !defined(SF2000)
+ 	fflush (stdout);
++#endif
+ 
+ 	if( keyboard_pressed (KEYCODE_LCONTROL) && keyboard_pressed (KEYCODE_C) )
+ 		return 1;
+diff --git a/src/libretro/libretro.c b/src/libretro/libretro.c
+index 7fd3662..1e9eba1 100644
+--- a/src/libretro/libretro.c
++++ b/src/libretro/libretro.c
+@@ -89,7 +89,9 @@ void decompose_rom_sample_path(char *rompath, char *samplepath);
+ void init_joy_list(void);
+ 
+ extern UINT32 create_path_recursive(char *path);
+-	
++
++static retro_log_printf_t log_cb;
++
+ #if defined(_3DS)
+ void* linearMemAlign(size_t size, size_t alignment);
+ void linearFree(void* mem);
+@@ -98,11 +100,15 @@ void linearFree(void* mem);
+ void CLIB_DECL logerror(const char *text,...)
+ {
+ #ifdef DISABLE_ERROR_LOGGING
++#if defined(SF2000)
++   //log_cb(RETRO_LOG_DEBUG, text);
++#else
+    va_list arg;
+    va_start(arg,text);
+    vprintf(text,arg);
+    va_end(arg);
+ #endif
++#endif
+ }
+ 
+ int global_showinfo = 1;
+@@ -119,11 +125,22 @@ int attenuation = 0;
+ 
+ void gp2x_printf(char* fmt, ...)
+ {
++#if defined(SF2000)
++	char buffer[500];
++
++	va_list args;
++	va_start(args, fmt);
++	vsnprintf(buffer, sizeof(buffer), fmt, args);
++	va_end(args);
++
++	if (log_cb)
++		log_cb(RETRO_LOG_INFO, buffer);
++#else
+    va_list marker;
+-	
+    va_start(marker, fmt);
+    vprintf(fmt, marker);
+    va_end(marker);
++#endif
+ }
+ 
+ void gp2x_set_video_mode(int bpp,int width,int height)
+@@ -140,6 +157,7 @@ void gp2x_video_setpalette(void)
+ unsigned long gp2x_joystick_read(int n)
+ {
+    (void)n;
++   return 0;
+ }
+ 
+ int osd_init(void)
+@@ -316,6 +334,12 @@ void retro_set_environment(retro_environment_t cb)
+    environ_cb = cb;
+     
+    cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
++
++   struct retro_log_callback log;
++   if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
++      log_cb = log.log;
++   else
++      log_cb = NULL;
+ }
+ 
+ void retro_set_audio_sample(retro_audio_sample_t cb)
+@@ -350,8 +374,8 @@ void retro_reset(void)
+ 
+ static void update_input(void)
+ {
+-#define RK(port,key)     input_state_cb(port, RETRO_DEVICE_KEYBOARD, 0,RETROK_##key)
+-#define JS(port, button) joypad_bits & (1 << RETRO_DEVICE_ID_JOYPAD_##button)
++#define RK(port,key)     (input_state_cb(port, RETRO_DEVICE_KEYBOARD, 0,RETROK_##key))
++#define JS(port, button) (joypad_bits & (1 << RETRO_DEVICE_ID_JOYPAD_##button))
+ 	int i, j, c = 0;
+ 	input_poll_cb();
+ 	
+@@ -388,7 +412,11 @@ static void update_input(void)
+ 		joy_pressed[c++] = JS(i, L);
+ 		joy_pressed[c++] = JS(i, R);
+ 
++#if defined(SF2000)
++		key[KEY_TAB] |= (JS(i, L) > 0) && (JS(i, START) > 0);
++#else
+ 		key[KEY_TAB] |= JS(i, R2);
++#endif
+ 	}
+ 
+ 	key[KEY_A] =RK(0, a);
+@@ -515,8 +543,13 @@ void hook_video_done(void)
+ void run_thread_proc(void)
+ {
+    run_game(game_index);
+-   hook_audio_done();
+-   hook_video_done();
++
++   // never exit a co-thread
++   while (true)
++      co_switch(main_thread);
++
++   // hook_audio_done();
++   // hook_video_done();
+ }
+ #else
+ static void hook_check(void)
+@@ -548,19 +581,6 @@ void hook_video_done(void)
+    slock_unlock(libretro_mutex);
+ }
+ 
+-#ifdef WANT_LIBCO
+-void *run_thread_proc(void *v)
+-{
+-   (void)v;
+-
+-   run_game(game_index);
+-   thread_done = 1;
+-   hook_audio_done();
+-   hook_video_done();
+-
+-   return NULL;
+-}
+-#else
+ void run_thread_proc(void *v)
+ {
+    run_game(game_index);
+@@ -568,7 +588,6 @@ void run_thread_proc(void *v)
+    hook_audio_done();
+    hook_video_done();
+ }
+-#endif
+ 
+ static void lock_mame(void)
+ {
+@@ -716,10 +735,10 @@ void retro_run(void)
+       }
+    }
+ 
++#ifndef WANT_LIBCO
+    audio_done = 0;
+    video_done = 0;
+ 
+-#ifndef WANT_LIBCO
+    unlock_mame();
+ #endif
+ 
+@@ -804,7 +823,7 @@ bool retro_load_game(const struct retro_game_info *info)
+    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
+    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+    {
+-      fprintf(stderr, "[libretro]: RGB565 is not supported.\n");
++      logerror("[libretro]: RGB565 is not supported.\n");
+       return false;
+    }
+ 
+@@ -834,15 +853,14 @@ bool retro_load_game(const struct retro_game_info *info)
+   }
+    printf("SAVE_DIRECTORY: %s\n", retro_save_directory);
+ 
+-   sprintf(core_sys_directory,"%s%cmame2000\0",retro_system_directory,slash);
+-   sprintf(core_save_directory,"%s%cmame2000\0",retro_save_directory,slash);
++   sprintf(core_sys_directory,"%s%cmame2000",retro_system_directory,slash);
++   sprintf(core_save_directory,"%s%cmame2000",retro_save_directory,slash);
+    printf("MAME2000_SYS_DIRECTORY: %s\n", core_sys_directory);
+    printf("MAME2000_SAVE_DIRECTORY: %s\n", core_save_directory);
+ 
+    IMAMEBASEPATH = (char *) malloc(1024);
+    IMAMESAMPLEPATH = (char *) malloc(1024);
+ 
+-
+    int i;
+    memcpy(IMAMEBASEPATH, info->path, strlen(info->path) + 1);
+    if (strrchr(IMAMEBASEPATH, slash)) *(strrchr(IMAMEBASEPATH, slash)) = 0;
+@@ -857,6 +875,7 @@ bool retro_load_game(const struct retro_game_info *info)
+    strcat(IMAMESAMPLEPATH, "/samples");
+ 
+    /* do we have a driver for this? */
++   game_index = -1;
+    for (i = 0; drivers[i] && (game_index == -1); i++)
+    {
+ 	   if (strcasecmp(baseName,drivers[i]->name) == 0)
+@@ -872,6 +891,8 @@ bool retro_load_game(const struct retro_game_info *info)
+ 	   return false;
+    }
+ 
++   printf("game_index=%d driver_name=%s\n", game_index, drivers[game_index]->name);
++
+    /* parse generic (os-independent) options */
+    //parse_cmdline (argc, argv, game_index);
+ 
+@@ -912,6 +933,8 @@ bool retro_load_game(const struct retro_game_info *info)
+    options.samplerate = sample_rate;
+    usestereo = stereo_enabled;
+ 
++   printf("sample_rate=%d\n", sample_rate);
++
+    /* This is needed so emulated YM3526/YM3812 chips are used instead on physical ones. */
+    options.use_emulated_ym3812 = 1;
+ 
+@@ -1037,13 +1060,16 @@ bool retro_load_game(const struct retro_game_info *info)
+ 
+    decompose_rom_sample_path(IMAMEBASEPATH, IMAMESAMPLEPATH);
+ 
+-   mame_sleep = 1;
+-
+ #ifdef WANT_LIBCO
+    main_thread = co_active();
+    core_thread = co_create(0x10000, run_thread_proc);
+    co_switch(core_thread);
++
++   extern int bailing;
++   if (bailing)
++       return false;
+ #else
++   mame_sleep = 1;
+    run_thread = sthread_create(run_thread_proc, NULL);
+ #endif
+ 
+diff --git a/src/tilemap.c b/src/tilemap.c
+index 44cc0ce..f620de3 100644
+--- a/src/tilemap.c
++++ b/src/tilemap.c
+@@ -474,6 +474,9 @@ struct tilemap *tilemap_create(
+ 			first_tilemap = tilemap;
+ 			return tilemap;
+ 		}
++		else
++			printf("error creating tilemap\n");
++
+ 		tilemap_dispose( tilemap );
+ 	}
+ 	return 0;
+@@ -484,9 +487,11 @@ void tilemap_dispose( struct tilemap *tilemap ){
+ 		first_tilemap = tilemap->next;
+ 	}
+ 	else {
+-		struct tilemap *prev = first_tilemap;
+-		while( prev->next != tilemap ) prev = prev->next;
+-		prev->next =tilemap->next;
++		if (first_tilemap) {
++			struct tilemap *prev = first_tilemap;
++			while( prev->next != tilemap ) prev = prev->next;
++			prev->next =tilemap->next;
++		}
+ 	}
+ 
+ 	free( tilemap->cached_tile_info );
+diff --git a/src/vidhrdw/sf1.c b/src/vidhrdw/sf1.c
+index ef08a81..3b44780 100644
+--- a/src/vidhrdw/sf1.c
++++ b/src/vidhrdw/sf1.c
+@@ -7,6 +7,8 @@ int sf1_active = 0;
+ 
+ static struct tilemap *bgb_tilemap, *bgm_tilemap, *char_tilemap;
+ 
++static data16_t bgscroll, fgscroll;
++static int bgprev = 0, fgprev = 0;
+ 
+ /***************************************************************************
+ 
+@@ -16,7 +18,7 @@ static struct tilemap *bgb_tilemap, *bgm_tilemap, *char_tilemap;
+ 
+ static void get_bgb_tile_info(int tile_index)
+ {
+-	unsigned char *base = memory_region(REGION_GFX5) + 2*tile_index;
++	unsigned char *base = memory_region(REGION_GFX5) + ((bgscroll >> 4) << 5) + 2*tile_index;
+ 	int attr = base[0x10000];
+ 	int color = base[0];
+ 	int code = (base[0x10000+1]<<8) | base[1];
+@@ -26,7 +28,7 @@ static void get_bgb_tile_info(int tile_index)
+ 
+ static void get_bgm_tile_info(int tile_index)
+ {
+-	unsigned char *base = memory_region(REGION_GFX5) + 0x20000 + 2*tile_index;
++	unsigned char *base = memory_region(REGION_GFX5) + ((fgscroll >> 4) << 5) + 0x20000 + 2*tile_index;
+ 	int attr = base[0x10000];
+ 	int color = base[0];
+ 	int code = (base[0x10000+1]<<8) | base[1];
+@@ -53,8 +55,8 @@ int sf1_vh_start(void)
+ {
+ 	int i;
+ 
+-	bgb_tilemap =  tilemap_create(get_bgb_tile_info, tilemap_scan_cols,TILEMAP_OPAQUE,     16,16,2048,16);
+-	bgm_tilemap =  tilemap_create(get_bgm_tile_info, tilemap_scan_cols,TILEMAP_TRANSPARENT,16,16,2048,16);
++	bgb_tilemap =  tilemap_create(get_bgb_tile_info, tilemap_scan_cols,TILEMAP_OPAQUE,     16,16,(512/16)+1,16);
++	bgm_tilemap =  tilemap_create(get_bgm_tile_info, tilemap_scan_cols,TILEMAP_TRANSPARENT,16,16,(512/16)+1,16);
+ 	char_tilemap = tilemap_create(get_char_tile_info,tilemap_scan_rows,TILEMAP_TRANSPARENT, 8, 8,  64,32);
+ 
+ 	if (!bgb_tilemap || !bgm_tilemap || !char_tilemap)
+@@ -90,12 +92,20 @@ WRITE_HANDLER( sf1_videoram_w )
+ 
+ WRITE_HANDLER( sf1_deltaxb_w )
+ {
+-	tilemap_set_scrollx(bgb_tilemap, 0, data);
++	bgscroll = COMBINE_WORD(bgscroll, data);
++	tilemap_set_scrollx(bgb_tilemap,0,bgscroll & 0x0f);
++
++	if ((bgscroll >> 4) != bgprev) tilemap_mark_all_tiles_dirty( bgb_tilemap );
++	bgprev = bgscroll >> 4;
+ }
+ 
+ WRITE_HANDLER( sf1_deltaxm_w )
+ {
+-	tilemap_set_scrollx(bgm_tilemap, 0, data);
++	fgscroll = COMBINE_WORD(fgscroll, data);
++	tilemap_set_scrollx(bgm_tilemap,0,fgscroll & 0x0f);
++
++	if ((fgscroll >> 4) != fgprev) tilemap_mark_all_tiles_dirty( bgm_tilemap );
++	fgprev = fgscroll >> 4;
+ }
+ 
+ void sf1_active_w(int data)
