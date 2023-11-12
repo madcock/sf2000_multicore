@@ -58,6 +58,7 @@ make clean CONSOLE=gg		CORE=cores/Gearsystem/platforms/libretro	&& \
 make clean CONSOLE=spec		CORE=cores/libretro-fuse	&& \
 make clean CONSOLE=thom		CORE=cores/theodore	&& \
 make clean CONSOLE=wsv		CORE=cores/potator/platform/libretro	&& \
+make clean CONSOLE=c64		CORE=cores/libretro-vice	&& \
 
 #working but issues
 make clean CONSOLE=amstrad	CORE=cores/libretro-crocods	&& \

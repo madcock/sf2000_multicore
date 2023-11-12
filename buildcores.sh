@@ -57,6 +57,7 @@ make CONSOLE=gg			CORE=cores/Gearsystem/platforms/libretro	&& \
 make CONSOLE=spec		CORE=cores/libretro-fuse	&& \
 make CONSOLE=thom		CORE=cores/theodore	&& \
 make CONSOLE=wsv		CORE=cores/potator/platform/libretro	&& \
+make CONSOLE=c64		CORE=cores/libretro-vice	&& \
 
 #working but issues
 make CONSOLE=amstrad	CORE=cores/libretro-crocods	&& \
