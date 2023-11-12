@@ -20,9 +20,13 @@ extern void get_vp_init_low_lcd_para(struct vp_init_info *);
 // is_lcd is named switch_flag in debug printf (it's redunant btw)
 extern void switch_lcd_or_tv(BOOL is_lcd, enum tvsystem tvsys);
 
-// struct vp_rgb_timing_param.rgb_clock
-#define VPO_RGB_CLOCK_6_6M	8
-#define VPO_RGB_CLOCK_9M	9
+/* enum DIS_RGB_CLOCK in libviddrv.a. Do note them renaming from
+https://git.maschath.de/ignatz/hcrtos/-/blob/main/board/hc15xx/common/dts/sf2000_min.dts#L592
+(device tree is likely an older effort, pasting the driver's source verbatim) */
+enum VPO_RGB_CLOCK {
+	VPO_RGB_CLOCK_6_6M	= 8,
+	VPO_RGB_CLOCK_9M	= 9
+};
 
 #define VPO_IO_GET_OUT_MODE	3
 
@@ -37,15 +41,17 @@ struct osdrect {
 	uint16_t u_height;
 };
 
-#define OSD_HD_RGB565	5
-#define OSD_HD_ARGB8888	10 // currently unused (needs a run_emulator_menu hook)
+enum osdcolor_mode {
+	OSD_HD_RGB565	= 5,
+	OSD_HD_ARGB8888	= 10 // currently unused (needs a run_emulator_menu hook)
+};
 
 struct osdpara {
-	int e_mode;
+	enum osdcolor_mode e_mode;
 	uint8_t u_galpha_enable;
 	uint8_t u_galpha;
-	uint8_t u_pallette_sel;
-	uint8_t u_rotate; // hangs the driver, needs serious research to fix
+	uint8_t u_pallette_sel; // sic
+	uint8_t u_rotate; // hangs the driver; needs serious research to fix
 	uint8_t u_flip_v;
 	uint8_t u_flip_h;
 };
@@ -55,7 +61,7 @@ struct osd_vscr {
 	const void *lpb_scr;
 	uint8_t	b_block_id;
 	BOOL update_pending;
-	uint8_t b_color_mode;
+	uint8_t b_color_mode; // implies enum osdcolor_mode. ALi's fav bad practice
 	uint8_t b_draw_mode;
 };
 
