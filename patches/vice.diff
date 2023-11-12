@@ -1,0 +1,102 @@
+diff --git a/Makefile b/Makefile
+index 5887c3b67..828d61d02 100644
+--- a/Makefile
++++ b/Makefile
+@@ -357,6 +357,20 @@ else ifeq ($(platform), gcw0)
+    COMMONFLAGS += -DHAVE_SYS_TYPES_H -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L
+    CFLAGS += -std=c99
+ 
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS:=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	CXX = $(MIPS)g++
++	AR = $(MIPS)ar
++	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -I../..
++	CFLAGS += -DSF2000 -DHAVE_CXX11=1
++	CXXFLAGS := $(CFLAGS)
++	STATIC_LINKING = 1
++
+ # ARM
+ else ifneq (,$(findstring armv,$(platform)))
+    TARGET := $(TARGET_NAME)_libretro.so
+@@ -428,7 +442,8 @@ OBJECTS     := $(addprefix $(OBJDIR)/,$(OBJECTS))
+ # Do not enforce C99 as some gcc-versions appear to not handle system-headers
+ # properly in that case.
+ #CFLAGS      += -std=c99
+-CXXFLAGS    += -std=c++98
++# CXXFLAGS    += -std=c++98
++CXXFLAGS    += -std=c++11
+ 
+ ifeq ($(platform), theos_ios)
+ 	COMMON_FLAGS := -DIOS -DARM $(COMMON_DEFINES) $(INCFLAGS) -I$(THEOS_INCLUDE_PATH) -Wno-error
+diff --git a/include/config.h b/include/config.h
+index 4c8e114c0..1cb46b7d9 100644
+--- a/include/config.h
++++ b/include/config.h
+@@ -93,8 +93,10 @@
+ /* FastSID */
+ #define HAVE_FASTSID
+ 
++#if !defined(SF2000)
+ /* This version provides ReSID support. */
+ #define HAVE_RESID 
++#endif
+ 
+ /* Define to 1 if you have the <signal.h> header file. */
+ #define HAVE_SIGNAL_H 1
+diff --git a/retrodep/archdep.c b/retrodep/archdep.c
+index b0d25a773..6e2d29809 100644
+--- a/retrodep/archdep.c
++++ b/retrodep/archdep.c
+@@ -150,6 +150,30 @@ int access(const char *fpath, int mode)
+ #endif
+ #endif /* __PS3__ */
+ 
++#if defined(SF2000)
++int access(const char *fpath, int mode)
++{
++    struct stat buffer;
++    return libretro_stat(fpath, &buffer);
++}
++
++char *getcwd(FAR char *buf, size_t size)
++{
++	return NULL;
++}
++int chdir(FAR const char *path)
++{
++	return -1;
++}
++int rmdir (const char *__path)
++{
++	return -1;
++}
++int unlink (const char *__path)
++{
++	return -1;
++}
++#endif
+ 
+ #ifdef USE_LIBRETRO_VFS
+ RFILE *archdep_fdopen(int fd, const char *mode)
+diff --git a/vice/src/arch/shared/archdep_tick.c b/vice/src/arch/shared/archdep_tick.c
+index b6a61e8cc..060f1e3d3 100644
+--- a/vice/src/arch/shared/archdep_tick.c
++++ b/vice/src/arch/shared/archdep_tick.c
+@@ -129,7 +129,12 @@ tick_t tick_now(void)
+ #ifdef __LIBRETRO__
+ static inline void sleep_impl(tick_t sleep_ticks)
+ {
++#if defined(SF2000)
++	extern int dly_tsk(unsigned ms);
++	dly_tsk(sleep_ticks / 1000);
++#else
+     retro_sleep(sleep_ticks / 1000);
++#endif
+ }
+ #else
+ 
