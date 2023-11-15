@@ -33,6 +33,7 @@ static void wrap_retro_set_audio_sample_batch(retro_audio_sample_batch_t cb);
 
 static bool wrap_environ_cb(unsigned cmd, void *data);
 static size_t wrap_audio_batch_cb(const int16_t *data, size_t frames);
+static void wrap_audio_sample_cb(int16_t left, int16_t right);
 
 static bool wrap_retro_load_game(const struct retro_game_info* info);
 static void wrap_retro_init(void);
@@ -157,6 +158,9 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 
 	// install custom input handler to filter out all requests for non-joypad devices
 	retro_set_input_state(wrap_input_state_cb);
+
+	// for cores that produce one audio sample at a time
+	retro_set_audio_sample(wrap_audio_sample_cb);
 
 	// if core wants to load the content by itself directly from files, then let it
 	if (sysinfo.need_fullpath)
@@ -479,6 +483,12 @@ size_t wrap_audio_batch_cb(const int16_t *data, size_t frames)
 	audio_batch_cb(data, frames);
 	// return `frames` as if all data was consumed
 	return frames;
+}
+
+void wrap_audio_sample_cb(int16_t left, int16_t right)
+{
+	int16_t data[2] = {left, right};
+	audio_batch_cb(data, 1);
 }
 
 void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, size_t stride)
