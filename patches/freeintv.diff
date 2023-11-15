@@ -1,0 +1,89 @@
+diff --git a/Makefile b/Makefile
+index e8c0869..9eb72fa 100644
+--- a/Makefile
++++ b/Makefile
+@@ -339,6 +339,17 @@ else ifeq ($(platform), miyoo)
+ 	SHARED := -shared -Wl,--version-script=link.T -Wl,-no-undefined
+ 	CFLAGS += -mcpu=arm926ej-s -ffast-math
+ 
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	AR = $(MIPS)ar
++	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -DSF2000
++	STATIC_LINKING = 1
++
+ # Windows MSVC 2010 x64
+ else ifeq ($(platform), windows_msvc2010_x64)
+ 	CC  = cl.exe
+diff --git a/src/intv.h b/src/intv.h
+index 2d8f2ba..ead7ac0 100644
+--- a/src/intv.h
++++ b/src/intv.h
+@@ -18,7 +18,11 @@
+ 	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+ 
++#if defined(SF2000)
++#define AUDIO_FREQUENCY     22050
++#else
+ #define AUDIO_FREQUENCY     44100
++#endif
+ 
+ extern int SR1; // SR1 line for interrupt
+ 
+diff --git a/src/libretro.c b/src/libretro.c
+index 12cc36b..8131e11 100644
+--- a/src/libretro.c
++++ b/src/libretro.c
+@@ -43,14 +43,16 @@ retro_video_refresh_t Video;
+ retro_audio_sample_t Audio;
+ retro_audio_sample_batch_t AudioBatch;
+ retro_input_poll_t InputPoll;
+-retro_input_state_t InputState;
++retro_input_state_t xInputState;
++
++#define InputState(a,b,c,d) (xInputState(a,b,c,d)!=0 ? 1 : 0)
+ 
+ void retro_set_environment(retro_environment_t fn) { Environ = fn; }
+ void retro_set_video_refresh(retro_video_refresh_t fn) { Video = fn; }
+ void retro_set_audio_sample(retro_audio_sample_t fn) { Audio = fn; }
+ void retro_set_audio_sample_batch(retro_audio_sample_batch_t fn) { AudioBatch = fn; }
+ void retro_set_input_poll(retro_input_poll_t fn) { InputPoll = fn; }
+-void retro_set_input_state(retro_input_state_t fn) { InputState = fn; }
++void retro_set_input_state(retro_input_state_t fn) { xInputState = fn; }
+ 
+ struct retro_game_geometry Geometry;
+ 
+@@ -114,6 +116,9 @@ static void Keyboard(bool down, unsigned keycode,
+ 
+ void retro_init(void)
+ {
++	int pixelformat = RETRO_PIXEL_FORMAT_XRGB8888;
++	Environ(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixelformat);
++
+ 	char execPath[PATH_MAX_LENGTH];
+ 	char gromPath[PATH_MAX_LENGTH];
+ 	struct retro_keyboard_callback kb = { Keyboard };
+@@ -415,8 +420,6 @@ void retro_get_system_info(struct retro_system_info *info)
+ 
+ void retro_get_system_av_info(struct retro_system_av_info *info)
+ {
+-	int pixelformat = RETRO_PIXEL_FORMAT_XRGB8888;
+-
+ 	memset(info, 0, sizeof(*info));
+ 	info->geometry.base_width   = MaxWidth;
+ 	info->geometry.base_height  = MaxHeight;
+@@ -426,8 +429,6 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
+ 
+ 	info->timing.fps = DefaultFPS;
+ 	info->timing.sample_rate = AUDIO_FREQUENCY;
+-
+-	Environ(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixelformat);
+ }
+ 
+ 
