@@ -1,0 +1,58 @@
+diff --git a/Makefile.libretro b/Makefile.libretro
+index df3161c..4ab2af3 100644
+--- a/Makefile.libretro
++++ b/Makefile.libretro
+@@ -426,6 +426,18 @@ else ifeq ($(platform), miyoo)
+    CFLAGS += -fmerge-all-constants -fno-math-errno -fno-stack-protector -fno-ident    
+    CFLAGS += -DRETROFW
+ 
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	AR = $(MIPS)ar
++	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -DSF2000
++	HAS_GPU = 0
++	STATIC_LINKING = 1
++
+ # Windows MSVC 2003 Xbox 1
+ else ifeq ($(platform), xbox1_msvc2003)
+    TARGET := $(TARGET_NAME)_libretro_xdk1.lib
+diff --git a/e8910.c b/e8910.c
+index b27bf3f..b238e70 100644
+--- a/e8910.c
++++ b/e8910.c
+@@ -35,7 +35,7 @@ struct AY8910 {
+ 	int CountA,CountB,CountC,CountN,CountE;
+ 	int RNG;
+ 	unsigned VolA,VolB,VolC,VolE;
+-	char CountEnv;
++	signed char CountEnv;
+ 	unsigned char EnvelopeA,EnvelopeB,EnvelopeC;
+ 	unsigned char OutputA,OutputB,OutputC,OutputN;
+ 	unsigned char Hold,Alternate,Attack,Holding;
+diff --git a/libretro.c b/libretro.c
+index d852eba..964cdaf 100644
+--- a/libretro.c
++++ b/libretro.c
+@@ -56,7 +56,7 @@ static float SCALEY = 1.;
+ static struct retro_hw_render_callback hw_render;
+ #endif
+ 
+-#if defined(_3DS) || defined(RETROFW)
++#if defined(_3DS) || defined(RETROFW) || defined(SF2000)
+ #define BUFSZ 135300
+ #else
+ #define BUFSZ 2164800
+@@ -179,7 +179,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
+    info->timing.sample_rate    = 44100;
+    info->geometry.base_width   = 330;
+    info->geometry.base_height  = 410;
+-#if defined(_3DS) || defined(RETROFW)
++#if defined(_3DS) || defined(RETROFW) || defined(SF2000)
+    info->geometry.max_width    = 330;
+    info->geometry.max_height   = 410;
+ #else
