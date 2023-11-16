@@ -199,5 +199,5 @@ define echo_d
 endef
 
 define copy_if_updated
-	diff -q $(1) $(2) || (mkdir -p $$(dirname $(2)) && cp $(1) $(2) && echo "$(1) updated")
+	diff -q $(1) $(2) || (rm -rf $$(dirname $(2)) && mkdir -p $$(dirname $(2)) && cp $(1) $(2) && echo "$(1) updated")
 endef

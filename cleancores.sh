@@ -8,7 +8,7 @@ make clean CONSOLE=cps1		CORE=cores/fbalpha2012_cps1	&& \
 make clean CONSOLE=neogeo		CORE=cores/fbalpha2012_neogeo	&& \
 make clean CONSOLE=mame2003mw	CORE=cores/mame2003_midway	&& \
 make clean CONSOLE=jag		CORE=cores/libretro-virtualjaguar	&& \
-make clean CONSOLE=cball		CORE=cores/cannonball	&& \
+make clean CONSOLE=outrun	CORE=cores/cannonball	&& \
 make clean CONSOLE=zork		CORE=cores/mojozork	MAKEFILE=-fMakefile.libretro	&& \
 make clean CONSOLE=img		CORE=cores/libretro-imageviewer-legacy	MAKEFILE=-fMakefile.libretro	&& \
 make clean CONSOLE=snesc		CORE=cores/chimerasnes	&& \

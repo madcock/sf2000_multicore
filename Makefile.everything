@@ -206,18 +206,9 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-galaxy
 #CONSOLE=glxy
 #
-#CORE=cores/retro-tennis
-#CONSOLE=tennis
-#
-#CORE=cores/FreeIntv
-#CONSOLE=int
-# 
 #CORE=cores/libretro-imageviewer-legacy
 #MAKEFILE=-f Makefile.libretro
 #CONSOLE=img
-#
-#CORE=cores/libretro-vecx
-#CONSOLE=vec
 #
 #CORE=cores/libretro-cap32
 #CONSOLE=amstradb
@@ -262,9 +253,6 @@ LOADER_OBJS=init.o main.o debug.o
 #MAKEFILE=-f Makefile.libretro
 #CONSOLE=bk
 #
-#CORE=cores/cannonball
-#CONSOLE=cball
-#
 #CORE=cores/mojozork
 #MAKEFILE=-f Makefile.libretro
 #CONSOLE=zork
@@ -301,9 +289,6 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/libretro-beetle-psx
 #CONSOLE=psx
-#
-#CORE=cores/libretro-mame2000
-#CONSOLE=m2k
 #
 
 
@@ -367,6 +352,18 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/smsplus-gx
 #MAKEFILE=-f Makefile.libretro
 #CONSOLE=sms
+#
+#CORE=cores/libretro-mame2000
+#CONSOLE=m2k
+#
+#CORE=cores/libretro-vecx
+#CONSOLE=vec
+#
+#CORE=cores/cannonball
+#CONSOLE=outrun
+#
+#CORE=cores/retro-tennis
+#CONSOLE=tennis
 #
 
 ## builds and works
@@ -448,6 +445,9 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-prboom
 #CONSOLE=prboom
 #
+#CORE=cores/FreeIntv
+#CONSOLE=int
+# 
 
 ## test samples
 ###############
@@ -582,5 +582,5 @@ define echo_d
 endef
 
 define copy_if_updated
-	diff -q $(1) $(2) || (mkdir -p $$(dirname $(2)) && cp $(1) $(2) && echo "$(1) updated")
+	diff -q $(1) $(2) || (rm -rf $$(dirname $(2)) && mkdir -p $$(dirname $(2)) && cp $(1) $(2) && echo "$(1) updated")
 endef
