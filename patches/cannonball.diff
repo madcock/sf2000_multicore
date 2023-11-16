@@ -1,0 +1,77 @@
+diff --git a/Makefile b/Makefile
+index 01d122c..35168e7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -292,6 +292,20 @@ else ifeq ($(platform), miyoo)
+    FLAGS += -DDINGUX -fomit-frame-pointer -flto -ffast-math -mcpu=arm926ej-s
+    FLAGS += -DLOW_FPS
+ 
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	CXX = $(MIPS)g++
++	AR = $(MIPS)ar
++	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -DSF2000 -DLOW_FPS
++	CXXFLAGS := $(CFLAGS) -std=gnu++11
++	CFLAGS += -std=gnu11
++	STATIC_LINKING = 1
++
+ # Windows MSVC 2017 all architectures
+ else ifneq (,$(findstring windows_msvc2017,$(platform)))
+ 
+diff --git a/src/main/libretro/libretro_core_options.h b/src/main/libretro/libretro_core_options.h
+index 8bcd1e7..e637e02 100644
+--- a/src/main/libretro/libretro_core_options.h
++++ b/src/main/libretro/libretro_core_options.h
+@@ -155,7 +155,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
+          { "OFF", NULL },
+          { NULL, NULL },
+       },
+-#ifdef DINGUX
++#if defined(DINGUX) || defined(SF2000)
+       "OFF"
+ #else
+       "ON"
+diff --git a/src/main/libretro/main.cpp b/src/main/libretro/main.cpp
+index 06b5353..9e234fd 100644
+--- a/src/main/libretro/main.cpp
++++ b/src/main/libretro/main.cpp
+@@ -81,7 +81,7 @@ static void config_init(void)
+     config.video.fps        = 2; // Default is 60 fps
+ #endif
+     config.video.fps_count  = 0; // FPS Counter
+-#ifdef DINGUX
++#if defined(DINGUX) || defined(SF2000)
+     config.video.widescreen = 0; // Enable Widescreen Mode
+ #else
+     config.video.widescreen = 1; // Enable Widescreen Mode
+@@ -899,13 +899,13 @@ static void retro_build_save_paths(void)
+     * > Note: These are not 'full' paths;
+     *   suffix + extension are added elsewhere */
+    fill_pathname_join(FILENAME_SCORES, save_dir,
+-         "hiscores", sizeof(FILENAME_SCORES));
++         "outrun/hiscores", sizeof(FILENAME_SCORES));
+ 
+    fill_pathname_join(FILENAME_TTRIAL, save_dir,
+-         "hiscores_timetrial", sizeof(FILENAME_TTRIAL));
++         "outrun/hiscores_timetrial", sizeof(FILENAME_TTRIAL));
+ 
+    fill_pathname_join(FILENAME_CONT, save_dir,
+-         "hiscores_continuous", sizeof(FILENAME_CONT));
++         "outrun/hiscores_continuous", sizeof(FILENAME_CONT));
+ }
+ 
+ bool retro_load_game(const struct retro_game_info *info)
+@@ -1146,7 +1146,7 @@ static void process_events(void)
+ 
+    for (i = 0; i < (sizeof(binds) / sizeof(binds[0])); i++)
+    {
+-      if (ret & (1 << binds[i].joy_id))
++      if (ret & (1 << i))
+          input.handle_key(binds[i].id, true);
+       else
+          input.handle_key(binds[i].id, false);
