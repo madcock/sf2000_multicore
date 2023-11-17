@@ -37,10 +37,18 @@ index 8bcd1e7..e637e02 100644
  #else
        "ON"
 diff --git a/src/main/libretro/main.cpp b/src/main/libretro/main.cpp
-index 06b5353..9e234fd 100644
+index 06b5353..404a0df 100644
 --- a/src/main/libretro/main.cpp
 +++ b/src/main/libretro/main.cpp
-@@ -81,7 +81,7 @@ static void config_init(void)
+@@ -8,6 +8,7 @@
+ #include <stdint.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <sys/stat.h>	// mkdir
+ 
+ #include <file/file_path.h>
+ #include <streams/file_stream.h>
+@@ -81,7 +82,7 @@ static void config_init(void)
      config.video.fps        = 2; // Default is 60 fps
  #endif
      config.video.fps_count  = 0; // FPS Counter
@@ -49,7 +57,7 @@ index 06b5353..9e234fd 100644
      config.video.widescreen = 0; // Enable Widescreen Mode
  #else
      config.video.widescreen = 1; // Enable Widescreen Mode
-@@ -899,13 +899,13 @@ static void retro_build_save_paths(void)
+@@ -899,13 +900,18 @@ static void retro_build_save_paths(void)
      * > Note: These are not 'full' paths;
      *   suffix + extension are added elsewhere */
     fill_pathname_join(FILENAME_SCORES, save_dir,
@@ -63,10 +71,15 @@ index 06b5353..9e234fd 100644
     fill_pathname_join(FILENAME_CONT, save_dir,
 -         "hiscores_continuous", sizeof(FILENAME_CONT));
 +         "outrun/hiscores_continuous", sizeof(FILENAME_CONT));
++
++	// ensure outrun save sub folder is created
++	char save_base_dir[512];
++	fill_pathname_join(save_base_dir, save_dir, "outrun", sizeof(save_base_dir));
++	mkdir(save_base_dir, 0777);
  }
  
  bool retro_load_game(const struct retro_game_info *info)
-@@ -1146,7 +1146,7 @@ static void process_events(void)
+@@ -1146,7 +1152,7 @@ static void process_events(void)
  
     for (i = 0; i < (sizeof(binds) / sizeof(binds[0])); i++)
     {
