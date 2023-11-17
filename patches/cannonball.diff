@@ -1,0 +1,181 @@
+diff --git a/Makefile b/Makefile
+index 01d122c..35168e7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -292,6 +292,20 @@ else ifeq ($(platform), miyoo)
+    FLAGS += -DDINGUX -fomit-frame-pointer -flto -ffast-math -mcpu=arm926ej-s
+    FLAGS += -DLOW_FPS
+ 
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	CXX = $(MIPS)g++
++	AR = $(MIPS)ar
++	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -DSF2000 -DLOW_FPS
++	CXXFLAGS := $(CFLAGS) -std=gnu++11
++	CFLAGS += -std=gnu11
++	STATIC_LINKING = 1
++
+ # Windows MSVC 2017 all architectures
+ else ifneq (,$(findstring windows_msvc2017,$(platform)))
+ 
+diff --git a/src/main/engine/audio/osoundint.cpp b/src/main/engine/audio/osoundint.cpp
+index 53b956e..1848202 100644
+--- a/src/main/engine/audio/osoundint.cpp
++++ b/src/main/engine/audio/osoundint.cpp
+@@ -36,7 +36,7 @@ void OSoundInt::init()
+         ym = new YM2151(0.5f, SOUND_CLOCK);
+ 
+     pcm->init(config.fps);
+-    ym->init(44100, config.fps);
++    ym->init(22050, config.fps);
+ 
+     reset();
+ 
+diff --git a/src/main/frontend/config.cpp b/src/main/frontend/config.cpp
+index 9f3c711..949e2ae 100644
+--- a/src/main/frontend/config.cpp
++++ b/src/main/frontend/config.cpp
+@@ -40,6 +40,12 @@ typedef boost::property_tree::xml_writer_settings<std::string> xml_writer_settin
+ typedef boost::property_tree::xml_writer_settings<char> xml_writer_settings;
+ #endif
+ 
++// no persistent hiscore support for sf2000 for now due to a crash
++#if defined(SF2000)
++#define read_xml(...)	do {} while(0)
++#define write_xml(...)	do {} while(0)
++#endif
++
+ Config config;
+ 
+ Config::Config(void)
+diff --git a/src/main/hwaudio/segapcm.cpp b/src/main/hwaudio/segapcm.cpp
+index 35ccdf1..4aaf7e3 100644
+--- a/src/main/hwaudio/segapcm.cpp
++++ b/src/main/hwaudio/segapcm.cpp
+@@ -86,7 +86,7 @@ SegaPCM::~SegaPCM()
+ 
+ void SegaPCM::init(int32_t fps)
+ {
+-    int FREQ = 44100;
++    int FREQ = 22050;
+     downsample = (32000.0 / (double) FREQ);
+     SoundChip::init(STEREO, FREQ, fps);
+ }
+diff --git a/src/main/hwaudio/ym2151.cpp b/src/main/hwaudio/ym2151.cpp
+index b6bf5b6..15aeea9 100644
+--- a/src/main/hwaudio/ym2151.cpp
++++ b/src/main/hwaudio/ym2151.cpp
+@@ -1282,7 +1282,7 @@ void YM2151::init(int rate, int fps)
+     this->sampfreq = rate;
+     init_tables();
+ 
+-    this->sampfreq = rate ? rate : 44100;    /* avoid division by 0 in init_chip_tables() */
++    this->sampfreq = rate ? rate : 22050;    /* avoid division by 0 in init_chip_tables() */
+ 
+     init_chip_tables();
+ 
+diff --git a/src/main/libretro/audio.cpp b/src/main/libretro/audio.cpp
+index ceb773e..38569f6 100644
+--- a/src/main/libretro/audio.cpp
++++ b/src/main/libretro/audio.cpp
+@@ -118,7 +118,7 @@ void Audio::resume_audio()
+ // Called every frame to update the audio
+ void Audio::tick()
+ {
+-   static unsigned SND_RATE      = 44100;
++   static unsigned SND_RATE      = 22050;
+     int bytes_written = 0;
+     int newpos;
+ 
+diff --git a/src/main/libretro/audio.hpp b/src/main/libretro/audio.hpp
+index 71d32a2..5908d49 100644
+--- a/src/main/libretro/audio.hpp
++++ b/src/main/libretro/audio.hpp
+@@ -42,7 +42,7 @@ public:
+ 
+ private:
+     // Sample Rate. Can't be changed easily for now, due to lack of SDL resampling.
+-    static const uint32_t FREQ = 44100;
++    static const uint32_t FREQ = 22050;
+ 
+     // Stereo. Could be changed, requires some recoding.
+     static const uint32_t CHANNELS = 2;
+diff --git a/src/main/libretro/libretro_core_options.h b/src/main/libretro/libretro_core_options.h
+index 8bcd1e7..e637e02 100644
+--- a/src/main/libretro/libretro_core_options.h
++++ b/src/main/libretro/libretro_core_options.h
+@@ -155,7 +155,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
+          { "OFF", NULL },
+          { NULL, NULL },
+       },
+-#ifdef DINGUX
++#if defined(DINGUX) || defined(SF2000)
+       "OFF"
+ #else
+       "ON"
+diff --git a/src/main/libretro/main.cpp b/src/main/libretro/main.cpp
+index 06b5353..33a624b 100644
+--- a/src/main/libretro/main.cpp
++++ b/src/main/libretro/main.cpp
+@@ -8,6 +8,7 @@
+ #include <stdint.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <sys/stat.h>	// mkdir
+ 
+ #include <file/file_path.h>
+ #include <streams/file_stream.h>
+@@ -81,7 +82,7 @@ static void config_init(void)
+     config.video.fps        = 2; // Default is 60 fps
+ #endif
+     config.video.fps_count  = 0; // FPS Counter
+-#ifdef DINGUX
++#if defined(DINGUX) || defined(SF2000)
+     config.video.widescreen = 0; // Enable Widescreen Mode
+ #else
+     config.video.widescreen = 1; // Enable Widescreen Mode
+@@ -792,7 +793,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info) {
+    /* Due to integer rounding errors (44100/102 = 367.5),
+     * we produce fewer than the expected 44100 samples
+     * per second when running at 120 fps... */
+-   info->timing.sample_rate    = (config.fps == 120) ? 44040 : 44100;
++   info->timing.sample_rate    = (config.fps == 120) ? 44040 : 22050;
+ 
+    info->geometry.max_width    = S16_WIDTH_WIDE << 1;
+    info->geometry.max_height   = S16_HEIGHT     << 1;
+@@ -899,13 +900,18 @@ static void retro_build_save_paths(void)
+     * > Note: These are not 'full' paths;
+     *   suffix + extension are added elsewhere */
+    fill_pathname_join(FILENAME_SCORES, save_dir,
+-         "hiscores", sizeof(FILENAME_SCORES));
++         "outrun/hiscores", sizeof(FILENAME_SCORES));
+ 
+    fill_pathname_join(FILENAME_TTRIAL, save_dir,
+-         "hiscores_timetrial", sizeof(FILENAME_TTRIAL));
++         "outrun/hiscores_timetrial", sizeof(FILENAME_TTRIAL));
+ 
+    fill_pathname_join(FILENAME_CONT, save_dir,
+-         "hiscores_continuous", sizeof(FILENAME_CONT));
++         "outrun/hiscores_continuous", sizeof(FILENAME_CONT));
++
++	// ensure outrun save sub folder is created
++	char save_base_dir[512];
++	fill_pathname_join(save_base_dir, save_dir, "outrun", sizeof(save_base_dir));
++	mkdir(save_base_dir, 0777);
+ }
+ 
+ bool retro_load_game(const struct retro_game_info *info)
+@@ -1146,7 +1152,7 @@ static void process_events(void)
+ 
+    for (i = 0; i < (sizeof(binds) / sizeof(binds[0])); i++)
+    {
+-      if (ret & (1 << binds[i].joy_id))
++      if (ret & (1 << i))
+          input.handle_key(binds[i].id, true);
+       else
+          input.handle_key(binds[i].id, false);
