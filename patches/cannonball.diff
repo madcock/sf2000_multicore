@@ -36,6 +36,23 @@ index 53b956e..1848202 100644
  
      reset();
  
+diff --git a/src/main/frontend/config.cpp b/src/main/frontend/config.cpp
+index 9f3c711..949e2ae 100644
+--- a/src/main/frontend/config.cpp
++++ b/src/main/frontend/config.cpp
+@@ -40,6 +40,12 @@ typedef boost::property_tree::xml_writer_settings<std::string> xml_writer_settin
+ typedef boost::property_tree::xml_writer_settings<char> xml_writer_settings;
+ #endif
+ 
++// no persistent hiscore support for sf2000 for now due to a crash
++#if defined(SF2000)
++#define read_xml(...)	do {} while(0)
++#define write_xml(...)	do {} while(0)
++#endif
++
+ Config config;
+ 
+ Config::Config(void)
 diff --git a/src/main/hwaudio/segapcm.cpp b/src/main/hwaudio/segapcm.cpp
 index 35ccdf1..4aaf7e3 100644
 --- a/src/main/hwaudio/segapcm.cpp
