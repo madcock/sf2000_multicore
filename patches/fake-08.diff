@@ -1,0 +1,133 @@
+Submodule libs/z8lua contains modified content
+diff --git a/libs/z8lua/fix32.h b/libs/z8lua/fix32.h
+index 881190ad..0bb58789 100644
+--- a/libs/z8lua/fix32.h
++++ b/libs/z8lua/fix32.h
+@@ -34,6 +34,11 @@ struct fix32
+         return double(m_bits) * (1.0 / 65536.0);
+     }
+ 
++#if defined(SF2000)
++	inline fix32(signed int x)   : m_bits(int32_t(x << 16)) {}
++	inline fix32(unsigned int x) : m_bits(int32_t(x << 16)) {}
++#endif
++
+     // Conversions up to int16_t are safe.
+     inline fix32(int8_t x)  : m_bits(int32_t(x << 16)) {}
+     inline fix32(uint8_t x) : m_bits(int32_t(x << 16)) {}
+@@ -73,7 +78,9 @@ struct fix32
+     // Additional casts for long and unsigned long on architectures where
+     // these are not the same types as their cstdint equivalents.
+     template<typename T,
+-             typename std::enable_if<(std::is_same<T, long>::value ||
++             typename std::enable_if<(std::is_same<T, signed int>::value ||
++                                      std::is_same<T, unsigned int>::value ||
++                                      std::is_same<T, long>::value ||
+                                       std::is_same<T, unsigned long>::value) &&
+                                      !std::is_same<T, int32_t>::value &&
+                                      !std::is_same<T, uint32_t>::value &&
+diff --git a/libs/z8lua/lauxlib.c b/libs/z8lua/lauxlib.c
+index 2e989d66..14087427 100644
+--- a/libs/z8lua/lauxlib.c
++++ b/libs/z8lua/lauxlib.c
+@@ -23,6 +23,10 @@
+ 
+ #include "lauxlib.h"
+ 
++extern "C" {
++void xlog(const char *fmt, ...);
++}
++
+ 
+ /*
+ ** {======================================================
+@@ -200,6 +204,7 @@ LUALIB_API int luaL_error (lua_State *L, const char *fmt, ...) {
+   lua_pushvfstring(L, fmt, argp);
+   va_end(argp);
+   lua_concat(L, 2);
++xlog("luaL_error: %s\n", fmt);
+   return lua_error(L);
+ }
+ 
+@@ -948,6 +953,7 @@ LUALIB_API void luaL_checkversion_ (lua_State *L, lua_Number ver) {
+   else if (*v != ver)
+     luaL_error(L, "version mismatch: app. needs %f, Lua core provides %f",
+                   ver, *v);
++
+   /* check conversions number -> integer types */
+   lua_pushnumber(L, -(lua_Number)0x1234);
+   if (lua_tointeger(L, -1) != -0x1234 ||
+diff --git a/libs/z8lua/luaconf.h b/libs/z8lua/luaconf.h
+index 3a9490da..6bac4f6c 100644
+--- a/libs/z8lua/luaconf.h
++++ b/libs/z8lua/luaconf.h
+@@ -589,11 +589,22 @@
+ #define luai_numpeek2(L,a)	(lua_peek(L,a,2))
+ #define luai_numpeek4(L,a)	(lua_peek(L,a,4))
+ 
++#undef LUA_NUMBER_SCAN
++#undef LUA_NUMBER_FMT
++#undef lua_number2str
++#undef LUAI_MAXNUMBER2STR
++#define LUA_NUMBER_SCAN		"%d"
++#define LUA_NUMBER_FMT		"%d"
++#define lua_number2str(s,n)	sprintf((s), LUA_NUMBER_FMT, int(n))
++#define LUAI_MAXNUMBER2STR	32 /* 16 digits, sign, point, and \0 */
++
++#if 0
+ #define lua_number2str(s,n) [&]() { \
+   int i = sprintf(s, "%1.4f", (double)n); \
+   while (i > 0 && s[i - 1] == '0') s[--i] = '\0'; \
+   if (i > 0 && s[i - 1] == '.') s[--i] = '\0'; \
+   return i; }()
++#endif
+ 
+ #define luai_hashnum(i,n) (i = (n * z8::fix32::frombits(2654435769u)).bits())
+ 
+diff --git a/platform/libretro/Makefile b/platform/libretro/Makefile
+index be0f1b46..7e63a023 100644
+--- a/platform/libretro/Makefile
++++ b/platform/libretro/Makefile
+@@ -143,6 +143,19 @@ else ifeq ($(platform), libnx)
+    CFLAGS += $(INCDIRS)
+    CFLAGS	+=	-DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
+    CXXFLAGS := $(ASFLAGS) $(CFLAGS)
++# SF2000
++else ifeq ($(platform), sf2000)
++	TARGET := $(TARGET_NAME)_libretro_$(platform).a
++	MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
++	CC = $(MIPS)gcc
++	CXX = $(MIPS)g++
++	AR = $(MIPS)ar
++	CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
++	CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections
++	CFLAGS += -DSF2000 
++	# -D_NEED_FULL_PATH_
++	CXXFLAGS := $(CFLAGS)
++	STATIC_LINKING = 1
+ else
+    CC = gcc
+    TARGET := $(TARGET_NAME)_libretro.dll
+diff --git a/source/hostCommonFunctions.cpp b/source/hostCommonFunctions.cpp
+index 2a0aa503..0a808e87 100644
+--- a/source/hostCommonFunctions.cpp
++++ b/source/hostCommonFunctions.cpp
+@@ -14,6 +14,18 @@
+ #include "cartzip.h"
+ #endif
+ 
++#if defined(SF2000)
++namespace std
++{
++	std::string to_string(int i)
++	{
++		char str[20];
++		snprintf(str, sizeof(str), "%d", i);
++		return str;
++	}
++}
++#endif
++
+ using namespace std;
+ 
+ CSimpleIniA settingsIni;
