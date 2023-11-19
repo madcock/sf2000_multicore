@@ -134,9 +134,10 @@ int	stat(const char *path, struct stat *sbuf)
 		memset(sbuf, 0, sizeof(*sbuf));
 		sbuf->st_mode = S_ISREG(buffer.type)*S_IFREG | S_ISDIR(buffer.type)*S_IFDIR;
 		sbuf->st_size = buffer.size;
+		return 0;
 	}
-
-	return ret;
+	else
+		return -1;
 }
 
 int	fstat(int fd, struct stat *sbuf)
