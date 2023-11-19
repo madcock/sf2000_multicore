@@ -75,9 +75,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-frodo
 #CONSOLE=c64f
 #
-#CORE=cores/libretro-vice
-#CONSOLE=c64
-#
 #CORE=cores/dosbox-pure
 #CONSOLE=dos
 #
@@ -275,11 +272,11 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-opera
 #CONSOLE=3do
 #
-#CORE=cores/fake-08/platform/libretro
-#CONSOLE=fake08
-#
 #CORE=cores/libretro-beetle-psx
 #CONSOLE=psx
+#
+#CORE=cores/libretro-uzem
+#CONSOLE=uzem
 #
 
 
@@ -355,6 +352,9 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/retro-tennis
 #CONSOLE=tennis
+#
+CORE=cores/fake-08/platform/libretro
+CONSOLE=fake08
 #
 #CORE=cores/ecwolf/src/libretro
 #CONSOLE=wolf
@@ -436,6 +436,9 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/potator/platform/libretro
 #CONSOLE=wsv
 #
+#CORE=cores/libretro-vice
+#CONSOLE=c64
+#
 #CORE=cores/libretro-prboom
 #CONSOLE=prboom
 #
@@ -444,9 +447,6 @@ LOADER_OBJS=init.o main.o debug.o
 # 
 #CORE=cores/PokeMini
 #CONSOLE=pokem
-#
-#CORE=cores/libretro-uzem
-#CONSOLE=uzem
 #
 
 ## test samples
