@@ -123,35 +123,33 @@ typedef struct {
 	};
 } fs_stat_t;
 
-// wrap fs_stat to supply a more standard stat implementation
-// for now only `type` (for dir or file) and `size` fields of `struct stat` are filled
-int	stat(const char *path, struct stat *sbuf)
+static int stat_common(int ret, fs_stat_t *buffer, struct stat *sbuf)
 {
-	fs_stat_t buffer = {0};
-	int ret = fs_stat(path, &buffer);
 	if (ret == 0)
 	{
 		memset(sbuf, 0, sizeof(*sbuf));
-		sbuf->st_mode = S_ISREG(buffer.type)*S_IFREG | S_ISDIR(buffer.type)*S_IFDIR;
-		sbuf->st_size = buffer.size;
+		sbuf->st_mode = S_ISREG(buffer->type)*S_IFREG | S_ISDIR(buffer->type)*S_IFDIR;
+		sbuf->st_size = buffer->size;
 		return 0;
 	}
 	else
 		return -1;
 }
 
+// wrap fs_stat to supply a more standard stat implementation
+// for now only `type` (for dir or file) and `size` fields of `struct stat` are filled
+int	stat(const char *path, struct stat *sbuf)
+{
+	fs_stat_t buffer = {0};
+	int ret = fs_stat(path, &buffer);
+	return stat_common(ret, &buffer, sbuf);
+}
+
 int	fstat(int fd, struct stat *sbuf)
 {
 	fs_stat_t buffer = {0};
 	int ret = fs_fstat(fd, &buffer);
-	if (ret == 0)	// 0 means success
-	{
-		memset(sbuf, 0, sizeof(*sbuf));
-		sbuf->st_mode = S_ISREG(buffer.type)*S_IFREG | S_ISDIR(buffer.type)*S_IFDIR;
-		sbuf->st_size = buffer.size;
-	}
-
-	return ret;
+	return stat_common(ret, &buffer, sbuf);
 }
 
 int mkdir(const char *path, mode_t mode)
