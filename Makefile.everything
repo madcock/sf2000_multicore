@@ -50,7 +50,7 @@ LOADER_OBJS=init.o main.o debug.o
 ## doesn't build yet
 ####################
 #CORE=cores/libretro-superbroswar
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=sbw
 #
 #CORE=cores/libretro-simcoupe
@@ -66,7 +66,7 @@ LOADER_OBJS=init.o main.o debug.o
 #CONSOLE=a800l
 #
 #CORE=cores/hatari
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=atarist
 #
 #CORE=cores/libretro-uae
@@ -94,6 +94,9 @@ LOADER_OBJS=init.o main.o debug.o
 ######
 #todo: add to git, update to point to new location, and build
 ######
+#
+#CORE=cores/libretro-minivmac
+#CONSOLE=mac
 #
 #CORE=cores/libretro-nogg
 #CONSOLE=nogg
@@ -137,9 +140,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-x48
 #CONSOLE=x48
 #
-#CORE=cores/libretro-minivmac
-#CONSOLE=mac
-#
 #CORE=cores/libretro-fmsx
 #CONSOLE=fmsx
 #
@@ -155,9 +155,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/desmume2015/desmume
 #CONSOLE=nds
 #
-#CORE=cores/PokeMini
-#CONSOLE=pokem
-#
 #CORE=cores/oberon-risc-emu
 #CONSOLE=risc
 #
@@ -166,9 +163,6 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/numero
 #CONSOLE=numero
-#
-#CORE=cores/libretro-uzem
-#CONSOLE=uzem
 #
 #CORE=cores/daphne
 #CONSOLE=daph
@@ -193,7 +187,7 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/FFmpeg/libretro
 #CONSOLE=ffmpeg
-
+#
 
 ## build but doesn't work
 #########################
@@ -207,7 +201,7 @@ LOADER_OBJS=init.o main.o debug.o
 #CONSOLE=glxy
 #
 #CORE=cores/libretro-imageviewer-legacy
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=img
 #
 #CORE=cores/libretro-cap32
@@ -218,7 +212,7 @@ LOADER_OBJS=init.o main.o debug.o
 #####################################
 #make -C cores/fbalpha2012/svn-current/trunk platform=sf2000 -fmakefile.libretro generate-files
 #CORE=cores/fbalpha2012/svn-current/trunk
-#MAKEFILE=-f makefile.libretro
+#MAKEFILE=-fmakefile.libretro
 #CONSOLE=fba
 #
 #CORE=cores/fbalpha2012_cps1
@@ -228,7 +222,7 @@ LOADER_OBJS=init.o main.o debug.o
 #CONSOLE=cps2
 #
 #CORE=cores/fbalpha2012_cps3/svn-current/trunk
-#MAKEFILE=-f makefile.libretro
+#MAKEFILE=-fmakefile.libretro
 #CONSOLE=cps3
 #
 #####################################
@@ -250,11 +244,11 @@ LOADER_OBJS=init.o main.o debug.o
 #CONSOLE=mame2003mw
 #
 #CORE=cores/bk-emulator
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=bk
 #
 #CORE=cores/mojozork
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=zork
 #
 #CORE=cores/libretro-gw
@@ -284,9 +278,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/fake-08/platform/libretro
 #CONSOLE=fake08
 #
-#CORE=cores/ecwolf/src/libretro
-#CONSOLE=wolf
-#
 #CORE=cores/libretro-beetle-psx
 #CONSOLE=psx
 #
@@ -295,7 +286,7 @@ LOADER_OBJS=init.o main.o debug.o
 ## builds and sorta works
 #########################
 #CORE=cores/Genesis-Plus-GX
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=gpgx
 #
 #CORE=cores/libretro-crocods
@@ -350,7 +341,7 @@ LOADER_OBJS=init.o main.o debug.o
 #CONSOLE=mrboom
 #
 #CORE=cores/smsplus-gx
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=sms
 #
 #CORE=cores/libretro-mame2000
@@ -365,6 +356,9 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/retro-tennis
 #CONSOLE=tennis
 #
+#CORE=cores/ecwolf/src/libretro
+#CONSOLE=wolf
+#
 
 ## builds and works
 ###################
@@ -375,15 +369,15 @@ LOADER_OBJS=init.o main.o debug.o
 #CONSOLE=col
 #
 #CORE=cores/gong
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=gong
 #
 #CORE=cores/jaxe
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=chip8
 #
 #CORE=cores/libretro-2048
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=2048
 #
 #CORE=cores/libretro-handy
@@ -396,7 +390,7 @@ LOADER_OBJS=init.o main.o debug.o
 #CONSOLE=a26
 #
 #CORE=cores/vaporspec/machine
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=vapor
 #
 #CORE=cores/libretro-pocketcdg
@@ -427,7 +421,7 @@ LOADER_OBJS=init.o main.o debug.o
 #CONSOLE=snes
 #
 #CORE=cores/picodrive
-#MAKEFILE=-f Makefile.libretro
+#MAKEFILE=-fMakefile.libretro
 #CONSOLE=sega
 #
 #CORE=cores/Gearsystem/platforms/libretro
@@ -448,6 +442,12 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/FreeIntv
 #CONSOLE=int
 # 
+#CORE=cores/PokeMini
+#CONSOLE=pokem
+#
+#CORE=cores/libretro-uzem
+#CONSOLE=uzem
+#
 
 ## test samples
 ###############
