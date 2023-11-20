@@ -1,6 +1,8 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <sys/stat.h>
 #include "debug.h"
 #include "stockfw.h"
@@ -107,6 +109,46 @@ size_t fread(void *ptr, size_t size, size_t count, FILE *stream)
 	size_t ret = fw_fread(ptr, size, count, stream);
 	// TODO: check if this is correct for all cases
 	return ret / size;
+}
+
+int fprintf(FILE *stream, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	// determine the required size for the formatted string
+	int size = vsnprintf(NULL, 0, format, args);
+	va_end(args);
+
+	if (size < 0)
+		return -1;
+
+	size_t buf_size = size + 1;		// +1 for null terminator
+
+	char *buffer = malloc(buf_size);
+	if (buffer == NULL)
+		return -1;
+
+	va_start(args, format);
+	vsnprintf(buffer, buf_size, format, args);
+	va_end(args);
+
+	size_t written;
+
+	if (stream == stdout || stream == stderr)
+	{
+		xlog(buffer);
+		written = 1;
+	}
+	else
+		written = fwrite(buffer, buf_size, 1, stream);
+
+	free(buffer);
+
+	if (written != 1)
+		return -1;
+
+	return buf_size;
 }
 
 typedef struct {
