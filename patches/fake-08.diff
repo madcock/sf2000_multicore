@@ -109,10 +109,10 @@ index be0f1b46..7e63a023 100644
     CC = gcc
     TARGET := $(TARGET_NAME)_libretro.dll
 diff --git a/source/hostCommonFunctions.cpp b/source/hostCommonFunctions.cpp
-index 2a0aa503..0a808e87 100644
+index 2a0aa503..5ea8d887 100644
 --- a/source/hostCommonFunctions.cpp
 +++ b/source/hostCommonFunctions.cpp
-@@ -14,6 +14,18 @@
+@@ -14,6 +14,24 @@
  #include "cartzip.h"
  #endif
  
@@ -126,6 +126,12 @@ index 2a0aa503..0a808e87 100644
 +		return str;
 +	}
 +}
++#endif
++
++#if defined(SF2000)
++// use fopen and fwrite from stock libc instead of freopen and fprintf from toolchain libc
++#define freopen(filename,mode,x)	fopen(filename, mode);
++#define fprintf(hfile,format,str)	fwrite(str, strlen(str), 1, hfile);
 +#endif
 +
  using namespace std;

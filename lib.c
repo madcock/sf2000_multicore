@@ -1,6 +1,8 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <sys/stat.h>
 #include "debug.h"
 #include "stockfw.h"
@@ -109,6 +111,46 @@ size_t fread(void *ptr, size_t size, size_t count, FILE *stream)
 	return ret / size;
 }
 
+int fprintf(FILE *stream, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	// determine the required size for the formatted string
+	int size = vsnprintf(NULL, 0, format, args);
+	va_end(args);
+
+	if (size < 0)
+		return -1;
+
+	size_t buf_size = size + 1;		// +1 for null terminator
+
+	char *buffer = malloc(buf_size);
+	if (buffer == NULL)
+		return -1;
+
+	va_start(args, format);
+	vsnprintf(buffer, buf_size, format, args);
+	va_end(args);
+
+	size_t written;
+
+	if (stream == stdout || stream == stderr)
+	{
+		xlog(buffer);
+		written = 1;
+	}
+	else
+		written = fwrite(buffer, buf_size, 1, stream);
+
+	free(buffer);
+
+	if (written != 1)
+		return -1;
+
+	return buf_size;
+}
+
 typedef struct {
 	union {
 		struct {
@@ -123,35 +165,33 @@ typedef struct {
 	};
 } fs_stat_t;
 
-// wrap fs_stat to supply a more standard stat implementation
-// for now only `type` (for dir or file) and `size` fields of `struct stat` are filled
-int	stat(const char *path, struct stat *sbuf)
+static int stat_common(int ret, fs_stat_t *buffer, struct stat *sbuf)
 {
-	fs_stat_t buffer = {0};
-	int ret = fs_stat(path, &buffer);
 	if (ret == 0)
 	{
 		memset(sbuf, 0, sizeof(*sbuf));
-		sbuf->st_mode = S_ISREG(buffer.type)*S_IFREG | S_ISDIR(buffer.type)*S_IFDIR;
-		sbuf->st_size = buffer.size;
+		sbuf->st_mode = S_ISREG(buffer->type)*S_IFREG | S_ISDIR(buffer->type)*S_IFDIR;
+		sbuf->st_size = buffer->size;
 		return 0;
 	}
 	else
 		return -1;
 }
 
+// wrap fs_stat to supply a more standard stat implementation
+// for now only `type` (for dir or file) and `size` fields of `struct stat` are filled
+int	stat(const char *path, struct stat *sbuf)
+{
+	fs_stat_t buffer = {0};
+	int ret = fs_stat(path, &buffer);
+	return stat_common(ret, &buffer, sbuf);
+}
+
 int	fstat(int fd, struct stat *sbuf)
 {
 	fs_stat_t buffer = {0};
 	int ret = fs_fstat(fd, &buffer);
-	if (ret == 0)	// 0 means success
-	{
-		memset(sbuf, 0, sizeof(*sbuf));
-		sbuf->st_mode = S_ISREG(buffer.type)*S_IFREG | S_ISDIR(buffer.type)*S_IFDIR;
-		sbuf->st_size = buffer.size;
-	}
-
-	return ret;
+	return stat_common(ret, &buffer, sbuf);
 }
 
 int mkdir(const char *path, mode_t mode)
