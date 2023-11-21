@@ -99,6 +99,12 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-lutro
 #CONSOLE=lutro
 #
+#CORE=cores/numero
+#CONSOLE=numero
+#
+#CORE=cores/libretro-quasi88
+#CONSOLE=pc8800
+#
 
 ######
 #todo: add to git, update to point to new location, and build
@@ -109,9 +115,6 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/scummvm/backends/platform/libretro
 #CONSOLE=scumm
-#
-#CORE=cores/tyrquake
-#CONSOLE=quake
 #
 #CORE=cores/vitaquake2
 #CONSOLE=quake2
@@ -134,9 +137,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-blueMSX
 #CONSOLE=msx
 #
-#CORE=cores/libretro-quasi88
-#CONSOLE=pc8800
-#
 #CORE=cores/neocd_libretro
 #CONSOLE=neocd
 #
@@ -148,9 +148,6 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/Mu/libretroBuildSystem
 #CONSOLE=mu
-#
-#CORE=cores/numero
-#CONSOLE=numero
 #
 #CORE=cores/daphne
 #CONSOLE=daph
@@ -274,6 +271,9 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/dosbox-svn/libretro
 #CONSOLE=dossvn
+#
+#CORE=cores/tyrquake
+#CONSOLE=quake
 #
 
 ## builds and sorta works

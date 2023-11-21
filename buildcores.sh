@@ -102,6 +102,7 @@ make CONSOLE=bk         CORE=cores/bk-emulator MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=dossvn     CORE=cores/dosbox-svn/libretro && \
 make CONSOLE=glxy       CORE=cores/libretro-galaxy && \
 make CONSOLE=nogg       CORE=cores/libretro-nogg && \
+make CONSOLE=quake      CORE=cores/libretro-tyrquake && \
 make CONSOLE=mgba       CORE=cores/mgba && \
 make CONSOLE=gbam       CORE=cores/libretro-vbam/src/libretro
 make CONSOLE=snesn      CORE=cores/snes9x-next && \
