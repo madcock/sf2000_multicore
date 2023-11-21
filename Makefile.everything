@@ -201,9 +201,6 @@ LOADER_OBJS=init.o main.o debug.o
 #MAKEFILE=-fMakefile.libretro
 #CONSOLE=img
 #
-#CORE=cores/libretro-cap32
-#CONSOLE=amstradb
-#
 #####################################
 # must generate files before building
 #####################################
@@ -353,8 +350,8 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/retro-tennis
 #CONSOLE=tennis
 #
-CORE=cores/fake-08/platform/libretro
-CONSOLE=fake08
+#CORE=cores/fake-08/platform/libretro
+#CONSOLE=fake08
 #
 #CORE=cores/ecwolf/src/libretro
 #CONSOLE=wolf
@@ -447,6 +444,9 @@ CONSOLE=fake08
 # 
 #CORE=cores/PokeMini
 #CONSOLE=pokem
+#
+#CORE=cores/libretro-cap32
+#CONSOLE=amstradb
 #
 
 ## test samples

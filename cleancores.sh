@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #fully working
+make clean CONSOLE=amstradb   CORE=cores/libretro-cap32 && \
 make clean CONSOLE=a26        CORE=cores/libretro-stella2014 && \
 make clean CONSOLE=lnx        CORE=cores/libretro-handy && \
 make clean CONSOLE=chip8      CORE=cores/jaxe MAKEFILE=-fMakefile.libretro && \
@@ -85,11 +86,9 @@ make clean CONSOLE=zork       CORE=cores/mojozork MAKEFILE=-fMakefile.libretro &
 make clean CONSOLE=img        CORE=cores/libretro-imageviewer-legacy MAKEFILE=-fMakefile.libretro && \
 make clean CONSOLE=snesc      CORE=cores/chimerasnes && \
 make clean CONSOLE=zx81       CORE=cores/libretro-81 && \
-make clean CONSOLE=amstradb   CORE=cores/libretro-cap32 && \
 make clean CONSOLE=cps2       CORE=cores/fbalpha2012_cps2 && \
 make clean CONSOLE=cps3       CORE=cores/fbalpha2012_cps3/svn-current/trunk MAKEFILE=-fmakefile.libretro && \
 make clean CONSOLE=bk         CORE=cores/bk-emulator MAKEFILE=-fMakefile.libretro && \
-make clean CONSOLE=fake08     CORE=cores/fake-08/platform/libretro && \
 make clean CONSOLE=glxy       CORE=cores/libretro-galaxy && \
 make clean CONSOLE=mgba       CORE=cores/mgba && \
 make clean CONSOLE=snesn      CORE=cores/snes9x-next && \

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #fully working
+make CONSOLE=amstradb   CORE=cores/libretro-cap32 && \
 make CONSOLE=a26        CORE=cores/libretro-stella2014 && \
 make CONSOLE=lnx        CORE=cores/libretro-handy && \
 make CONSOLE=chip8      CORE=cores/jaxe MAKEFILE=-fMakefile.libretro && \

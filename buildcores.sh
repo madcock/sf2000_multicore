@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #fully working
+make CONSOLE=amstradb   CORE=cores/libretro-cap32 && \
 make CONSOLE=a26        CORE=cores/libretro-stella2014 && \
 make CONSOLE=lnx        CORE=cores/libretro-handy && \
 make CONSOLE=chip8      CORE=cores/jaxe MAKEFILE=-fMakefile.libretro && \
@@ -77,9 +78,6 @@ make CONSOLE=testwav CORE=cores/libretro-samples/audio/audio_playback_wav && \
 
 #not working
 make CONSOLE=3do        CORE=cores/libretro-opera && \
-make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
-make CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
-make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
 make CONSOLE=uw8        CORE=cores/libretro-uw8 && \
 make CONSOLE=gw         CORE=cores/libretro-gw && \
 #make CONSOLE=mac       CORE=cores/libretro-minivmac && \
@@ -94,7 +92,6 @@ make CONSOLE=zork       CORE=cores/mojozork MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=img        CORE=cores/libretro-imageviewer-legacy MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=snesc      CORE=cores/chimerasnes && \
 make CONSOLE=zx81       CORE=cores/libretro-81 && \
-make CONSOLE=amstradb   CORE=cores/libretro-cap32 && \
 make CONSOLE=cps2       CORE=cores/fbalpha2012_cps2 && \
 make CONSOLE=cps3       CORE=cores/fbalpha2012_cps3/svn-current/trunk MAKEFILE=-fmakefile.libretro && \
 make CONSOLE=bk         CORE=cores/bk-emulator MAKEFILE=-fMakefile.libretro && \
