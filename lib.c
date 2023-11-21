@@ -231,7 +231,9 @@ int isatty(int fd)
 
 clock_t clock(void)
 {
-	return (clock_t)os_get_tick_count();
+	// clock function should return cpu clock ticks, so since os_get_tick_count() returns milliseconds,
+	// we devide by 1000 to get the seconds and multiply by CLOCKS_PER_SEC to get the clock ticks.
+    return (clock_t)(os_get_tick_count() * CLOCKS_PER_SEC / 1000);
 }
 
 DIR *opendir(const char *path)
