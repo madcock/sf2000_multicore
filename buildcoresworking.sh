@@ -22,6 +22,7 @@ make CONSOLE=ngpc       CORE=cores/RACE && \
 make CONSOLE=gba        CORE=cores/gpsp && \
 make CONSOLE=gb         CORE=cores/libretro-tgbdual && \
 make CONSOLE=nes        CORE=cores/libretro-fceumm && \
+make CONSOLE=nesq       CORE=cores/QuickNES_Core && \
 make CONSOLE=pokem      CORE=cores/PokeMini && \
 make CONSOLE=snes02     CORE=cores/snes9x2002 && \
 make CONSOLE=snes       CORE=cores/snes9x2005 && \
@@ -29,6 +30,7 @@ make CONSOLE=sega       CORE=cores/picodrive MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=gg         CORE=cores/Gearsystem/platforms/libretro && \
 make CONSOLE=spec       CORE=cores/libretro-fuse && \
 make CONSOLE=thom       CORE=cores/theodore && \
+make CONSOLE=vec        CORE=cores/libretro-vecx && \
 make CONSOLE=wsv        CORE=cores/potator/platform/libretro && \
 
 #working but issues
@@ -57,16 +59,16 @@ make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
 make CONSOLE=fake08     CORE=cores/fake-08/platform/libretro && \
 make CONSOLE=lowres-nx  CORE=cores/lowres-nx/platform/LibRetro && \
 make CONSOLE=mrboom     CORE=cores/libretro-mrboom && \
+make CONSOLE=wolf       CORE=cores/ecwolf/src/libretro && \
 make CONSOLE=jnb        CORE=cores/libretro-jumpnbump && \
 make CONSOLE=cavestory  CORE=cores/libretro-nxengine && \
 make CONSOLE=o2em       CORE=cores/libretro-o2em && \
 make CONSOLE=pcesgx     CORE=cores/libretro-beetle-supergrafx && \
 make CONSOLE=pcfx       CORE=cores/libretro-beetle-pcfx && \
+make CONSOLE=nest       CORE=cores/nestopia/libretro && \
 make CONSOLE=vb         CORE=cores/libretro-beetle-vb && \
 make CONSOLE=gpgx       CORE=cores/Genesis-Plus-GX MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=xmil       CORE=cores/libretro-xmil/libretro && \
-make CONSOLE=vec        CORE=cores/libretro-vecx && \
-make CONSOLE=wolf       CORE=cores/ecwolf/src/libretro && \
 
 #working but major issues, not to release
 #make -C cores/fbalpha2012/svn-current/trunk platform=sf2000 -fmakefile.libretro generate-files && make CONSOLE=fba CORE=cores/fbalpha2012/svn-current/trunk MAKEFILE=-fmakefile.libretro && \

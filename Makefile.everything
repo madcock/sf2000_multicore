@@ -78,25 +78,14 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/dosbox-pure
 #CONSOLE=dos
 #
-#CORE=cores/dosbox-svn/libretro
-#CONSOLE=dossvn
-#
 #CORE=cores/ep128emu-core
 #CONSOLE=ep128
 #
 #CORE=cores/meg4/platform/libretro
 #CONSOLE=meg4
 #
-
-######
-#todo: add to git, update to point to new location, and build
-######
-#
-#CORE=cores/libretro-minivmac
-#CONSOLE=mac
-#
-#CORE=cores/libretro-nogg
-#CONSOLE=nogg
+#CORE=cores/libretro-onscripter
+#CONSOLE=ons
 #
 #CORE=cores/libretro-superflappybirds
 #CONSOLE=flappyb
@@ -108,10 +97,12 @@ LOADER_OBJS=init.o main.o debug.o
 #CONSOLE=dinothawr
 #
 #CORE=cores/libretro-lutro
-#CONSOLE=lut
+#CONSOLE=lutro
 #
-#CORE=cores/libretro-onscripter
-#CONSOLE=ons
+
+######
+#todo: add to git, update to point to new location, and build
+######
 #
 #CORE=cores/pzretro
 #CONSOLE=pzscr
@@ -275,7 +266,15 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-uzem
 #CONSOLE=uzem
 #
-
+#CORE=cores/libretro-minivmac
+#CONSOLE=mac
+#
+#CORE=cores/libretro-nogg
+#CONSOLE=nogg
+#
+#CORE=cores/dosbox-svn/libretro
+#CONSOLE=dossvn
+#
 
 ## builds and sorta works
 #########################
@@ -349,6 +348,9 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/retro-tennis
 #CONSOLE=tennis
+#
+#CORE=cores/nestopia/libretro
+#CONSOLE=nest
 #
 #CORE=cores/fake-08/platform/libretro
 #CONSOLE=fake08
@@ -447,6 +449,9 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/libretro-cap32
 #CONSOLE=amstradb
+#
+#CORE=cores/QuickNES_Core
+#CONSOLE=nesq
 #
 
 ## test samples

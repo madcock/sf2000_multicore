@@ -22,6 +22,7 @@ make clean CONSOLE=ngpc       CORE=cores/RACE && \
 make clean CONSOLE=gba        CORE=cores/gpsp && \
 make clean CONSOLE=gb         CORE=cores/libretro-tgbdual && \
 make clean CONSOLE=nes        CORE=cores/libretro-fceumm && \
+make clean CONSOLE=nesq       CORE=cores/QuickNES_Core && \
 make clean CONSOLE=pokem      CORE=cores/PokeMini && \
 make clean CONSOLE=snes02     CORE=cores/snes9x2002 && \
 make clean CONSOLE=snes       CORE=cores/snes9x2005 && \
@@ -29,6 +30,7 @@ make clean CONSOLE=sega       CORE=cores/picodrive MAKEFILE=-fMakefile.libretro 
 make clean CONSOLE=gg         CORE=cores/Gearsystem/platforms/libretro && \
 make clean CONSOLE=spec       CORE=cores/libretro-fuse && \
 make clean CONSOLE=thom       CORE=cores/theodore && \
+make clean CONSOLE=vec        CORE=cores/libretro-vecx && \
 make clean CONSOLE=wsv        CORE=cores/potator/platform/libretro && \
 
 #working but issues
@@ -52,16 +54,16 @@ make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
 make clean CONSOLE=fake08     CORE=cores/fake-08/platform/libretro && \
 make clean CONSOLE=lowres-nx  CORE=cores/lowres-nx/platform/LibRetro && \
 make clean CONSOLE=mrboom     CORE=cores/libretro-mrboom && \
+make clean CONSOLE=wolf       CORE=cores/ecwolf/src/libretro && \
 make clean CONSOLE=jnb        CORE=cores/libretro-jumpnbump && \
 make clean CONSOLE=cavestory  CORE=cores/libretro-nxengine && \
 make clean CONSOLE=o2em       CORE=cores/libretro-o2em && \
 make clean CONSOLE=pcesgx     CORE=cores/libretro-beetle-supergrafx && \
 make clean CONSOLE=pcfx       CORE=cores/libretro-beetle-pcfx && \
+make clean CONSOLE=nest       CORE=cores/nestopia/libretro && \
 make clean CONSOLE=vb         CORE=cores/libretro-beetle-vb && \
 make clean CONSOLE=gpgx       CORE=cores/Genesis-Plus-GX MAKEFILE=-fMakefile.libretro && \
 make clean CONSOLE=xmil       CORE=cores/libretro-xmil/libretro && \
-make clean CONSOLE=vec        CORE=cores/libretro-vecx && \
-make clean CONSOLE=wolf       CORE=cores/ecwolf/src/libretro && \
 
 #working but major issues, not to release
 #make -C cores/fbalpha2012/svn-current/trunk platform=sf2000 -fmakefile.libretro generate-files-clean && make clean CONSOLE=fba CORE=cores/fbalpha2012/svn-current/trunk MAKEFILE=-fmakefile.libretro && \
