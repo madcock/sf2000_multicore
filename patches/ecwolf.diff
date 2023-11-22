@@ -1,3 +1,34 @@
+diff --git a/.gitignore b/.gitignore
+index ddaa784..8bf71e2 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -4,3 +4,5 @@ android-libs/launcher/src/com/beloko/idtech/R.java
+ /*build*/
+ /results/
+ /.idea/
++*.o
++*.a
+diff --git a/src/id_ca.cpp b/src/id_ca.cpp
+index 358580a..910c270 100644
+--- a/src/id_ca.cpp
++++ b/src/id_ca.cpp
+@@ -75,14 +75,14 @@ void CA_CacheMap (const FString &mapname, bool loading)
+ 	static TUniquePtr<GameMap, TFuncDeleter<GameMap, CA_UnloadMap> > map;
+ 	map.Reset();
+ 
+-	Printf("\n");
++	//Printf("\n");
+ 
+ 	strncpy(gamestate.mapname, mapname, 8);
+ 	levelInfo = &LevelInfo::Find(mapname);
+ 	::map = map = new GameMap(mapname);
+ 	map->LoadMap(loading);
+ 
+-	Printf("\n%s - %s\n\n", mapname.GetChars(), levelInfo->GetName(map).GetChars());
++	Printf("CA_CacheMap: map=%s level='%s'\n", mapname.GetChars(), levelInfo->GetName(map).GetChars());
+ 
+ 	CalcVisibility(gLevelVisibility);
+ }
 diff --git a/src/libretro/Makefile b/src/libretro/Makefile
 index ab06c30..753b886 100644
 --- a/src/libretro/Makefile
@@ -41,9 +72,27 @@ index 996376e..fce57fd 160000
 -Subproject commit 996376e36d3f4f56eba202cb96230568628d2583
 +Subproject commit fce57fdfb7514a62540781aecbc4a53aedee3dce
 diff --git a/src/libretro/libretro.cpp b/src/libretro/libretro.cpp
-index b6ad5cf..6899a3f 100644
+index b6ad5cf..823123a 100644
 --- a/src/libretro/libretro.cpp
 +++ b/src/libretro/libretro.cpp
+@@ -398,7 +398,7 @@ void libretro_log(const char *format, ...)
+ 
+ 	va_start(va, format);
+ 	vsnprintf(formatted, sizeof(formatted) - 1, format, va);
+-	log_cb(RETRO_LOG_INFO, "%s\n", formatted);
++	log_cb(RETRO_LOG_INFO, "%s", formatted);
+ 	va_end(va);
+ }
+ 
+@@ -406,7 +406,7 @@ void Quit ()
+ {
+ 	struct retro_message msg;
+ 
+-	libretro_log("Fatal error");
++	libretro_log("Fatal error\n");
+ 	msg.msg    = "Fatal error";
+ 	msg.frames = fp10s;
+ 	environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
 @@ -596,14 +596,14 @@ static void am_multiple_choice (const char *name, unsigned &var, bool &is_update
  
  static void update_variables(bool startup)
@@ -61,6 +110,15 @@ index b6ad5cf..6899a3f 100644
  	preload_digital_sounds = false;
  #else
  	preload_digital_sounds = get_bool_option("ecwolf-preload-digisounds");
+@@ -1028,7 +1028,7 @@ static void TransformInputs(wl_input_state_t *input)
+ 		break;
+ 	}
+ 
+-	if((newly_pressed & (1<<RETRO_DEVICE_ID_JOYPAD_SELECT))) {
++	if(map && (newly_pressed & (1<<RETRO_DEVICE_ID_JOYPAD_SELECT))) {
+ 		AM_Toggle();
+ 		return;
+ 	}
 @@ -1113,7 +1113,7 @@ static void mixChannel(long long tic, SoundChannelState *channel)
  #define MB(x) ((x) << 20)
  
@@ -79,6 +137,15 @@ index b6ad5cf..6899a3f 100644
  			if (limit_sound_cache_size >= MB(7))
  				limit_sound_cache_size = MB(7);
  #endif		
+@@ -1156,6 +1156,8 @@ void generate_silent_audio(void)
+ 
+ void retro_run(void)
+ {
++frame_time_cb(0);
++
+ 	int expectframes = 0;
+ 	wl_input_state_t input;
+ 	long long framestarttic = GetTimeCount();
 diff --git a/src/libretro/libretro_core_options.h b/src/libretro/libretro_core_options.h
 index 8697c0d..5489c6b 100644
 --- a/src/libretro/libretro_core_options.h
@@ -92,3 +159,46 @@ index 8697c0d..5489c6b 100644
  #elif defined(VITA) || defined(PSP)
  		"480x270",
  #elif defined (_3DS)
+diff --git a/src/lumpremap.cpp b/src/lumpremap.cpp
+index 86365bf..cf23a59 100644
+--- a/src/lumpremap.cpp
++++ b/src/lumpremap.cpp
+@@ -186,7 +186,7 @@ bool LumpRemapper::LoadMap()
+ 	int lump = Wads.GetNumForName(mapLumpName);
+ 	if(lump == -1)
+ 	{
+-		printf("\n");
++		printf("LumpRemapper::LoadMap - Wads.GetNumForName failed. mapLumpName=%s\n", mapLumpName.GetChars());
+ 		return false;
+ 	}
+ 	FWadLump mapLump = Wads.OpenLumpNum(lump);
+diff --git a/src/wl_def.h b/src/wl_def.h
+index 0d05700..6f4657f 100644
+--- a/src/wl_def.h
++++ b/src/wl_def.h
+@@ -20,6 +20,9 @@
+ #include <minwindef.h>
+ #endif
+ 
++extern "C" void xlog(const char *format, ...);
++#define printf(...) xlog(__VA_ARGS__)
++
+ #ifdef _MSC_VER
+ #define PACKED
+ #define PACK_START __pragma(pack(push, 1))
+diff --git a/src/zdoomsupport.h b/src/zdoomsupport.h
+index 4b655bb..a8a3c9b 100644
+--- a/src/zdoomsupport.h
++++ b/src/zdoomsupport.h
+@@ -9,8 +9,10 @@
+ #include <cstring>
+ 
+ #if defined(LIBRETRO) && LIBRETRO
++extern "C" void xlog(const char *format, ...);
+ void libretro_log(const char *format, ...);
+-#define printf(...) libretro_log(__VA_ARGS__)
++// #define printf(...) libretro_log(__VA_ARGS__)
++#define printf(...) xlog(__VA_ARGS__)
+ #elif defined(__ANDROID__)
+ #include <android/log.h>
+ #define printf(...) __android_log_print(ANDROID_LOG_INFO,"ECWolf",__VA_ARGS__)
