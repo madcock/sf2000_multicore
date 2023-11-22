@@ -111,21 +111,21 @@ size_t fread(void *ptr, size_t size, size_t count, FILE *stream)
 	return ret / size;
 }
 
-int fprintf(FILE *stream, const char *format, ...)
+int fprintf(FILE* stream, const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
 
 	// determine the required size for the formatted string
-	int size = vsnprintf(NULL, 0, format, args);
+	int str_size = vsnprintf(NULL, 0, format, args);
 	va_end(args);
 
-	if (size < 0)
+	if (str_size < 0)
 		return -1;
 
-	size_t buf_size = size + 1;		// +1 for null terminator
+	size_t buf_size = str_size + 1;		// +1 for null terminator
 
-	char *buffer = malloc(buf_size);
+	char* buffer = (char*)malloc(buf_size);
 	if (buffer == NULL)
 		return -1;
 
@@ -141,14 +141,14 @@ int fprintf(FILE *stream, const char *format, ...)
 		written = 1;
 	}
 	else
-		written = fwrite(buffer, buf_size, 1, stream);
+		written = fwrite(buffer, str_size, 1, stream);
 
 	free(buffer);
 
 	if (written != 1)
 		return -1;
 
-	return buf_size;
+	return str_size;
 }
 
 typedef struct {
@@ -231,7 +231,9 @@ int isatty(int fd)
 
 clock_t clock(void)
 {
-	return (clock_t)os_get_tick_count();
+	// clock function should return cpu clock ticks, so since os_get_tick_count() returns milliseconds,
+	// we devide by 1000 to get the seconds and multiply by CLOCKS_PER_SEC to get the clock ticks.
+    return (clock_t)(os_get_tick_count() * CLOCKS_PER_SEC / 1000);
 }
 
 DIR *opendir(const char *path)
