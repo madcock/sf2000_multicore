@@ -111,10 +111,20 @@ size_t fread(void *ptr, size_t size, size_t count, FILE *stream)
 	return ret / size;
 }
 
-int fprintf(FILE* stream, const char* format, ...)
+int fgetc(FILE *stream)
+{
+	unsigned char c;
+	size_t n = fread(&c, 1, 1, stream);
+	if (n == 1)
+		return c;
+	else
+		return EOF;
+}
+
+int vfprintf(FILE *stream, const char *format, va_list _args)
 {
 	va_list args;
-	va_start(args, format);
+	va_copy(args, _args);
 
 	// determine the required size for the formatted string
 	int str_size = vsnprintf(NULL, 0, format, args);
@@ -129,7 +139,7 @@ int fprintf(FILE* stream, const char* format, ...)
 	if (buffer == NULL)
 		return -1;
 
-	va_start(args, format);
+	va_copy(args, _args);
 	vsnprintf(buffer, buf_size, format, args);
 	va_end(args);
 
@@ -149,6 +159,26 @@ int fprintf(FILE* stream, const char* format, ...)
 		return -1;
 
 	return str_size;
+}
+
+int fprintf(FILE *stream, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	int ret = vfprintf(stream, format, args);
+	va_end(args);
+
+	return ret;
+}
+
+int fputc(int character, FILE *stream)
+{
+    return fprintf(stream, "%c", character);
+}
+
+int fputs(const char *str, FILE *stream)
+{
+    return fprintf(stream, "%s", str);
 }
 
 typedef struct {
