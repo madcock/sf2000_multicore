@@ -224,9 +224,47 @@ int	fstat(int fd, struct stat *sbuf)
 	return stat_common(ret, &buffer, sbuf);
 }
 
+int access(const char *path, int mode)
+{
+    struct stat buffer;
+    return stat(path, &buffer);
+}
+
 int mkdir(const char *path, mode_t mode)
 {
 	return fs_mkdir(path, mode);
+}
+
+char *getcwd(char *buf, size_t size)
+{
+	return NULL;
+}
+int chdir(const char *path)
+{
+	return -1;
+}
+int rmdir(const char *path)
+{
+	return -1;
+}
+int unlink(const char *path)
+{
+	return -1;
+}
+
+int chmod(const char *path, mode_t mode)
+{
+	return -1;
+}
+
+int kill(pid_t pid, int sig)
+{
+	return -1;
+}
+
+pid_t getpid(void)
+{
+	return 1;
 }
 
 void abort(void)
