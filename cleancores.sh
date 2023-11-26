@@ -44,12 +44,12 @@ make clean CONSOLE=wswan      CORE=cores/libretro-beetle-wswan && \
 make clean CONSOLE=c64        CORE=cores/libretro-vice EMUTYPE=x64 && \
 make clean CONSOLE=c64sc      CORE=cores/libretro-vice EMUTYPE=x64sc && \
 #make clean CONSOLE=c128      CORE=cores/libretro-vice EMUTYPE=x128 && \
-#make clean CONSOLE=c128      CORE=cores/libretro-vice EMUTYPE=x128 && \
 #make clean CONSOLE=cbm2      CORE=cores/libretro-vice EMUTYPE=xcbm2 && \
 #make clean CONSOLE=cbm5x0    CORE=cores/libretro-vice EMUTYPE=xcbm5x0 && \
 #make clean CONSOLE=pet       CORE=cores/libretro-vice EMUTYPE=xpet && \
 #make clean CONSOLE=plus4     CORE=cores/libretro-vice EMUTYPE=xplus4 && \
 #make clean CONSOLE=scpu64    CORE=cores/libretro-vice EMUTYPE=xscpu64 && \
+
 make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
 make clean CONSOLE=fake08     CORE=cores/fake-08/platform/libretro && \
 make clean CONSOLE=lowres-nx  CORE=cores/lowres-nx/platform/LibRetro && \
@@ -78,8 +78,8 @@ make clean CONSOLE=3do        CORE=cores/libretro-opera && \
 make clean CONSOLE=uw8        CORE=cores/libretro-uw8 && \
 make clean CONSOLE=gw         CORE=cores/libretro-gw && \
 make clean CONSOLE=mac       CORE=cores/libretro-minivmac && \
-make clean CONSOLE=gbb        CORE=cores/libretro-gambatte
-make clean CONSOLE=gbs        CORE=cores/SameBoy/libretro
+make clean CONSOLE=gbb        CORE=cores/libretro-gambatte && \
+make clean CONSOLE=gbs        CORE=cores/SameBoy/libretro && \
 make clean CONSOLE=vmu        CORE=cores/libretro-vemulator && \
 make clean CONSOLE=uzem       CORE=cores/libretro-uzem && \
 make clean CONSOLE=cps1       CORE=cores/fbalpha2012_cps1 && \
@@ -99,7 +99,7 @@ make clean CONSOLE=glxy       CORE=cores/libretro-galaxy && \
 make clean CONSOLE=nogg       CORE=cores/libretro-nogg && \
 make clean CONSOLE=quake      CORE=cores/libretro-tyrquake && \
 make clean CONSOLE=mgba       CORE=cores/mgba && \
-make clean CONSOLE=gbam       CORE=cores/libretro-vbam/src/libretro
+make clean CONSOLE=gbam       CORE=cores/libretro-vbam/src/libretro && \
 make clean CONSOLE=snesn      CORE=cores/snes9x-next && \
 make clean CONSOLE=x68k       CORE=cores/libretro-px68k && \
 make clean CONSOLE=psx        CORE=cores/libretro-beetle-psx && \

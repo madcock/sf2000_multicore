@@ -225,10 +225,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/mame2003_midway
 #CONSOLE=mame2003mw
 #
-#CORE=cores/bk-emulator
-#MAKEFILE=-fMakefile.libretro
-#CONSOLE=bk
-#
 #CORE=cores/mojozork
 #MAKEFILE=-fMakefile.libretro
 #CONSOLE=zork
@@ -356,7 +352,11 @@ LOADER_OBJS=init.o main.o debug.o
 #CONSOLE=fake08
 #
 #CORE=cores/ecwolf/src/libretro
-#CONSOLE=wolf
+#CONSOLE=wolf3d
+#
+#CORE=cores/bk-emulator
+#MAKEFILE=-fMakefile.libretro
+#CONSOLE=bk
 #
 
 ## builds and works

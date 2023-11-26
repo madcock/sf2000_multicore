@@ -53,7 +53,9 @@ make clean CONSOLE=c64sc      CORE=cores/libretro-vice EMUTYPE=x64sc && \
 #make clean CONSOLE=pet       CORE=cores/libretro-vice EMUTYPE=xpet && \
 #make clean CONSOLE=plus4     CORE=cores/libretro-vice EMUTYPE=xplus4 && \
 #make clean CONSOLE=scpu64    CORE=cores/libretro-vice EMUTYPE=xscpu64 && \
+
 make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
+
 make CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
 make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
 make CONSOLE=fake08     CORE=cores/fake-08/platform/libretro && \
