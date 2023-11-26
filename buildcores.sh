@@ -83,8 +83,8 @@ make CONSOLE=3do        CORE=cores/libretro-opera && \
 make CONSOLE=uw8        CORE=cores/libretro-uw8 && \
 make CONSOLE=gw         CORE=cores/libretro-gw && \
 make CONSOLE=mac        CORE=cores/libretro-minivmac && \
-make CONSOLE=gbb        CORE=cores/libretro-gambatte
-make CONSOLE=gbs        CORE=cores/SameBoy/libretro
+make CONSOLE=gbb        CORE=cores/libretro-gambatte && \
+make CONSOLE=gbs        CORE=cores/SameBoy/libretro && \
 make CONSOLE=vmu        CORE=cores/libretro-vemulator && \
 make CONSOLE=uzem       CORE=cores/libretro-uzem && \
 make CONSOLE=cps1       CORE=cores/fbalpha2012_cps1 && \
@@ -104,7 +104,7 @@ make CONSOLE=glxy       CORE=cores/libretro-galaxy && \
 make CONSOLE=nogg       CORE=cores/libretro-nogg && \
 make CONSOLE=quake      CORE=cores/libretro-tyrquake && \
 make CONSOLE=mgba       CORE=cores/mgba && \
-make CONSOLE=gbam       CORE=cores/libretro-vbam/src/libretro
+make CONSOLE=gbam       CORE=cores/libretro-vbam/src/libretro && \
 make CONSOLE=snesn      CORE=cores/snes9x-next && \
 make CONSOLE=x68k       CORE=cores/libretro-px68k && \
 make CONSOLE=psx        CORE=cores/libretro-beetle-psx && \
