@@ -54,7 +54,7 @@ make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
 make clean CONSOLE=fake08     CORE=cores/fake-08/platform/libretro && \
 make clean CONSOLE=lowres-nx  CORE=cores/lowres-nx/platform/LibRetro && \
 make clean CONSOLE=mrboom     CORE=cores/libretro-mrboom && \
-make clean CONSOLE=wolf       CORE=cores/ecwolf/src/libretro && \
+make clean CONSOLE=wolf3d     CORE=cores/ecwolf/src/libretro && \
 make clean CONSOLE=jnb        CORE=cores/libretro-jumpnbump && \
 make clean CONSOLE=cavestory  CORE=cores/libretro-nxengine && \
 make clean CONSOLE=o2em       CORE=cores/libretro-o2em && \

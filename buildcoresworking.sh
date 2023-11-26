@@ -59,7 +59,7 @@ make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
 make CONSOLE=fake08     CORE=cores/fake-08/platform/libretro && \
 make CONSOLE=lowres-nx  CORE=cores/lowres-nx/platform/LibRetro && \
 make CONSOLE=mrboom     CORE=cores/libretro-mrboom && \
-make CONSOLE=wolf       CORE=cores/ecwolf/src/libretro && \
+make CONSOLE=wolf3d     CORE=cores/ecwolf/src/libretro && \
 make CONSOLE=jnb        CORE=cores/libretro-jumpnbump && \
 make CONSOLE=cavestory  CORE=cores/libretro-nxengine && \
 make CONSOLE=o2em       CORE=cores/libretro-o2em && \
