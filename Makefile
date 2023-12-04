@@ -5,6 +5,8 @@ SHELL:=/bin/bash
 CLEAR_LOG_ON_BOOT = 0
 # debug logging with xlog
 DEBUG_XLOG = 1
+# tweaks for the release build
+#ALPHARELEASE = 0.10
 
 LCDFONT_OFFSET=0x2260
 LOADER_OFFSET=0x1500
@@ -202,6 +204,16 @@ define echo_d
     echo -e "\033[1;37m$(1)\033[0m"
 endef
 
+ifneq ($(ALPHARELEASE),)
+define copy_if_updated
+	diff -q $(1) $(2) || (rm -rf $$(dirname $(2)) && mkdir -p $$(dirname $(2)) && \
+	cp $(1) $(2) && echo "$(1) updated" && \
+	printf "\xB8\x0B" | dd of=bisrv.asd bs=1 seek=$$((0x3463d0)) conv=notrunc && \
+	convert /home/adcockm/downloads/multicore_alpha_release/Multicore_Boot_Logo_-_Redprint_-_RGB565.png -gravity North -font helvetica -fill white -pointsize 14 -annotate +0+36 'version $(ALPHARELEASE)' /home/adcockm/downloads/multicore_alpha_release/versionlogo.png && \
+	python3 /home/adcockm/downloads/multicore_alpha_release/bootlogo.py)
+endef
+else
 define copy_if_updated
 	diff -q $(1) $(2) || (rm -rf $$(dirname $(2)) && mkdir -p $$(dirname $(2)) && cp $(1) $(2) && echo "$(1) updated")
 endef
+endif

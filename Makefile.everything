@@ -5,6 +5,8 @@ SHELL:=/bin/bash
 CLEAR_LOG_ON_BOOT = 0
 # debug logging with xlog
 DEBUG_XLOG = 1
+# tweaks for the release build
+#ALPHARELEASE = 0.10
 
 LCDFONT_OFFSET=0x2260
 LOADER_OFFSET=0x1500
@@ -59,9 +61,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/mame2003Wii
 #CONSOLE=mame2003Wii
 #
-#CORE=cores/libretro-atari800
-#CONSOLE=a800
-#
 #CORE=cores/libretro-atari800lib
 #CONSOLE=a800l
 #
@@ -71,9 +70,6 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/libretro-uae
 #CONSOLE=uae
-#
-#CORE=cores/libretro-frodo
-#CONSOLE=c64f
 #
 #CORE=cores/dosbox-pure
 #CONSOLE=dos
@@ -99,16 +95,17 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-lutro
 #CONSOLE=lutro
 #
-#CORE=cores/numero
-#CONSOLE=numero
-#
-#CORE=cores/libretro-quasi88
-#CONSOLE=pc8800
-#
+
 
 ######
 #todo: add to git, update to point to new location, and build
 ######
+#
+#CORE=cores/libretro-xrick
+#CONSOLE=xrick
+#
+#CORE=cores/libretro-fmsx
+#CONSOLE=fmsx
 #
 #CORE=cores/pzretro
 #CONSOLE=pzscr
@@ -119,9 +116,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/vitaquake2
 #CONSOLE=quake2
 #
-#CORE=cores/libretro-xrick
-#CONSOLE=xrick
-#
 #CORE=cores/libretro-zc210
 #CONSOLE=zeldab
 #
@@ -130,9 +124,6 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/libretro-x48
 #CONSOLE=x48
-#
-#CORE=cores/libretro-fmsx
-#CONSOLE=fmsx
 #
 #CORE=cores/libretro-blueMSX
 #CONSOLE=msx
@@ -270,6 +261,15 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/tyrquake
 #CONSOLE=quake
+#
+#CORE=cores/numero
+#CONSOLE=numero
+#
+#CORE=cores/libretro-atari800
+#CONSOLE=a800
+#
+#CORE=cores/libretro-frodo
+#CONSOLE=c64f
 #
 
 ## builds and sorta works
@@ -453,7 +453,9 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/QuickNES_Core
 #CONSOLE=nesq
 #
-
+#CORE=cores/libretro-quasi88
+#CONSOLE=pc8800
+#
 ## test samples
 ###############
 #CORE=cores/libretro-samples/tests/test_advanced
@@ -542,7 +544,7 @@ bisrv.asd: loader.bin lcd_font.bin crc
 	# endless loop in INT_General_Exception_Hdlr -> j 0x80001510
 	printf "\x44\x05\x00\x08" | dd of=bisrv.asd bs=1 seek=$$((0x495a0)) conv=notrunc
 
-	# patch the buffer size for handling save state thumb images
+	# patch the buffer size for handling the save state snapshot image
 	# \x0c (768k) would be enough up to cores displaying at 640x480x2
 	printf "\x0c" | dd of=bisrv.asd bs=1 seek=$$((0x34f8b8)) conv=notrunc
 
@@ -590,6 +592,16 @@ define echo_d
     echo -e "\033[1;37m$(1)\033[0m"
 endef
 
+ifneq ($(ALPHARELEASE),)
+define copy_if_updated
+	diff -q $(1) $(2) || (rm -rf $$(dirname $(2)) && mkdir -p $$(dirname $(2)) && \
+	cp $(1) $(2) && echo "$(1) updated" && \
+	printf "\xB8\x0B" | dd of=bisrv.asd bs=1 seek=$$((0x3463d0)) conv=notrunc && \
+	convert /home/adcockm/downloads/multicore_alpha_release/Multicore_Boot_Logo_-_Redprint_-_RGB565.png -gravity North -font helvetica -fill white -pointsize 14 -annotate +0+36 'version $(ALPHARELEASE)' /home/adcockm/downloads/multicore_alpha_release/versionlogo.png && \
+	python3 /home/adcockm/downloads/multicore_alpha_release/bootlogo.py)
+endef
+else
 define copy_if_updated
 	diff -q $(1) $(2) || (rm -rf $$(dirname $(2)) && mkdir -p $$(dirname $(2)) && cp $(1) $(2) && echo "$(1) updated")
 endef
+endif
