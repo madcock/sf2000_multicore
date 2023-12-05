@@ -49,6 +49,8 @@ static double g_ratio = 4.0 / 3.0;
 
 static bool g_filtered = true;
 
+static double g_ntsc_underscan = 0.96;
+
 static void config_load(config_file_t *conf)
 {
 	const struct config_entry_list *e;
@@ -98,33 +100,45 @@ static void config_load(config_file_t *conf)
 	}
 
 	config_get_bool(conf, "sf2000_scaling_filtered", &g_filtered);
+	config_get_double(conf, "sf2000_ntsc_underscan", &g_ntsc_underscan);
 }
 
 // all the scaling code assumes the screen to NOT be rotated
-static void scale_to_ratio(struct osdrect *pr, uint16_t *ph_mul, uint16_t *pv_mul, double ratio)
+static void scale_to_ratio(enum tvsystem tvsys, struct osdrect *pr, uint16_t *ph_mul, uint16_t *pv_mul, double ratio)
 {
 	const unsigned screen_width = *ph_mul, screen_height = *pv_mul;
-	unsigned scaled_width = round(screen_height * ratio), scaled_height;
+	unsigned scaled_width, scaled_height;
+	scaled_width = round(screen_height * ratio * ((tvsys == NTSC) ? g_ntsc_underscan : 1));
 
 	if (scaled_width < screen_width) {
 		// center the unscaled osdrect
 		pr->u_left = (screen_width - scaled_width) / 2 * pr->u_width / scaled_width;
 		*ph_mul = scaled_width;
+		if (tvsys == NTSC) {
+			scaled_height = screen_height * g_ntsc_underscan;
+			pr->u_top = (screen_height - scaled_height) / 2 * pr->u_height / scaled_height;
+			*pv_mul = scaled_height;
+		}
 	}
 	else { // scaled_height <= screen_height
-		scaled_height = round(screen_width / ratio);
+		scaled_height = round(screen_width / ratio * ((tvsys == NTSC) ? g_ntsc_underscan : 1));
 		pr->u_top = (screen_height - scaled_height) / 2 * pr->u_height / scaled_height;
 		*pv_mul = scaled_height;
+		if (tvsys == NTSC) {
+			scaled_width = screen_width * g_ntsc_underscan;
+			pr->u_left = (screen_width - scaled_width) / 2 * pr->u_width / scaled_width;
+			*ph_mul = scaled_width;
+		}
 	}
 }
 
-static void scale_equally(struct osdrect *pr, uint16_t *ph_mul, uint16_t *pv_mul, bool filtered)
+static void scale_equally(enum tvsystem tvsys, struct osdrect *pr, uint16_t *ph_mul, uint16_t *pv_mul, bool filtered)
 {
 	const unsigned screen_width = *ph_mul, screen_height = *pv_mul;
 	unsigned ratio, scaled_width, scaled_height;
 
 	if (filtered) {
-		scale_to_ratio(pr, ph_mul, pv_mul, 1.0 * pr->u_width / pr->u_height);
+		scale_to_ratio(tvsys, pr, ph_mul, pv_mul, 1.0 * pr->u_width / pr->u_height);
 		return;
 	}
 	// special case for unfiltered integer scaling
@@ -171,9 +185,9 @@ static void recreate_region(enum tvsystem tvsys, uint16_t width, uint16_t height
 		height != (tearing_fix == ROTATE ? MENU_WIDTH : MENU_HEIGHT))
 	{
 		if (scaling_mode == CORE_PROVIDED || scaling_mode == CUSTOM)
-			scale_to_ratio(&r, &scale_param.h_mul, &scale_param.v_mul, g_ratio);
+			scale_to_ratio(tvsys, &r, &scale_param.h_mul, &scale_param.v_mul, g_ratio);
 		else if (scaling_mode == SQUARE_PIXELS)
-			scale_equally(&r, &scale_param.h_mul, &scale_param.v_mul, g_filtered);
+			scale_equally(tvsys, &r, &scale_param.h_mul, &scale_param.v_mul, g_filtered);
 	}
 	if (tvsys == RGB_LCD && tearing_fix == ROTATE) {
 		uint16_t tmp_swap = scale_param.h_mul;
