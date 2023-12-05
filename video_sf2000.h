@@ -10,8 +10,8 @@ extern "C" {
 #define HLD_DEV_TYPE_DIS	0x10f0000
 
 enum tvsystem {
-	PAL	= 0,
-	NTSC = 1,
+	PAL	= 0, // C implies this but ALi have it specified anyway
+	NTSC,
 	RGB_LCD	= 0x16 // LINE_800x480_60 hacked for RGB output by HiChip
 };
 
@@ -72,7 +72,19 @@ extern int osddrv_3x_create_region(HANDLE, uint8_t, struct osdrect *, struct osd
 extern int osddrv_3x_region_write(HANDLE, uint8_t, struct osd_vscr *, struct osdrect *);
 
 #define OSD_SET_SCALE_MODE	0x0B
+
+#define OSD_SCALE_DUPLICATE	0
+#define OSD_SCALE_FILTER	1
+
 #define OSD_SCALE_WITH_PARAM	0x0C
+
+struct osd_scale_param {
+	uint16_t tv_sys; // implies enum tvsystem (NOT enum TV_SYS_TYPE)
+	uint16_t h_div;
+	uint16_t v_div;
+	uint16_t h_mul;
+	uint16_t v_mul;
+};
 
 extern int osddrv_scale(HANDLE, uint32_t, uintptr_t);
 

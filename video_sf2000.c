@@ -34,12 +34,13 @@ static enum {
 	DISABLED,
 	FAST,
 	ROTATE // currently applicable ONLY to SF2000's screen FIXME
-} tearing_fix = FAST;
+} tearing_fix = DISABLED;
 
 static enum VPO_RGB_CLOCK rgb_clock = VPO_RGB_CLOCK_9M;
 static unsigned h_total_len = 477, v_total_len = 326; // 9 MHz / 477 / 326 = 57.88 Hz
 
 static enum {
+	STOCK,
 	CORE_PROVIDED,
 	FULL_SCREEN,
 	SQUARE_PIXELS,
@@ -79,7 +80,9 @@ static void config_load(config_file_t *conf)
 
 	e = config_get_entry(conf, "sf2000_scaling_mode");
 	if (e) {
-		if (strcasecmp(e->value, "core-provided") == 0)
+		if (strcasecmp(e->value, "stock") == 0)
+			scaling_mode = STOCK;
+		else if (strcasecmp(e->value, "core-provided") == 0)
 			scaling_mode = CORE_PROVIDED;
 		else if (strcasecmp(e->value, "full screen") == 0)
 			scaling_mode = FULL_SCREEN;
@@ -162,13 +165,9 @@ static void recreate_region(enum tvsystem tvsys, uint16_t width, uint16_t height
 {
 	struct osdrect r = { 0, 0, width, height };
 	struct osdpara para = { .e_mode = OSD_HD_RGB565 };
-	struct {
-		uint16_t tv_sys; // implies enum tvsystem (NOT enum TV_SYS_TYPE)
-		uint16_t h_div;
-		uint16_t v_div;
-		uint16_t h_mul;
-		uint16_t v_mul;
-	} scale_param = { tvsys, width, height };
+	struct osd_scale_param scale_param = {
+		.tv_sys = tvsys, .h_div = width, .v_div = height
+	};
 
 	if (tvsys == RGB_LCD && tearing_fix == ROTATE) {
 		r.u_width = height;
@@ -181,11 +180,9 @@ static void recreate_region(enum tvsystem tvsys, uint16_t width, uint16_t height
 	}
 	else {
 		scale_param.h_mul = 720;
-		scale_param.v_mul = tvsys == PAL ? 576 : 480;
+		scale_param.v_mul = tvsys == NTSC ? 480 : 576;
 	}
-	if (width != (tearing_fix == ROTATE ? MENU_HEIGHT : MENU_WIDTH) ||
-		height != (tearing_fix == ROTATE ? MENU_WIDTH : MENU_HEIGHT))
-	{
+	if (width != MENU_WIDTH || height != MENU_HEIGHT) {
 		if (scaling_mode == CORE_PROVIDED || scaling_mode == CUSTOM)
 			scale_to_ratio(tvsys, &r, &scale_param.h_mul, &scale_param.v_mul, g_ratio);
 		else if (scaling_mode == SQUARE_PIXELS)
@@ -219,7 +216,9 @@ static void recreate_region(enum tvsystem tvsys, uint16_t width, uint16_t height
 
 	osddrv_3x_create_region(m_osd_dev, 0, &r, &para);
 	osddrv_scale(m_osd_dev, OSD_SCALE_WITH_PARAM, (uintptr_t)&scale_param);
-	osddrv_scale(m_osd_dev, OSD_SET_SCALE_MODE, g_filtered ? 1 : 0);
+	osddrv_scale(m_osd_dev, OSD_SET_SCALE_MODE,
+		g_filtered ? OSD_SCALE_FILTER : OSD_SCALE_DUPLICATE
+	);
 }
 
 static void region_write(const void *buf,
@@ -373,7 +372,13 @@ void video_options(config_file_t *conf)
 	m_osd_dev = dev_get_by_id(HLD_DEV_TYPE_OSD, 0);
 	m_vpo_dev = dev_get_by_id(HLD_DEV_TYPE_DIS, 0);
 
-	if (tearing_fix == FAST) {
+	if (tearing_fix == DISABLED) {
+		patch__get_vp_init_low_lcd_para(VPO_RGB_CLOCK_6_6M,
+			444, 304, 320, 240
+		);
+		apply_rgb_timings();
+	}
+	else if (tearing_fix == FAST) {
 		patch__get_vp_init_low_lcd_para(rgb_clock,
 			h_total_len, v_total_len, 320, 240
 		);
@@ -393,13 +398,14 @@ void video_options(config_file_t *conf)
 		rot_buf = malloc(MAX_WIDTH * MAX_HEIGHT * sizeof rot_buf[0]);
 	}
 
-	// scaling needs the hook even with the tearing fixes disabled
-	patch__run_screen_write(&hooked_run_osd_region_write);
+	if (tearing_fix == ROTATE || scaling_mode != STOCK)
+		patch__run_screen_write(&hooked_run_osd_region_write);
 }
 
 void video_cleanup(void)
 {
-	patch__run_screen_write(&run_osd_region_write);
+	if (tearing_fix == ROTATE || scaling_mode != STOCK)
+		patch__run_screen_write(&run_osd_region_write);
 
 	if (tearing_fix != ROTATE) return; // that's all folks! fast patch stays
 	tearing_fix = FAST; // ROTATE affects region's scaling
