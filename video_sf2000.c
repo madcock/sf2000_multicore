@@ -49,7 +49,7 @@ static double g_ratio = 4.0 / 3.0;
 
 static bool g_filtered = true;
 
-static double g_ntsc_underscan = 0.96;
+static double g_ntsc_underscan = 0.95;
 
 static void config_load(config_file_t *conf)
 {
