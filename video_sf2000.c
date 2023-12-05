@@ -49,7 +49,7 @@ static double g_ratio = 4.0 / 3.0;
 
 static bool g_filtered = true;
 
-static double g_ntsc_underscan = 0.95;
+static double g_ntsc_underscan = 0.94;
 
 static void config_load(config_file_t *conf)
 {
@@ -117,6 +117,7 @@ static void scale_to_ratio(enum tvsystem tvsys, struct osdrect *pr, uint16_t *ph
 		if (tvsys == NTSC) {
 			scaled_height = screen_height * g_ntsc_underscan;
 			pr->u_top = (screen_height - scaled_height) / 2 * pr->u_height / scaled_height;
+			pr->u_top++;
 			*pv_mul = scaled_height;
 		}
 	}
@@ -125,6 +126,7 @@ static void scale_to_ratio(enum tvsystem tvsys, struct osdrect *pr, uint16_t *ph
 		pr->u_top = (screen_height - scaled_height) / 2 * pr->u_height / scaled_height;
 		*pv_mul = scaled_height;
 		if (tvsys == NTSC) {
+			pr->u_top++;
 			scaled_width = screen_width * g_ntsc_underscan;
 			pr->u_left = (screen_width - scaled_width) / 2 * pr->u_width / scaled_width;
 			*ph_mul = scaled_width;
