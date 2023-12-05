@@ -10,7 +10,8 @@ extern "C" {
 #define HLD_DEV_TYPE_DIS	0x10f0000
 
 enum tvsystem {
-	PAL	= 1,
+	PAL	= 0,
+	NTSC = 1,
 	RGB_LCD	= 0x16 // LINE_800x480_60 hacked for RGB output by HiChip
 };
 
