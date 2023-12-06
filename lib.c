@@ -161,7 +161,7 @@ int vfprintf(FILE *stream, const char *format, va_list _args)
 	return str_size;
 }
 
-int fprintf(FILE* stream, const char* format, ...)
+int fprintf(FILE *stream, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -200,7 +200,7 @@ static int stat_common(int ret, fs_stat_t *buffer, struct stat *sbuf)
 	if (ret == 0)
 	{
 		memset(sbuf, 0, sizeof(*sbuf));
-		sbuf->st_mode = S_ISREG(buffer->type)*S_IFREG | S_ISDIR(buffer->type)*S_IFDIR;
+		sbuf->st_mode = S_ISREG(buffer->type)*S_IFREG | S_ISDIR(buffer->type)*S_IFDIR | (S_IRUSR|S_IWUSR);
 		sbuf->st_size = buffer->size;
 		return 0;
 	}
@@ -224,6 +224,12 @@ int	fstat(int fd, struct stat *sbuf)
 	return stat_common(ret, &buffer, sbuf);
 }
 
+int access(const char *path, int mode)
+{
+    struct stat buffer;
+    return stat(path, &buffer);
+}
+
 int mkdir(const char *path, mode_t mode)
 {
 	return fs_mkdir(path, mode);
@@ -237,11 +243,16 @@ int chdir(const char *path)
 {
 	return -1;
 }
-int rmdir (const char *path)
+int rmdir(const char *path)
 {
 	return -1;
 }
-int unlink (const char *path)
+int unlink(const char *path)
+{
+	return -1;
+}
+
+int chmod(const char *path, mode_t mode)
 {
 	return -1;
 }
@@ -254,11 +265,6 @@ int kill(pid_t pid, int sig)
 pid_t getpid(void)
 {
 	return 1;
-}
-
-int chmod(const char *path, mode_t mode)
-{
-	return -1;
 }
 
 void abort(void)
