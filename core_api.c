@@ -487,7 +487,8 @@ size_t wrap_audio_batch_cb(const int16_t *data, size_t frames)
 
 void wrap_audio_sample_cb(int16_t left, int16_t right)
 {
-	int16_t data[2] = {left, right};
+	int16_t mixed = (left >> 1) + (right >> 1);
+	int16_t data[2] = {mixed, right};
 	audio_batch_cb(data, 1);
 }
 
