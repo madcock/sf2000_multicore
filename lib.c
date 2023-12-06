@@ -200,7 +200,7 @@ static int stat_common(int ret, fs_stat_t *buffer, struct stat *sbuf)
 	if (ret == 0)
 	{
 		memset(sbuf, 0, sizeof(*sbuf));
-		sbuf->st_mode = S_ISREG(buffer->type)*S_IFREG | S_ISDIR(buffer->type)*S_IFDIR;
+		sbuf->st_mode = S_ISREG(buffer->type)*S_IFREG | S_ISDIR(buffer->type)*S_IFDIR | (S_IRUSR|S_IWUSR);
 		sbuf->st_size = buffer->size;
 		return 0;
 	}
