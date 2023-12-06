@@ -182,7 +182,7 @@ static void recreate_region(enum tvsystem tvsys, uint16_t width, uint16_t height
 		scale_param.h_mul = 720;
 		scale_param.v_mul = tvsys == NTSC ? 480 : 576;
 	}
-	if (width != MENU_WIDTH || height != MENU_HEIGHT) {
+	if (r.u_width != MENU_WIDTH || r.u_height != MENU_HEIGHT) {
 		if (scaling_mode == CORE_PROVIDED || scaling_mode == CUSTOM)
 			scale_to_ratio(tvsys, &r, &scale_param.h_mul, &scale_param.v_mul, g_ratio);
 		else if (scaling_mode == SQUARE_PIXELS)
@@ -398,14 +398,16 @@ void video_options(config_file_t *conf)
 		rot_buf = malloc(MAX_WIDTH * MAX_HEIGHT * sizeof rot_buf[0]);
 	}
 
-	if (tearing_fix == ROTATE || scaling_mode != STOCK)
+	if (tearing_fix == ROTATE || scaling_mode != STOCK) {
 		patch__run_screen_write(&hooked_run_osd_region_write);
+	}
 }
 
 void video_cleanup(void)
 {
-	if (tearing_fix == ROTATE || scaling_mode != STOCK)
+	if (tearing_fix == ROTATE || scaling_mode != STOCK) {
 		patch__run_screen_write(&run_osd_region_write);
+	}
 
 	if (tearing_fix != ROTATE) return; // that's all folks! fast patch stays
 	tearing_fix = FAST; // ROTATE affects region's scaling
