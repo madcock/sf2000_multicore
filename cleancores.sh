@@ -97,7 +97,7 @@ make clean CONSOLE=bk         CORE=cores/bk-emulator MAKEFILE=-fMakefile.libretr
 make clean CONSOLE=dossvn     CORE=cores/dosbox-svn/libretro && \
 make clean CONSOLE=glxy       CORE=cores/libretro-galaxy && \
 make clean CONSOLE=nogg       CORE=cores/libretro-nogg && \
-make clean CONSOLE=quake      CORE=cores/libretro-tyrquake && \
+make clean CONSOLE=quake      CORE=cores/tyrquake && \
 make clean CONSOLE=mgba       CORE=cores/mgba && \
 make clean CONSOLE=gbam       CORE=cores/libretro-vbam/src/libretro && \
 make clean CONSOLE=snesn      CORE=cores/snes9x-next && \
