@@ -69,6 +69,7 @@ make CONSOLE=nest       CORE=cores/nestopia/libretro && \
 make CONSOLE=vb         CORE=cores/libretro-beetle-vb && \
 make CONSOLE=gpgx       CORE=cores/Genesis-Plus-GX MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=xmil       CORE=cores/libretro-xmil/libretro && \
+make CONSOLE=pc8800     CORE=cores/libretro-quasi88 && \
 
 #working but major issues, not to release
 #make -C cores/fbalpha2012/svn-current/trunk platform=sf2000 -fmakefile.libretro generate-files && make CONSOLE=fba CORE=cores/fbalpha2012/svn-current/trunk MAKEFILE=-fmakefile.libretro && \
