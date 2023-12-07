@@ -99,7 +99,7 @@ retro_video_refresh_cb	= 0x803583a8;
 retro_audio_sample_batch_cb	= 0x80358430;
 retro_input_poll_cb	= 0x80358688;
 retro_input_state_cb	= 0x80358778;
-retro_set_environment_cb	= 0x803587bc;
+retro_environment_cb	= 0x803587bc;
 
 run_emulator	= 0x803589a4;
 run_gba			= 0x80359d1c;

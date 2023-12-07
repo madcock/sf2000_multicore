@@ -29,7 +29,7 @@ extern void retro_video_refresh_cb(const void *data, unsigned width, unsigned he
 extern size_t retro_audio_sample_batch_cb(const int16_t *data, size_t frames);
 extern void retro_input_poll_cb(void);
 extern int16_t retro_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id);
-extern bool retro_set_environment_cb(unsigned cmd, void *data);
+extern bool retro_environment_cb(unsigned cmd, void *data);
 
 /* .data */
 
