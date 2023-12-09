@@ -409,7 +409,7 @@ int state_save(const char *frontend_state_filepath)
 	return 1;
 }
 
-void build_config_filepath(char *filepath, size_t size)
+void build_core_config_filepath(char *filepath, size_t size)
 {
 	struct retro_system_info sysinfo;
 	retro_get_system_info(&sysinfo);
@@ -417,13 +417,24 @@ void build_config_filepath(char *filepath, size_t size)
 	snprintf(filepath, size, CONFIG_DIRECTORY "/%s.opt", sysinfo.library_name);
 }
 
+void config_add_file(const char *filepath)
+{
+	bool ret = config_append_file(s_core_config, filepath);
+	xlog("config_load: %s %s\n", filepath, ret ? "loaded" : "not found");
+}
+
 void config_load()
 {
-	char config_filepath[MAXPATH];
-	build_config_filepath(config_filepath, sizeof(config_filepath));
+	s_core_config = config_file_new_alloc();
 
-	s_core_config = config_file_new_from_path_to_string(config_filepath);
-	xlog("config_load: %s %s\n", config_filepath, s_core_config ? "loaded" : "not found");
+	// load global multicore options
+	config_add_file(CONFIG_DIRECTORY "/multicore.opt");
+
+	char config_filepath[MAXPATH];
+	build_core_config_filepath(config_filepath, sizeof(config_filepath));
+
+	// load per core options
+	config_add_file(config_filepath);
 }
 
 void config_free()
