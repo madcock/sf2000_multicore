@@ -64,6 +64,8 @@ write	= 0x802a5f28;
 lseek	= 0x802a6048;
 close	= 0x802a6188;
 
+fs_access = 0x802a5c9c;
+
 fs_fstat = 0x802a5d34;
 fs_stat  = 0x802a5d58;
 fs_mkdir = 0x802a5b68;
