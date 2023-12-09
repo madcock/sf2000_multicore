@@ -95,23 +95,31 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-lutro
 #CONSOLE=lutro
 #
-
+#CORE=cores/scummvm/backends/platform/libretro
+#CONSOLE=scumm
+#
+#CORE=cores/daphne
+#CONSOLE=daphne
+#
+#CORE=cores/libretro-blueMSX
+#CONSOLE=msx
+#
+#CORE=cores/libretro-xrick
+#CONSOLE=xrick
+#
+#CORE=cores/DirkSimple
+#CONSOLE=dirk
+#
+#CORE=cores/FFmpeg/libretro
+#CONSOLE=ffmpeg
+#
 
 ######
 #todo: add to git, update to point to new location, and build
 ######
 #
-#CORE=cores/libretro-xrick
-#CONSOLE=xrick
-#
-#CORE=cores/libretro-fmsx
-#CONSOLE=fmsx
-#
 #CORE=cores/pzretro
 #CONSOLE=pzscr
-#
-#CORE=cores/scummvm/backends/platform/libretro
-#CONSOLE=scumm
 #
 #CORE=cores/vitaquake2
 #CONSOLE=quake2
@@ -121,12 +129,6 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/libretro-zc250x
 #CONSOLE=zelda
-#
-#CORE=cores/libretro-x48
-#CONSOLE=x48
-#
-#CORE=cores/libretro-blueMSX
-#CONSOLE=msx
 #
 #CORE=cores/neocd_libretro
 #CONSOLE=neocd
@@ -140,9 +142,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/Mu/libretroBuildSystem
 #CONSOLE=mu
 #
-#CORE=cores/daphne
-#CONSOLE=daph
-#
 #CORE=cores/libretro-pcem/src
 #CONSOLE=pcem
 #
@@ -152,17 +151,14 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/pntr
 #CONSOLE=pntr
 #
-#CORE=cores/DirkSimple
-#CONSOLE=DirkSimple
-#
 #CORE=cores/dosbox-core/libretro
 #CONSOLE=dosc
 #
 #CORE=cores/virtualxt
 #CONSOLE=xt
 #
-#CORE=cores/FFmpeg/libretro
-#CONSOLE=ffmpeg
+#CORE=cores/vba-next
+#CONSOLE=gbav
 #
 
 ## build but doesn't work
@@ -268,8 +264,8 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-atari800
 #CONSOLE=a800
 #
-#CORE=cores/libretro-frodo
-#CONSOLE=c64f
+#CORE=cores/libretro-fmsx
+#CONSOLE=fmsx
 #
 
 ## builds and sorta works
@@ -357,6 +353,9 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/bk-emulator
 #MAKEFILE=-fMakefile.libretro
 #CONSOLE=bk
+#
+#CORE=cores/libretro-frodo
+#CONSOLE=c64f
 #
 
 ## builds and works
@@ -455,6 +454,12 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/libretro-quasi88
 #CONSOLE=pc8800
+#
+#CORE=cores/Gearboy/platforms/libretro
+#CONSOLE=gbgb
+#
+#CORE=cores/libretro-x48
+#CONSOLE=x48
 #
 ## test samples
 ###############

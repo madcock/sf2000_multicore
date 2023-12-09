@@ -20,6 +20,7 @@ make CONSOLE=gme        CORE=cores/libretro-gme && \
 make CONSOLE=pce        CORE=cores/libretro-beetle-pce-fast && \
 make CONSOLE=ngpc       CORE=cores/RACE && \
 make CONSOLE=gba        CORE=cores/gpsp && \
+make CONSOLE=gbgb       CORE=cores/Gearboy/platforms/libretro && \
 make CONSOLE=gb         CORE=cores/libretro-tgbdual && \
 make CONSOLE=nes        CORE=cores/libretro-fceumm && \
 make CONSOLE=nesq       CORE=cores/QuickNES_Core && \
@@ -64,6 +65,7 @@ make CONSOLE=mrboom     CORE=cores/libretro-mrboom && \
 make CONSOLE=wolf3d     CORE=cores/ecwolf/src/libretro && \
 make CONSOLE=jnb        CORE=cores/libretro-jumpnbump && \
 make CONSOLE=cavestory  CORE=cores/libretro-nxengine && \
+make CONSOLE=x48        CORE=cores/libretro-x48 && \
 make CONSOLE=o2em       CORE=cores/libretro-o2em && \
 make CONSOLE=pcesgx     CORE=cores/libretro-beetle-supergrafx && \
 make CONSOLE=pcfx       CORE=cores/libretro-beetle-pcfx && \
@@ -97,11 +99,14 @@ make CONSOLE=mame2003mw CORE=cores/mame2003_midway && \
 make CONSOLE=jag        CORE=cores/libretro-virtualjaguar && \
 make CONSOLE=zork       CORE=cores/mojozork MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=img        CORE=cores/libretro-imageviewer-legacy MAKEFILE=-fMakefile.libretro && \
+make CONSOLE=fmsx       CORE=cores/libretro-fmsx && \
 make CONSOLE=snesc      CORE=cores/chimerasnes && \
 make CONSOLE=zx81       CORE=cores/libretro-81 && \
+make CONSOLE=numero     CORE=cores/numero && \
 make CONSOLE=cps2       CORE=cores/fbalpha2012_cps2 && \
 make CONSOLE=cps3       CORE=cores/fbalpha2012_cps3/svn-current/trunk MAKEFILE=-fmakefile.libretro && \
 make CONSOLE=bk         CORE=cores/bk-emulator MAKEFILE=-fMakefile.libretro && \
+make CONSOLE=a800       CORE=cores/libretro-atari800 && \
 make CONSOLE=dossvn     CORE=cores/dosbox-svn/libretro && \
 make CONSOLE=glxy       CORE=cores/libretro-galaxy && \
 make CONSOLE=nogg       CORE=cores/libretro-nogg && \

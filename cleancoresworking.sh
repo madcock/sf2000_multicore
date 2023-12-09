@@ -20,6 +20,7 @@ make clean CONSOLE=gme        CORE=cores/libretro-gme && \
 make clean CONSOLE=pce        CORE=cores/libretro-beetle-pce-fast && \
 make clean CONSOLE=ngpc       CORE=cores/RACE && \
 make clean CONSOLE=gba        CORE=cores/gpsp && \
+make clean CONSOLE=gbgb       CORE=cores/Gearboy/platforms/libretro && \
 make clean CONSOLE=gb         CORE=cores/libretro-tgbdual && \
 make clean CONSOLE=nes        CORE=cores/libretro-fceumm && \
 make clean CONSOLE=nesq       CORE=cores/QuickNES_Core && \
@@ -57,6 +58,7 @@ make clean CONSOLE=mrboom     CORE=cores/libretro-mrboom && \
 make clean CONSOLE=wolf3d     CORE=cores/ecwolf/src/libretro && \
 make clean CONSOLE=jnb        CORE=cores/libretro-jumpnbump && \
 make clean CONSOLE=cavestory  CORE=cores/libretro-nxengine && \
+make clean CONSOLE=x48        CORE=cores/libretro-x48 && \
 make clean CONSOLE=o2em       CORE=cores/libretro-o2em && \
 make clean CONSOLE=pcesgx     CORE=cores/libretro-beetle-supergrafx && \
 make clean CONSOLE=pcfx       CORE=cores/libretro-beetle-pcfx && \

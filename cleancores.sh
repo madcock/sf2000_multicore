@@ -20,6 +20,7 @@ make clean CONSOLE=gme        CORE=cores/libretro-gme && \
 make clean CONSOLE=pce        CORE=cores/libretro-beetle-pce-fast && \
 make clean CONSOLE=ngpc       CORE=cores/RACE && \
 make clean CONSOLE=gba        CORE=cores/gpsp && \
+make clean CONSOLE=gbgb       CORE=cores/Gearboy/platforms/libretro && \
 make clean CONSOLE=gb         CORE=cores/libretro-tgbdual && \
 make clean CONSOLE=nes        CORE=cores/libretro-fceumm && \
 make clean CONSOLE=nesq       CORE=cores/QuickNES_Core && \
@@ -57,6 +58,7 @@ make clean CONSOLE=mrboom     CORE=cores/libretro-mrboom && \
 make clean CONSOLE=wolf3d     CORE=cores/ecwolf/src/libretro && \
 make clean CONSOLE=jnb        CORE=cores/libretro-jumpnbump && \
 make clean CONSOLE=cavestory  CORE=cores/libretro-nxengine && \
+make clean CONSOLE=x48        CORE=cores/libretro-x48 && \
 make clean CONSOLE=o2em       CORE=cores/libretro-o2em && \
 make clean CONSOLE=pcesgx     CORE=cores/libretro-beetle-supergrafx && \
 make clean CONSOLE=pcfx       CORE=cores/libretro-beetle-pcfx && \
@@ -90,11 +92,14 @@ make clean CONSOLE=mame2003mw CORE=cores/mame2003_midway && \
 make clean CONSOLE=jag        CORE=cores/libretro-virtualjaguar && \
 make clean CONSOLE=zork       CORE=cores/mojozork MAKEFILE=-fMakefile.libretro && \
 make clean CONSOLE=img        CORE=cores/libretro-imageviewer-legacy MAKEFILE=-fMakefile.libretro && \
+make clean CONSOLE=fmsx       CORE=cores/libretro-fmsx && \
 make clean CONSOLE=snesc      CORE=cores/chimerasnes && \
 make clean CONSOLE=zx81       CORE=cores/libretro-81 && \
+make clean CONSOLE=numero     CORE=cores/numero && \
 make clean CONSOLE=cps2       CORE=cores/fbalpha2012_cps2 && \
 make clean CONSOLE=cps3       CORE=cores/fbalpha2012_cps3/svn-current/trunk MAKEFILE=-fmakefile.libretro && \
 make clean CONSOLE=bk         CORE=cores/bk-emulator MAKEFILE=-fMakefile.libretro && \
+make clean CONSOLE=a800       CORE=cores/libretro-atari800 && \
 make clean CONSOLE=dossvn     CORE=cores/dosbox-svn/libretro && \
 make clean CONSOLE=glxy       CORE=cores/libretro-galaxy && \
 make clean CONSOLE=nogg       CORE=cores/libretro-nogg && \

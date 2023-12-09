@@ -20,6 +20,7 @@ make CONSOLE=gme        CORE=cores/libretro-gme && \
 make CONSOLE=pce        CORE=cores/libretro-beetle-pce-fast && \
 make CONSOLE=ngpc       CORE=cores/RACE && \
 make CONSOLE=gba        CORE=cores/gpsp && \
+make CONSOLE=gbgb       CORE=cores/Gearboy/platforms/libretro && \
 make CONSOLE=gb         CORE=cores/libretro-tgbdual && \
 make CONSOLE=nes        CORE=cores/libretro-fceumm && \
 make CONSOLE=nesq       CORE=cores/QuickNES_Core && \
@@ -62,6 +63,7 @@ make CONSOLE=mrboom     CORE=cores/libretro-mrboom && \
 make CONSOLE=wolf3d     CORE=cores/ecwolf/src/libretro && \
 make CONSOLE=jnb        CORE=cores/libretro-jumpnbump && \
 make CONSOLE=cavestory  CORE=cores/libretro-nxengine && \
+make CONSOLE=x48        CORE=cores/libretro-x48 && \
 make CONSOLE=o2em       CORE=cores/libretro-o2em && \
 make CONSOLE=pcesgx     CORE=cores/libretro-beetle-supergrafx && \
 make CONSOLE=pcfx       CORE=cores/libretro-beetle-pcfx && \
