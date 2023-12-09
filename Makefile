@@ -65,14 +65,14 @@ CONSOLE=m2k
 # CORE=cores/snes9x2005
 # CONSOLE=snes
 
+# Default target
+all: core_87000000 bisrv.asd install
+
 %.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 %.o: %.s
 	$(CC) $(CFLAGS) -o $@ -c $<
-
-# Default target
-all: core_87000000 bisrv.asd install
 
 libretro_core:
 	@$(call echo_i,"compiling $(CORE)")
@@ -156,7 +156,7 @@ install:
 	@$(call echo_i,"install to sdcard")
 	-$(call copy_if_updated,bisrv.asd,sdcard/bios/bisrv.asd)
 	-$(call copy_if_updated,core_87000000,sdcard/cores/$(CONSOLE)/core_87000000)
-	-rm -f sdcard/log.txt
+	# -rm -f sdcard/log.txt
 
 # Clean intermediate files and the final executable
 clean:
