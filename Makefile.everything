@@ -471,18 +471,18 @@ LOADER_OBJS=init.o main.o debug.o
 #
 
 
-%.o: %.c
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-%.o: %.s
-	$(CC) $(CFLAGS) -o $@ -c $<
-
 # Default target
 ifneq ($(CORE),)
 all: core_87000000 bisrv.asd install
 else
 all: bisrv.asd install
 endif
+
+%.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+%.o: %.s
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 libretro_core:
 	@$(call echo_i,"compiling $(CORE)")
@@ -565,7 +565,7 @@ install:
 	@$(call echo_i,"install to sdcard")
 	-$(call copy_if_updated,bisrv.asd,sdcard/bios/bisrv.asd)
 	-$(call copy_if_updated,core_87000000,sdcard/cores/$(CONSOLE)/core_87000000)
-	-rm -f sdcard/log.txt
+	# -rm -f sdcard/log.txt
 	@$(call echo_d,"bisrv.asd")
 ifeq ($(CLEAR_LOG_ON_BOOT), 1)
 	@$(call echo_d,"log cleared on boot")
