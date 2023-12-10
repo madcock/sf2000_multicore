@@ -64,6 +64,8 @@ write	= 0x802a5f28;
 lseek	= 0x802a6048;
 close	= 0x802a6188;
 
+fs_access = 0x802a5c9c;
+
 fs_fstat = 0x802a5d34;
 fs_stat  = 0x802a5d58;
 fs_mkdir = 0x802a5b68;
@@ -120,7 +122,7 @@ retro_video_refresh_cb	= 0x803583a8;
 retro_audio_sample_batch_cb	= 0x80358430;
 retro_input_poll_cb	= 0x80358688;
 retro_input_state_cb	= 0x80358778;
-retro_set_environment_cb	= 0x803587bc;
+retro_environment_cb	= 0x803587bc;
 
 run_emulator	= 0x803589a4;
 run_gba			= 0x80359d1c;

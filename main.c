@@ -121,7 +121,7 @@ void load_and_run_core(const char *file_path, int load_state)
 	core_api->retro_set_audio_sample_batch(retro_audio_sample_batch_cb);
 	core_api->retro_set_input_poll(retro_input_poll_cb);
 	core_api->retro_set_input_state(retro_input_state_cb);
-	core_api->retro_set_environment(retro_set_environment_cb);
+	core_api->retro_set_environment(retro_environment_cb);
 
 	xlog("loader: retro_init\n");
 	core_api->retro_init();

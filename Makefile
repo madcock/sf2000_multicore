@@ -78,18 +78,18 @@ LOADER_OBJS=init.o main.o debug.o
 # CORE=cores/snes9x2005
 # CONSOLE=snes
 
-%.o: %.c
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-%.o: %.s
-	$(CC) $(CFLAGS) -o $@ -c $<
-
 # Default target
 ifneq ($(CORE),)
 all: core_87000000 bisrv.asd install
 else
 all: bisrv.asd install
 endif
+
+%.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+%.o: %.s
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 libretro_core:
 	@$(call echo_i,"compiling $(CORE)")
@@ -172,6 +172,7 @@ install:
 	@$(call echo_i,"install to sdcard")
 	-$(call copy_if_updated,bisrv.asd,sdcard/bios/bisrv.asd)
 	-$(call copy_if_updated,core_87000000,sdcard/cores/$(CONSOLE)/core_87000000)
+<<<<<<< HEAD
 	-rm -f sdcard/log.txt
 	@$(call echo_d,"bisrv.asd")
 ifeq ($(CLEAR_LOG_ON_BOOT), 1)
@@ -180,6 +181,9 @@ else
 	@$(call echo_d,"log NOT cleared on boot")
 endif
 	@$(call echo_d,"$(CORE)")
+=======
+	# -rm -f sdcard/log.txt
+>>>>>>> upstream/master
 
 # Clean intermediate files and the final executable
 clean:

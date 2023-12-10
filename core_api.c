@@ -25,16 +25,13 @@ static void config_load();
 static void config_free();
 static bool config_get_var(struct retro_variable *var);
 
-static retro_environment_t 			environ_cb;
-static retro_audio_sample_batch_t	audio_batch_cb;
 static retro_audio_buffer_status_callback_t	audio_buff_status_cb;
 
 static void wrap_retro_set_environment(retro_environment_t cb);
-static void wrap_retro_set_audio_sample_batch(retro_audio_sample_batch_t cb);
-
 static bool wrap_environ_cb(unsigned cmd, void *data);
-static size_t wrap_audio_batch_cb(const int16_t *data, size_t frames);
-static void wrap_audio_sample_cb(int16_t left, int16_t right);
+
+static size_t mono_mix_audio_batch_cb(const int16_t *data, size_t frames);
+static void mono_mix_audio_sample_cb(int16_t left, int16_t right);
 
 static bool wrap_retro_load_game(const struct retro_game_info* info);
 static void wrap_retro_init(void);
@@ -50,7 +47,7 @@ static uint16_t* s_rgb565_convert_buffer = NULL;
 static void enable_xrgb8888_support();
 static void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, size_t stride);
 
-static void wrap_retro_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
+static void xrgb8888_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
 static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id);
 
 static void frameskip_cb(BOOL flag);
@@ -67,7 +64,7 @@ struct retro_core_t core_exports = {
    .retro_set_environment = wrap_retro_set_environment,
    .retro_set_video_refresh = retro_set_video_refresh,
    .retro_set_audio_sample = retro_set_audio_sample,
-   .retro_set_audio_sample_batch = wrap_retro_set_audio_sample_batch,
+   .retro_set_audio_sample_batch = retro_set_audio_sample_batch,
    .retro_set_input_poll = retro_set_input_poll,
    .retro_set_input_state = retro_set_input_state,
    .retro_set_controller_port_device = retro_set_controller_port_device,
@@ -160,8 +157,9 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 	// install custom input handler to filter out all requests for non-joypad devices
 	retro_set_input_state(wrap_input_state_cb);
 
-	// for cores that produce one audio sample at a time
-	retro_set_audio_sample(wrap_audio_sample_cb);
+	// intercept audio output to mix stereo into mono
+	retro_set_audio_sample(mono_mix_audio_sample_cb);
+	retro_set_audio_sample_batch(mono_mix_audio_batch_cb);
 
 	// if core wants to load the content by itself directly from files, then let it
 	if (sysinfo.need_fullpath)
@@ -221,7 +219,6 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 
 void wrap_retro_set_environment(retro_environment_t cb)
 {
-	environ_cb = cb;
 	retro_set_environment(wrap_environ_cb);
 }
 
@@ -313,7 +310,7 @@ bool wrap_environ_cb(unsigned cmd, void *data)
 			return true;
 		}
 	}
-	return environ_cb(cmd, data);
+	return retro_environment_cb(cmd, data);
 }
 
 void log_cb(enum retro_log_level level, const char *fmt, ...)
@@ -417,7 +414,7 @@ int state_save(const char *frontend_state_filepath)
 	return 1;
 }
 
-void build_config_filepath(char *filepath, size_t size)
+void build_core_config_filepath(char *filepath, size_t size)
 {
 	struct retro_system_info sysinfo;
 	retro_get_system_info(&sysinfo);
@@ -425,13 +422,24 @@ void build_config_filepath(char *filepath, size_t size)
 	snprintf(filepath, size, CONFIG_DIRECTORY "/%s.opt", sysinfo.library_name);
 }
 
+void config_add_file(const char *filepath)
+{
+	bool ret = config_append_file(s_core_config, filepath);
+	xlog("config_load: %s %s\n", filepath, ret ? "loaded" : "not found");
+}
+
 void config_load()
 {
-	char config_filepath[MAXPATH];
-	build_config_filepath(config_filepath, sizeof(config_filepath));
+	s_core_config = config_file_new_alloc();
 
-	s_core_config = config_file_new_from_path_to_string(config_filepath);
-	xlog("config_load: %s %s\n", config_filepath, s_core_config ? "loaded" : "not found");
+	// load global multicore options
+	config_add_file(CONFIG_DIRECTORY "/multicore.opt");
+
+	char config_filepath[MAXPATH];
+	build_core_config_filepath(config_filepath, sizeof(config_filepath));
+
+	// load per core options
+	config_add_file(config_filepath);
 }
 
 void config_free()
@@ -468,13 +476,7 @@ void wrap_retro_deinit(void)
 		free(s_rgb565_convert_buffer);
 }
 
-void wrap_retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
-{
-	audio_batch_cb = cb;
-	retro_set_audio_sample_batch(wrap_audio_batch_cb);
-}
-
-size_t wrap_audio_batch_cb(const int16_t *data, size_t frames)
+size_t mono_mix_audio_batch_cb(const int16_t *data, size_t frames)
 {
 	// TODO: is data always assumed to be s16bit dual channel buffer?
 	for (size_t i=0; i < frames*2; i+=2)
@@ -486,16 +488,16 @@ size_t wrap_audio_batch_cb(const int16_t *data, size_t frames)
 	}
 
 	// NOTE: stock frontend audio_batch_cb always return 0!
-	audio_batch_cb(data, frames);
+	retro_audio_sample_batch_cb(data, frames);
 	// return `frames` as if all data was consumed
 	return frames;
 }
 
-void wrap_audio_sample_cb(int16_t left, int16_t right)
+void mono_mix_audio_sample_cb(int16_t left, int16_t right)
 {
 	int16_t mixed = (left >> 1) + (right >> 1);
 	int16_t data[2] = {mixed, right};
-	audio_batch_cb(data, 1);
+	retro_audio_sample_batch_cb(data, 1);
 }
 
 void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, size_t stride)
@@ -518,7 +520,7 @@ void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, s
     }
 }
 
-void wrap_retro_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch)
+void xrgb8888_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch)
 {
 	convert_xrgb8888_to_rgb565((void*)data, width, height, pitch);
 
@@ -537,7 +539,7 @@ static void enable_xrgb8888_support()
 	xlog("created rgb565_convert_buffer=%p width=%u height=%u\n",
 		s_rgb565_convert_buffer, av_info.geometry.max_width, av_info.geometry.max_height);
 
-	retro_set_video_refresh(wrap_retro_video_refresh_cb);
+	retro_set_video_refresh(xrgb8888_video_refresh_cb);
 }
 
 static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id)
@@ -556,5 +558,5 @@ static void frameskip_cb(BOOL flag)
 static void dummy_retro_run(void)
 {
 	dly_tsk(1);
-	//environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+	//retro_environment_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
 }
