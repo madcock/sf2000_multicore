@@ -16,11 +16,12 @@ LOADER_ADDR_MAX=0x80002180
 MIPS=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
 
 CC = $(MIPS)gcc
+CXX = $(MIPS)g++
 LD = $(MIPS)ld
 OBJCOPY = $(MIPS)objcopy
 
 CFLAGS := -EL -march=mips32 -mtune=mips32 -msoft-float
-CFLAGS += -Os -G0 -mno-abicalls -fno-pic -ffreestanding
+CFLAGS += -Os -G0 -mno-abicalls -fno-pic
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -I libs/libretro-common/include
 # CFLAGS += -Wall
@@ -36,20 +37,33 @@ LDFLAGS += --gc-sections
 # needed for .text LMA = VMA
 LDFLAGS += --build-id
 
-LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libgcc.a)))
-LIBS+=-lgcc
-
-LDFLAGS += -L$(abspath $(dir $(shell $(CC) $(CFLAGS) -print-file-name=libc.a)))
-LIBS+=-lc -lm
-LIBS+=-lstdc++
+CXX_LDFLAGS := -EL -march=mips32 -mtune=mips32 -msoft-float
+CXX_LDFLAGS += -Wl,--gc-sections --static
+CXX_LDFLAGS += -z max-page-size=32
 
 CORE_OBJS=core_api.o lib.o debug.o video_sf2000.o
 LOADER_OBJS=init.o main.o debug.o
 
-#CORE=cores/mame2000
-#CONSOLE=m2k
+# CORE=cores/cannonball
+# CONSOLE=outrun
+
+#CORE=cores/ecwolf/src/libretro
+#CONSOLE=ecwolf
+
+# CORE=cores/fake-08/platform/libretro
+# CONSOLE=fake8
+
+# CORE=cores/caprice32
+# CONSOLE=cap32
+
+# CORE=cores/prboom
+# CONSOLE=prboom
+
+# CORE=cores/mame2000
+# CONSOLE=m2k
 
 # CORE=cores/vice
+# CONSOLE=vic20
 # CONSOLE=c64
 
 # CORE=cores/2048
@@ -61,6 +75,12 @@ LOADER_OBJS=init.o main.o debug.o
 
 # CORE=cores/stella2014
 # CONSOLE=a26
+
+# CORE=cores/atari5200
+# CONSOLE=a52
+
+# CORE=cores/atari800
+# CONSOLE=a800
 
 # CORE=cores/beetle-pce-fast
 # CONSOLE=pce
@@ -107,8 +127,8 @@ libretro-common.a: libretro-common
 
 core.elf: libretro_core.a libretro-common.a $(CORE_OBJS)
 	@$(call echo_i,"compiling $@")
-	$(LD) -Map $@.map $(LDFLAGS) -e __core_entry__ -Ttext=0x87000000 bisrv_08_03.ld -o $@ \
-		--start-group $(LIBS) $(CORE_OBJS) libretro_core.a libretro-common.a --end-group
+	$(CXX) -Wl,-Map=$@.map $(CXX_LDFLAGS) -e __core_entry__ -Tcore.ld bisrv_08_03-core.ld -o $@ \
+		-Wl,--start-group $(CORE_OBJS) libretro_core.a libretro-common.a -lc -Wl,--end-group
 
 core_87000000: core.elf
 	$(OBJCOPY) -O binary -R .MIPS.abiflags -R .note.gnu.build-id -R ".rel*" core.elf core_87000000

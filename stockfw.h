@@ -4,8 +4,21 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define FS_O_RDONLY     0x0000
+#define FS_O_WRONLY     0x0001
+#define FS_O_RDWR       0x0002
+#define FS_O_APPEND     0x0008
+#define FS_O_CREAT      0x0100
+#define FS_O_TRUNC      0x0200
+
 typedef int BOOL;
 typedef uintptr_t HANDLE;
+
+int fs_open(const char *path, int oflag, int perms);
+int fs_close(int fd);
+int64_t fs_lseek(int fd, int64_t offset, int whence);
+ssize_t fs_read(int fd, void *buf, size_t nbyte);
+ssize_t fs_write(int fd, const void *buf, size_t nbyte);
 
 extern size_t fw_fread(void *ptr, size_t size, size_t count, FILE *stream);
 

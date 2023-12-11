@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include "debug.h"
 #include "stockfw.h"
 #include "dirent.h"
@@ -52,133 +53,124 @@ void _flush_cache(void *buf, size_t sz, int flags)
 	full_cache_flush();
 }
 
-/* ALi's libc lacks newer POSIX stuff, */
-char *stpcpy(char *dst, const char *src)
-{
-	size_t sz = strlen(src) + 1;
-
-	memcpy(dst, src, sz);
-	return &dst[sz - 1];
-}
-
-// TODO: this __locale_ctype_ptr collide with the one from libc
-// maybe defined it with attribute((weak)) or delete it all together
-//
-///* localization, */
-// extern char _ctype_[257];
-
-// const char *__locale_ctype_ptr (void)
-// {
-	// return _ctype_;
-// }
-
-/* reentrant functions (newer builds fixed that), */
 extern int g_errno;
 
-int *__errno(void)
+extern void (*__xlog)(const char *fmt, ...);
+// #define __xlog(...)
+
+void *sbrk(ptrdiff_t incr)
 {
-	return &g_errno;
-}
-
-/* but also some ages-old ISO/ANSI stuff, too! */
-int puts(const char *s)
-{
-	return (printf("%s\n", s) < 0 ? EOF : '\n');
-}
-
-/* ALi violated ISO/ANSI with fseek taking off_t */
-int fseek(FILE *stream, long offset, int whence)
-{
-	return fseeko(stream, offset, whence);
-}
-
-void rewind(FILE *stream)
-{
-	fseeko(stream, 0, SEEK_SET);
-}
-
-void setbuf(FILE *stream, char *buffer)
-{
-	// ignore calls setbuf
-}
-
-// stock fw_fread returns the wrong value on success
-// it should return the count of elements, but it returns the number of bytes instead
-size_t fread(void *ptr, size_t size, size_t count, FILE *stream)
-{
-	size_t ret = fw_fread(ptr, size, count, stream);
-	// TODO: check if this is correct for all cases
-	return ret / size;
-}
-
-int fgetc(FILE *stream)
-{
-	unsigned char c;
-	size_t n = fread(&c, 1, 1, stream);
-	if (n == 1)
-		return c;
-	else
-		return EOF;
-}
-
-int vfprintf(FILE *stream, const char *format, va_list _args)
-{
-	va_list args;
-	va_copy(args, _args);
-
-	// determine the required size for the formatted string
-	int str_size = vsnprintf(NULL, 0, format, args);
-	va_end(args);
-
-	if (str_size < 0)
-		return -1;
-
-	size_t buf_size = str_size + 1;		// +1 for null terminator
-
-	char* buffer = (char*)malloc(buf_size);
-	if (buffer == NULL)
-		return -1;
-
-	va_copy(args, _args);
-	vsnprintf(buffer, buf_size, format, args);
-	va_end(args);
-
-	size_t written;
-
-	if (stream == stdout || stream == stderr)
+	static void *s_heap_end;
+	static void *s_heap_ptr = NULL;
+	if (!s_heap_ptr)
 	{
-		xlog(buffer);
-		written = 1;
+		s_heap_ptr = gp_buf_64m;	// use stock's 64MB scratch buffer
+		s_heap_end = gp_buf_64m + 0x4000000;
 	}
-	else
-		written = fwrite(buffer, str_size, 1, stream);
 
-	free(buffer);
+	void *curr_ptr = s_heap_ptr;
+	void *new_ptr = s_heap_ptr + incr;
 
-	if (written != 1)
-		return -1;
+	if (new_ptr >= s_heap_end)
+		lcd_bsod("sbrk: out of memory");
 
-	return str_size;
+	s_heap_ptr = new_ptr;
+
+// __xlog("sbrk: ret=%p incr=%d s_heap_ptr=%p\n", curr_ptr, (int)incr, s_heap_ptr);
+	
+	return curr_ptr;
 }
 
-int fprintf(FILE *stream, const char *format, ...)
+int open(const char *path, int flags, ...)
 {
-	va_list args;
-	va_start(args, format);
-	int ret = vfprintf(stream, format, args);
-	va_end(args);
+	int fs_flags = 0;
+	int fs_perms = 0666;    // all access?
+	
+	if (flags & O_RDONLY) fs_flags |= FS_O_RDONLY;
+	if (flags & O_WRONLY) fs_flags |= FS_O_WRONLY;
+	if (flags & O_RDWR)   fs_flags |= FS_O_RDWR;
+	if (flags & O_APPEND) fs_flags |= FS_O_APPEND;
+	if (flags & O_CREAT)  fs_flags |= FS_O_CREAT;
+	if (flags & O_TRUNC)  fs_flags |= FS_O_TRUNC;
+
+// __xlog("open: path=%s flags=%d fs_flags=%d\n", path, flags, fs_flags);
+
+int ret = fs_open(path, fs_flags, fs_perms);
+	if (ret < 0)
+		errno = g_errno;
+	else
+		ret += 5;
+
+// __xlog("open: ret=%d\n", ret);
+	return ret;
+}
+
+ssize_t read(int fd, void *buf, size_t count)
+{
+if (fd == 0 || fd == 1 || fd == 2)
+		return 0;
+
+	fd -= 5;
+
+// __xlog("read: fd=%d buf=%p count=%u\n", fd, buf, count);
+	ssize_t ret = fs_read(fd, buf, count);
+	if (ret < 0)
+		errno = g_errno;
+// __xlog("read: ret=%d\n", ret);
+	return ret;
+}
+
+ssize_t write(int fd, const void *buf, size_t count)
+{
+	if (fd == 0)
+		return -1;
+	else if (fd == 1 || fd == 2)
+	{
+		xlog("%.*s", count, buf);
+		return count;
+	}
+
+	fd -= 5;
+
+// __xlog("write: fd=%d buf=%p count=%u\n", fd, buf, count);
+	ssize_t ret = fs_write(fd, buf, count);
+	if (ret < 0)
+		errno = g_errno;
+// __xlog("write: ret=%d\n", ret);
+	return ret;
+}
+
+off_t lseek(int fd, off_t offset, int whence)
+{
+	if (fd == 0 || fd == 1 || fd == 2)
+		return -1;
+
+// __xlog("lseek: fd=%d offset=%d whence=%d\n", fd, (int)offset, whence);
+
+	fd -= 5;
+
+	int64_t ret = fs_lseek(fd, offset, whence);
+	if (ret < 0)
+		errno = g_errno;
+// __xlog("lseek: ret=%d\n", (int)ret);
 
 	return ret;
 }
 
-int fputc(int character, FILE *stream)
+int close(int fd)
 {
-    return fprintf(stream, "%c", character);
-}
+	if (fd == 0 || fd == 1 || fd == 2)
+		return -1;
 
-int fputs(const char *str, FILE *stream)
-{
-    return fprintf(stream, "%s", str);
+// __xlog("close: fd=%d\n", fd);
+
+	fd -= 5;
+
+	int ret = fs_close(fd);
+	if (ret < 0)
+		errno = g_errno;
+// __xlog("close: ret=%d\n", ret);
+	return ret;
 }
 
 typedef struct {
@@ -239,14 +231,17 @@ char *getcwd(char *buf, size_t size)
 {
 	return NULL;
 }
+
 int chdir(const char *path)
 {
 	return -1;
 }
+
 int rmdir(const char *path)
 {
 	return -1;
 }
+
 int unlink(const char *path)
 {
 	return -1;
@@ -297,6 +292,19 @@ clock_t clock(void)
 	// clock function should return cpu clock ticks, so since os_get_tick_count() returns milliseconds,
 	// we devide by 1000 to get the seconds and multiply by CLOCKS_PER_SEC to get the clock ticks.
     return (clock_t)(os_get_tick_count() * CLOCKS_PER_SEC / 1000);
+}
+
+int gettimeofday(struct timeval *tv, void *tz)
+{
+	if (tv == NULL)
+		return -1;
+
+	uint32_t msec = os_get_tick_count();
+
+	tv->tv_sec = msec / 1000;
+	tv->tv_usec = (msec % 1000) * 1000;
+
+	return 0;
 }
 
 DIR *opendir(const char *path)

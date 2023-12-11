@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <reent.h>
 
 #include "libretro.h"
 #include "file/file_path.h"
@@ -16,9 +17,6 @@
 #define SYSTEM_DIRECTORY	"/mnt/sda1/bios"
 #define SAVE_DIRECTORY		"/mnt/sda1/ROMS/save"
 #define CONFIG_DIRECTORY	"/mnt/sda1/cores/config"
-
-// this is needed when linking with a c++ project that have static objects with custom destructors
-void *__dso_handle = 0;
 
 static config_file_t *s_core_config = NULL;
 static void config_load();
@@ -83,6 +81,7 @@ struct retro_core_t core_exports = {
    .retro_get_memory_size = retro_get_memory_size,
 };
 
+
 static void clear_bss()
 {
 	extern void *__bss_start;
@@ -92,9 +91,12 @@ static void clear_bss()
     void *end = &_end;
 
 	memset(start, 0, end - start);
-	xlog("clear_bss: start=%p end=%p\n", &__bss_start, &_end);
+
+	// xlog("clear_bss: start=%p end=%p\n", &__bss_start, &_end);
 }
 
+// call_ctors currently is not being used since __libc_init_array will handle that instead.
+// but leave it here for now if there would be a need to debug a crash during the static init phase.
 static void call_ctors()
 {
 	typedef void (*func_ptr) (void);
@@ -126,14 +128,21 @@ static void call_dtors()
 // __core_entry__ must be placed at a known location in the binary (at the beginning)
 // so that when the loader actually loads the binary into mem address 0x87000000,
 // then __core_entry__ will be the first function there for the loader to call.
-struct retro_core_t *__core_entry__(void) __attribute__((section(".text.unlikely")));
-// TODO: define a special .text section for __core_entry__ function to better control
-// at which address the linker places it.
+struct retro_core_t *__core_entry__(void) __attribute__((section(".init.core_entry")));
 
 struct retro_core_t *__core_entry__(void)
 {
 	clear_bss();
-	call_ctors();
+
+	extern void __sinit (struct _reent *);
+	extern void __libc_init_array (void);
+
+	_REENT_INIT_PTR(_REENT);
+	__sinit(_REENT);
+	__libc_init_array();
+
+	xlog("libc initialized\n");
+
 	return &core_exports;
 }
 
