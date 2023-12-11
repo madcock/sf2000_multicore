@@ -42,21 +42,28 @@ make CONSOLE=a5200      CORE=cores/a5200 && \
 make CONSOLE=a78        CORE=cores/libretro-prosystem && \
 make CONSOLE=lnxb       CORE=cores/libretro-beetle-lynx && \
 make CONSOLE=wswan      CORE=cores/libretro-beetle-wswan && \
-make clean CONSOLE=c64        CORE=cores/libretro-vice EMUTYPE=x64 && \
-make CONSOLE=c64        CORE=cores/libretro-vice EMUTYPE=x64 && \
-make clean CONSOLE=c64        CORE=cores/libretro-vice EMUTYPE=x64 && \
-make clean CONSOLE=c64sc      CORE=cores/libretro-vice EMUTYPE=x64sc && \
-make CONSOLE=c64sc      CORE=cores/libretro-vice EMUTYPE=x64sc && \
-make clean CONSOLE=c64sc      CORE=cores/libretro-vice EMUTYPE=x64sc && \
-#make clean CONSOLE=c128      CORE=cores/libretro-vice EMUTYPE=x128 && \
-#make clean CONSOLE=cbm2      CORE=cores/libretro-vice EMUTYPE=xcbm2 && \
-#make clean CONSOLE=cbm5x0    CORE=cores/libretro-vice EMUTYPE=xcbm5x0 && \
-#make clean CONSOLE=pet       CORE=cores/libretro-vice EMUTYPE=xpet && \
-#make clean CONSOLE=plus4     CORE=cores/libretro-vice EMUTYPE=xplus4 && \
-#make clean CONSOLE=scpu64    CORE=cores/libretro-vice EMUTYPE=xscpu64 && \
-make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
-make CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
-make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
+make CONSOLE=bk         CORE=cores/bk-emulator MAKEFILE=-fMakefile.libretro && \
+make clean CONSOLE=c64     CORE=cores/libretro-vice EMUTYPE=x64 && \
+make CONSOLE=c64           CORE=cores/libretro-vice EMUTYPE=x64 && \
+make clean CONSOLE=c64     CORE=cores/libretro-vice EMUTYPE=x64 && \
+make clean CONSOLE=c64sc   CORE=cores/libretro-vice EMUTYPE=x64sc && \
+make CONSOLE=c64sc         CORE=cores/libretro-vice EMUTYPE=x64sc && \
+make clean CONSOLE=c64sc   CORE=cores/libretro-vice EMUTYPE=x64sc && \
+#make clean CONSOLE=c128   CORE=cores/libretro-vice EMUTYPE=x128 && \
+#make clean CONSOLE=cbm2   CORE=cores/libretro-vice EMUTYPE=xcbm2 && \
+#make clean CONSOLE=cbm5x0 CORE=cores/libretro-vice EMUTYPE=xcbm5x0 && \
+#make clean CONSOLE=pet    CORE=cores/libretro-vice EMUTYPE=xpet && \
+#make clean CONSOLE=plus4  CORE=cores/libretro-vice EMUTYPE=xplus4 && \
+#make clean CONSOLE=scpu64 CORE=cores/libretro-vice EMUTYPE=xscpu64 && \
+make clean CONSOLE=c64f  CORE=cores/libretro-frodo EMUTYPE=frodo && \
+make CONSOLE=c64f        CORE=cores/libretro-frodo EMUTYPE=frodo && \
+make clean CONSOLE=c64f  CORE=cores/libretro-frodo EMUTYPE=frodo && \
+make clean CONSOLE=c64fc CORE=cores/libretro-frodo EMUTYPE=frodosc && \
+make CONSOLE=c64fc       CORE=cores/libretro-frodo EMUTYPE=frodosc && \
+make clean CONSOLE=c64fc CORE=cores/libretro-frodo EMUTYPE=frodosc && \
+make clean CONSOLE=vic20   CORE=cores/libretro-vice EMUTYPE=xvic && \
+make CONSOLE=vic20         CORE=cores/libretro-vice EMUTYPE=xvic && \
+make clean CONSOLE=vic20   CORE=cores/libretro-vice EMUTYPE=xvic && \
 make CONSOLE=fake08     CORE=cores/fake-08/platform/libretro && \
 make CONSOLE=lowres-nx  CORE=cores/lowres-nx/platform/LibRetro && \
 make CONSOLE=mrboom     CORE=cores/libretro-mrboom && \
@@ -66,12 +73,13 @@ make CONSOLE=cavestory  CORE=cores/libretro-nxengine && \
 make CONSOLE=x48        CORE=cores/libretro-x48 && \
 make CONSOLE=o2em       CORE=cores/libretro-o2em && \
 make CONSOLE=pcesgx     CORE=cores/libretro-beetle-supergrafx && \
+make CONSOLE=pc8800     CORE=cores/libretro-quasi88 && \
 make CONSOLE=pcfx       CORE=cores/libretro-beetle-pcfx && \
+make CONSOLE=mgba       CORE=cores/mgba && \
 make CONSOLE=nest       CORE=cores/nestopia/libretro && \
 make CONSOLE=vb         CORE=cores/libretro-beetle-vb && \
 make CONSOLE=gpgx       CORE=cores/Genesis-Plus-GX MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=xmil       CORE=cores/libretro-xmil/libretro && \
-make CONSOLE=pc8800     CORE=cores/libretro-quasi88 && \
 
 #working but major issues, not to release
 #make -C cores/fbalpha2012/svn-current/trunk platform=sf2000 -fmakefile.libretro generate-files && make CONSOLE=fba CORE=cores/fbalpha2012/svn-current/trunk MAKEFILE=-fmakefile.libretro && \
@@ -80,6 +88,11 @@ make CONSOLE=pc8800     CORE=cores/libretro-quasi88 && \
 #test cores
 make CONSOLE=testadv CORE=cores/libretro-samples/tests/test_advanced && \
 make CONSOLE=testwav CORE=cores/libretro-samples/audio/audio_playback_wav && \
+
+#deprecated working
+#
+#make CONSOLE=tennis     CORE=cores/retro-tennis && \
+# 
 
 
 true

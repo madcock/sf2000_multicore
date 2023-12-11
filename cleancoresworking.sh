@@ -42,15 +42,17 @@ make clean CONSOLE=a5200      CORE=cores/a5200 && \
 make clean CONSOLE=a78        CORE=cores/libretro-prosystem && \
 make clean CONSOLE=lnxb       CORE=cores/libretro-beetle-lynx && \
 make clean CONSOLE=wswan      CORE=cores/libretro-beetle-wswan && \
+make clean CONSOLE=bk         CORE=cores/bk-emulator MAKEFILE=-fMakefile.libretro && \
 make clean CONSOLE=c64        CORE=cores/libretro-vice EMUTYPE=x64 && \
 make clean CONSOLE=c64sc      CORE=cores/libretro-vice EMUTYPE=x64sc && \
-#make clean CONSOLE=c128      CORE=cores/libretro-vice EMUTYPE=x128 && \
 #make clean CONSOLE=c128      CORE=cores/libretro-vice EMUTYPE=x128 && \
 #make clean CONSOLE=cbm2      CORE=cores/libretro-vice EMUTYPE=xcbm2 && \
 #make clean CONSOLE=cbm5x0    CORE=cores/libretro-vice EMUTYPE=xcbm5x0 && \
 #make clean CONSOLE=pet       CORE=cores/libretro-vice EMUTYPE=xpet && \
 #make clean CONSOLE=plus4     CORE=cores/libretro-vice EMUTYPE=xplus4 && \
 #make clean CONSOLE=scpu64    CORE=cores/libretro-vice EMUTYPE=xscpu64 && \
+make clean CONSOLE=c64f       CORE=cores/libretro-frodo EMUTYPE=frodo && \
+make clean CONSOLE=c64fc      CORE=cores/libretro-frodo EMUTYPE=frodosc && \
 make clean CONSOLE=vic20      CORE=cores/libretro-vice EMUTYPE=xvic && \
 make clean CONSOLE=fake08     CORE=cores/fake-08/platform/libretro && \
 make clean CONSOLE=lowres-nx  CORE=cores/lowres-nx/platform/LibRetro && \
@@ -61,12 +63,13 @@ make clean CONSOLE=cavestory  CORE=cores/libretro-nxengine && \
 make clean CONSOLE=x48        CORE=cores/libretro-x48 && \
 make clean CONSOLE=o2em       CORE=cores/libretro-o2em && \
 make clean CONSOLE=pcesgx     CORE=cores/libretro-beetle-supergrafx && \
+make clean CONSOLE=pc8800     CORE=cores/libretro-quasi88 && \
 make clean CONSOLE=pcfx       CORE=cores/libretro-beetle-pcfx && \
+make clean CONSOLE=mgba       CORE=cores/mgba && \
 make clean CONSOLE=nest       CORE=cores/nestopia/libretro && \
 make clean CONSOLE=vb         CORE=cores/libretro-beetle-vb && \
 make clean CONSOLE=gpgx       CORE=cores/Genesis-Plus-GX MAKEFILE=-fMakefile.libretro && \
 make clean CONSOLE=xmil       CORE=cores/libretro-xmil/libretro && \
-make clean CONSOLE=pc8800     CORE=cores/libretro-quasi88 && \
 
 #working but major issues, not to release
 #make -C cores/fbalpha2012/svn-current/trunk platform=sf2000 -fmakefile.libretro generate-files-clean && make clean CONSOLE=fba CORE=cores/fbalpha2012/svn-current/trunk MAKEFILE=-fmakefile.libretro && \
@@ -75,6 +78,11 @@ make clean CONSOLE=pc8800     CORE=cores/libretro-quasi88 && \
 #test cores
 make clean CONSOLE=testadv CORE=cores/libretro-samples/tests/test_advanced && \
 make clean CONSOLE=testwav CORE=cores/libretro-samples/audio/audio_playback_wav && \
+
+#deprecated working
+#
+#make clean CONSOLE=tennis  CORE=cores/retro-tennis && \
+# 
 
 
 true
