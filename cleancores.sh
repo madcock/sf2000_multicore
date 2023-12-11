@@ -120,7 +120,9 @@ make clean CONSOLE=psx        CORE=cores/libretro-beetle-psx && \
 #experimental
 #
 make clean CONSOLE=snes10     CORE=../cores_not_in_git/snes9x2010 && \
-make CONSOLE=gbav     CORE=../cores_not_in_git/vba-next && \
-
+make clean CONSOLE=gbav       CORE=../cores_not_in_git/vba-next && \
+make clean CONSOLE=quake2     CORE=cores/vitaquake2 && \
+make clean CONSOLE=a800l      CORE=cores/libretro-atari800lib && \
+make clean CONSOLE=msx        CORE=cores/libretro-blueMSX && \
 
 true
