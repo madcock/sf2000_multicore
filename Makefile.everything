@@ -128,9 +128,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/desmume2015/desmume
 #CONSOLE=nds
 #
-#CORE=cores/oberon-risc-emu
-#CONSOLE=risc
-#
 #CORE=cores/Mu/libretroBuildSystem
 #CONSOLE=mu
 #
@@ -264,6 +261,9 @@ LOADER_OBJS=init.o main.o debug.o
 #
 #CORE=cores/vitaquake2
 #CONSOLE=quake2
+#
+#CORE=cores/oberon-risc-emu
+#CONSOLE=risc
 #
 
 ## builds and sorta works
@@ -570,6 +570,16 @@ install:
 	@$(call echo_d,"bisrv.asd")
 	@$(call echo_d,"$(CORE)")
 
+ifneq ($(ALPHARELEASE),)
+updatelogo:
+	@$(call echo_i,"update boot logo")
+	-$(call update_bisrv_logo,sdcard/bios/bisrv.asd)
+	@$(call echo_d,"$(1) logo updated")
+else
+updatelogo:
+	@$(call echo_e,"ALPHARELEASE not defined!")
+endif
+
 # Clean intermediate files and the final executable
 clean:
 	-rm -f $(CORE_OBJS)
@@ -593,16 +603,12 @@ define echo_d
     echo -e "\033[1;37m$(1)\033[0m"
 endef
 
-ifneq ($(ALPHARELEASE),)
-define copy_if_updated
-	diff -q $(1) $(2) || (rm -rf $$(dirname $(2)) && mkdir -p $$(dirname $(2)) && \
-	cp $(1) $(2) && echo "$(1) updated" && \
-	printf "\xB8\x0B" | dd of=bisrv.asd bs=1 seek=$$((0x3463d0)) conv=notrunc && \
-	convert /home/adcockm/downloads/multicore_alpha_release/Multicore_Boot_Logo_-_Redprint_-_RGB565.png -gravity North -font helvetica -fill white -pointsize 14 -annotate +0+36 'version $(ALPHARELEASE)' /home/adcockm/downloads/multicore_alpha_release/versionlogo.png && \
-	python3 /home/adcockm/downloads/multicore_alpha_release/bootlogo.py)
-endef
-else
 define copy_if_updated
 	diff -q $(1) $(2) || (rm -rf $$(dirname $(2)) && mkdir -p $$(dirname $(2)) && cp $(1) $(2) && echo "$(1) updated")
 endef
-endif
+
+define update_bisrv_logo
+	printf "\xB8\x0B" | dd of=$(1) bs=1 seek=$$((0x3463d0)) conv=notrunc && \
+	convert /home/adcockm/downloads/multicore_alpha_release/Multicore_Boot_Logo_-_Redprint_-_RGB565.png -gravity North -font helvetica -fill white -pointsize 14 -annotate +0+36 'version $(ALPHARELEASE)' /home/adcockm/downloads/multicore_alpha_release/versionlogo.png && \
+	python3 /home/adcockm/downloads/multicore_alpha_release/bootlogo.py
+endef
