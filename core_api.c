@@ -45,12 +45,18 @@ static uint16_t* s_rgb565_convert_buffer = NULL;
 static void enable_xrgb8888_support();
 static void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned height, size_t stride);
 
+static void wrap_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
 static void xrgb8888_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
 static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id);
 
 static void frameskip_cb(BOOL flag);
 
 static void dummy_retro_run(void);
+
+static int *fw_fps_counter_enable = 0x80c0b5e0;
+static int *fw_fps_counter = 0x80c0b5dc;
+static char *fw_fps_counter_format = 0x8099bdf0;	// "%2d/%2d"
+static void fps_counter_enable(bool enable);
 
 
 struct retro_core_t core_exports = {
@@ -169,6 +175,8 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 	// intercept audio output to mix stereo into mono
 	retro_set_audio_sample(mono_mix_audio_sample_cb);
 	retro_set_audio_sample_batch(mono_mix_audio_batch_cb);
+
+	fps_counter_enable(true);
 
 	// if core wants to load the content by itself directly from files, then let it
 	if (sysinfo.need_fullpath)
@@ -477,6 +485,7 @@ void wrap_retro_init(void)
 
 void wrap_retro_deinit(void)
 {
+	fps_counter_enable(false);
 	video_cleanup();
 	retro_deinit();
 	config_free();
@@ -568,4 +577,47 @@ static void dummy_retro_run(void)
 {
 	dly_tsk(1);
 	//retro_environment_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+}
+
+static void fps_counter_enable(bool enable)
+{
+	if (enable)
+	{
+		*fw_fps_counter_enable = 1;
+		retro_set_video_refresh(wrap_video_refresh_cb);
+	}
+	else
+	{
+		*fw_fps_counter_enable = 0;
+		retro_set_video_refresh(retro_video_refresh_cb);
+	}
+}
+
+void wrap_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch)
+{
+	static uint32_t prev_msec = 0;
+	static int count_all = 0;
+	static int count_not_skipped = 0;
+
+	uint32_t curr_msec = os_get_tick_count();
+
+	++count_all;
+	if (data)
+		++count_not_skipped;
+
+	if (curr_msec - prev_msec > 1000)
+	{
+		// im not sure that using floats math will calc the fps much more accurately
+		// float sec = ((curr_msec - prev_msec) / 1000.0f);
+		// *fw_fps_counter1 = count_not_skipped / sec;
+		// fps_counter2 = count_all / sec;
+
+		sprintf(fw_fps_counter_format, "%2d/%2d", count_not_skipped, count_all);
+
+		prev_msec = curr_msec;
+		count_all = 0;
+		count_not_skipped = 0;
+	}
+
+	retro_video_refresh_cb(data, width, height, pitch);
 }
