@@ -49,6 +49,7 @@ static void wrap_video_refresh_cb(const void *data, unsigned width, unsigned hei
 static void xrgb8888_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
 static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id);
 
+static bool g_show_fps = false;
 static void frameskip_cb(BOOL flag);
 
 static void dummy_retro_run(void);
@@ -176,8 +177,6 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 	retro_set_audio_sample(mono_mix_audio_sample_cb);
 	retro_set_audio_sample_batch(mono_mix_audio_batch_cb);
 
-	fps_counter_enable(true);
-
 	// if core wants to load the content by itself directly from files, then let it
 	if (sysinfo.need_fullpath)
 	{
@@ -225,6 +224,11 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 		xlog("retro_load_game ok\n");
 		
 		video_options(s_core_config);
+
+		// show FPS?
+		config_get_bool(s_core_config, "sf2000_show_fps", &g_show_fps);
+
+		fps_counter_enable(g_show_fps);
 
 		// make sure the first two controllers are configured as gamepads
 		retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
@@ -485,7 +489,8 @@ void wrap_retro_init(void)
 
 void wrap_retro_deinit(void)
 {
-	fps_counter_enable(false);
+	if (g_show_fps)
+		fps_counter_enable(false);
 	video_cleanup();
 	retro_deinit();
 	config_free();
