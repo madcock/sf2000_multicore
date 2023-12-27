@@ -47,6 +47,7 @@ static void convert_xrgb8888_to_rgb565(void* buffer, unsigned width, unsigned he
 
 static void wrap_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
 static void xrgb8888_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch);
+static bool g_xrgb888 = false;
 static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id);
 
 static bool g_show_fps = false;
@@ -562,7 +563,8 @@ static void enable_xrgb8888_support()
 	xlog("created rgb565_convert_buffer=%p width=%u height=%u\n",
 		s_rgb565_convert_buffer, av_info.geometry.max_width, av_info.geometry.max_height);
 
-	retro_set_video_refresh(xrgb8888_video_refresh_cb);
+	//retro_set_video_refresh(xrgb8888_video_refresh_cb);
+	g_xrgb888 = true;
 }
 
 static int16_t wrap_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id)
@@ -594,7 +596,10 @@ static void fps_counter_enable(bool enable)
 	else
 	{
 		*fw_fps_counter_enable = 0;
-		retro_set_video_refresh(retro_video_refresh_cb);
+		if (g_xrgb888)
+			retro_set_video_refresh(xrgb8888_video_refresh_cb);
+		else
+			retro_set_video_refresh(retro_video_refresh_cb);
 	}
 }
 
@@ -624,5 +629,12 @@ void wrap_video_refresh_cb(const void *data, unsigned width, unsigned height, si
 		count_not_skipped = 0;
 	}
 
-	retro_video_refresh_cb(data, width, height, pitch);
+	if (g_xrgb888)
+	{
+		convert_xrgb8888_to_rgb565((void*)data, width, height, pitch);
+		retro_video_refresh_cb(s_rgb565_convert_buffer, width, height, width * 2);		// each pixel is now 16bit, so pass the pitch as width*2
+	}
+	else {
+		retro_video_refresh_cb(data, width, height, pitch);
+	}
 }
