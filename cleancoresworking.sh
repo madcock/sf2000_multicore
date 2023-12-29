@@ -6,7 +6,7 @@ make clean CONSOLE=m2k        CORE=cores/libretro-mame2000 && \
 make clean CONSOLE=a26        CORE=cores/libretro-stella2014 && \
 make clean CONSOLE=a5200      CORE=cores/a5200 && \
 make clean CONSOLE=a78        CORE=cores/libretro-prosystem && \
-make clean CONSOLE=a800l      CORE=cores/libretro-atari800lib && \
+make clean CONSOLE=a800       CORE=cores/libretro-atari800lib && \
 make clean CONSOLE=lnx        CORE=cores/libretro-handy && \
 make clean CONSOLE=wswan      CORE=cores/libretro-beetle-wswan && \
 make clean CONSOLE=chip8      CORE=cores/jaxe MAKEFILE=-fMakefile.libretro && \

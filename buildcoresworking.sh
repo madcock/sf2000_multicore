@@ -6,7 +6,7 @@ make CONSOLE=m2k        CORE=cores/libretro-mame2000 && \
 make CONSOLE=a26        CORE=cores/libretro-stella2014 && \
 make CONSOLE=a5200      CORE=cores/a5200 && \
 make CONSOLE=a78        CORE=cores/libretro-prosystem && \
-make CONSOLE=a800l      CORE=cores/libretro-atari800lib && \
+make CONSOLE=a800       CORE=cores/libretro-atari800lib && \
 make CONSOLE=lnx        CORE=cores/libretro-handy && \
 make CONSOLE=wswan      CORE=cores/libretro-beetle-wswan && \
 make CONSOLE=chip8      CORE=cores/jaxe MAKEFILE=-fMakefile.libretro && \
