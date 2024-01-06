@@ -108,23 +108,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/FFmpeg/libretro
 #CONSOLE=ffmpeg
 #
-
-######
-#todo: add to git, update to point to new location, and build
-######
-#
-#CORE=cores/pzretro
-#CONSOLE=pzscr
-#
-#CORE=cores/libretro-zc210
-#CONSOLE=zeldab
-#
-#CORE=cores/libretro-zc250x
-#CONSOLE=zelda
-#
-#CORE=cores/neocd_libretro
-#CONSOLE=neocd
-#
 #CORE=cores/desmume2015/desmume
 #CONSOLE=nds
 #
@@ -137,14 +120,26 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-gfxprim
 #CONSOLE=gfxprim
 #
-#CORE=cores/pntr
-#CONSOLE=pntr
-#
 #CORE=cores/dosbox-core/libretro
 #CONSOLE=dosc
 #
+#CORE=cores/pntr
+#CONSOLE=pntr
+#
+#CORE=cores/pzretro
+#CONSOLE=pzscr
+#
+#CORE=cores/libretro_neocd
+#CONSOLE=neocd
+#
 #CORE=cores/virtualxt
 #CONSOLE=xt
+#
+#CORE=cores/libretro-zc210
+#CONSOLE=zeldab
+#
+#CORE=cores/libretro-zc250x
+#CONSOLE=zelda
 #
 
 ## build but doesn't work

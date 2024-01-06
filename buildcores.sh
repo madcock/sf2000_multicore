@@ -135,8 +135,7 @@ make CONSOLE=psx        CORE=cores/libretro-beetle-psx && \
 #make clean CONSOLE=pet    CORE=cores/libretro-vice EMUTYPE=xpet && \
 #make clean CONSOLE=plus4  CORE=cores/libretro-vice EMUTYPE=xplus4 && \
 #make clean CONSOLE=scpu64 CORE=cores/libretro-vice EMUTYPE=xscpu64 && \
-#make CONSOLE=snes10       CORE=../cores_not_in_git/snes9x2010 && \
 #make CONSOLE=a800         CORE=cores/libretro-atari800 && \
-#make CONSOLE=hatarib      CORE=../cores_not_in_git/hatariB
+#make CONSOLE=snes10       CORE=../cores_not_in_git/snes9x2010 && \
 
 true
