@@ -60,14 +60,14 @@ void load_and_run_core(const char *file_path, int load_state)
 	const char *filename;
 	if (!parse_filename(file_path, &corename, &filename)) {
 		xlog("filename is not a multicore stub...calling original run_gba\n");
+		dbg_show_noblock(0x00, "\n STOCK\n\n %s\n\n ", file_path); // black
 		run_gba(file_path, load_state);
 		return;
 	}
 
-	// this will show a blueish flickering at the top of the screen when loading a rom.
+	// this will show a loading screen when loading a rom.
 	// it will act as an indicator that a custom core and not a stock emulator is running.
-	dbg_cls();
-	dbg_show_noblock();
+	dbg_show_noblock(0x7800,"\n MULTICORE\n\n %s\n\n %s \n\n ", corename, filename); // red
 
 	void *core_load_addr = (void*)0x87000000;
 
@@ -114,6 +114,7 @@ void load_and_run_core(const char *file_path, int load_state)
 	struct retro_core_t *core_api = core_entry();
 
 	/* TODO */
+
 	gfn_state_load = state_stub;
 	gfn_state_save = state_stub;
 

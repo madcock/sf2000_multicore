@@ -102,7 +102,7 @@ void lcd_send_data(unsigned short data)
 	lcd_send(data);
 }
 
-static void lcd_flush(void)
+static void lcd_flush(unsigned short background_color)
 {
 	lcd_pinmux_gpio();
 
@@ -133,38 +133,27 @@ static void lcd_flush(void)
 			if (i < FONT_WIDTH && (lcd_font[FONT_OFFSET(symbol_index) + offset] & rem) > 0)
 				lcd_send_data(0xffff); // white
 			else
-				lcd_send_data(0x1f); // blue
+				lcd_send_data(background_color);
 		}
 	}
 }
 
-void dbg_cls()
+void dbg_show_noblock(unsigned short background_color, const char *fmt, ...)
 {
+	os_disable_interrupt();
 	lcd_init();
-}
-
-void dbg_print(const char *fmt, ...)
-{
 	va_list ap;
 	va_start(ap, fmt);
 	lcd_vprintf(fmt, ap);
 	va_end(ap);
-}
 
-void dbg_show()
-{
-	os_disable_interrupt();
-	lcd_flush();
-	do {
-	} while (1);
-}
-
-void dbg_show_noblock()
-{
-	for (int i=0; i < 5; ++i) {
-		lcd_flush();
-		dly_tsk(2);
+	for (int i=0; i<42; i++)
+	{
+		lcd_printf(".");
+		lcd_flush(background_color);
 	}
+
+	os_enable_interrupt();
 }
 
 void lcd_bsod(const char *fmt, ...)
@@ -178,7 +167,7 @@ void lcd_bsod(const char *fmt, ...)
 	lcd_vprintf(fmt, ap);
 	va_end(ap);
 
-	lcd_flush();
+	lcd_flush(0x1f); // blue
 	do {
 	} while (1);
 }
