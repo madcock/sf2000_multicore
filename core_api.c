@@ -444,9 +444,6 @@ int state_save(const char *frontend_state_filepath)
 
 void build_game_config_filepath(char *filepath, size_t size, const char *game_filepath, char library_name)
 {
-	//struct retro_system_info sysinfo;
-	//retro_get_system_info(&sysinfo);
-
 	char basename[MAXPATH];
 	fill_pathname_base(basename, game_filepath, sizeof(basename));
 	path_remove_extension(basename);
