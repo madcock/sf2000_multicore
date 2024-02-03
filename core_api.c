@@ -165,6 +165,12 @@ bool wrap_retro_load_game(const struct retro_game_info* info)
 	// no need to strcpy, because info->path string should be valid during the execution of the game
 	s_game_filepath = info->path;
 
+	char config_game_filepath[MAXPATH];
+	build_game_config_filepath(config_game_filepath, sizeof(config_game_filepath), s_game_filepath,sysinfo.library_name);
+
+	// load per game options
+	config_add_file(config_game_filepath);
+
 	// setup load/save state handlers
 	gfn_state_load = state_load;
 	gfn_state_save = state_save;
@@ -434,6 +440,15 @@ int state_save(const char *frontend_state_filepath)
 	fs_sync(state_filepath);
 
 	return 1;
+}
+
+void build_game_config_filepath(char *filepath, size_t size, const char *game_filepath, char library_name)
+{
+	char basename[MAXPATH];
+	fill_pathname_base(basename, game_filepath, sizeof(basename));
+	path_remove_extension(basename);
+
+	snprintf(filepath, size, CONFIG_DIRECTORY "/%s/%s.opt",library_name, basename);
 }
 
 void build_core_config_filepath(char *filepath, size_t size)
