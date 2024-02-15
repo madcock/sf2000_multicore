@@ -29,6 +29,7 @@ make CONSOLE=gme        CORE=cores/libretro-gme && \
 make CONSOLE=pce        CORE=cores/libretro-beetle-pce-fast && \
 make CONSOLE=ngpc       CORE=cores/RACE && \
 make CONSOLE=gba        CORE=cores/gpsp && \
+make CONSOLE=gbb        CORE=cores/libretro-gambatte && \
 make CONSOLE=gbgb       CORE=cores/Gearboy/platforms/libretro && \
 make CONSOLE=gb         CORE=cores/libretro-tgbdual && \
 make CONSOLE=nes        CORE=cores/libretro-fceumm && \
@@ -38,6 +39,7 @@ make CONSOLE=snes02     CORE=cores/snes9x2002 && \
 make CONSOLE=snes       CORE=cores/snes9x2005 && \
 make CONSOLE=sega       CORE=cores/picodrive MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=gg         CORE=cores/Gearsystem/platforms/libretro && \
+make CONSOLE=zx81       CORE=cores/libretro-81 && \
 make CONSOLE=spec       CORE=cores/libretro-fuse && \
 make CONSOLE=thom       CORE=cores/theodore && \
 make CONSOLE=vec        CORE=cores/libretro-vecx && \

@@ -29,6 +29,7 @@ make clean CONSOLE=gme        CORE=cores/libretro-gme && \
 make clean CONSOLE=pce        CORE=cores/libretro-beetle-pce-fast && \
 make clean CONSOLE=ngpc       CORE=cores/RACE && \
 make clean CONSOLE=gba        CORE=cores/gpsp && \
+make clean CONSOLE=gbb        CORE=cores/libretro-gambatte && \
 make clean CONSOLE=gbgb       CORE=cores/Gearboy/platforms/libretro && \
 make clean CONSOLE=gb         CORE=cores/libretro-tgbdual && \
 make clean CONSOLE=nes        CORE=cores/libretro-fceumm && \
@@ -38,6 +39,7 @@ make clean CONSOLE=snes02     CORE=cores/snes9x2002 && \
 make clean CONSOLE=snes       CORE=cores/snes9x2005 && \
 make clean CONSOLE=sega       CORE=cores/picodrive MAKEFILE=-fMakefile.libretro && \
 make clean CONSOLE=gg         CORE=cores/Gearsystem/platforms/libretro && \
+make clean CONSOLE=zx81       CORE=cores/libretro-81 && \
 make clean CONSOLE=spec       CORE=cores/libretro-fuse && \
 make clean CONSOLE=thom       CORE=cores/theodore && \
 make clean CONSOLE=vec        CORE=cores/libretro-vecx && \
@@ -94,7 +96,6 @@ make clean CONSOLE=glxy       CORE=cores/libretro-galaxy && \
 make clean CONSOLE=mac        CORE=cores/libretro-minivmac && \
 make clean CONSOLE=fmsx       CORE=cores/libretro-fmsx && \
 make clean CONSOLE=gbam       CORE=cores/libretro-vbam/src/libretro && \
-make clean CONSOLE=gbb        CORE=cores/libretro-gambatte && \
 make clean CONSOLE=gbs        CORE=cores/SameBoy/libretro && \
 make clean CONSOLE=x68k       CORE=cores/libretro-px68k && \
 make clean CONSOLE=uzem       CORE=cores/libretro-uzem && \
@@ -106,7 +107,6 @@ make clean CONSOLE=zork       CORE=cores/mojozork MAKEFILE=-fMakefile.libretro &
 make clean CONSOLE=img        CORE=cores/libretro-imageviewer-legacy MAKEFILE=-fMakefile.libretro && \
 make clean CONSOLE=snesc      CORE=cores/chimerasnes && \
 make clean CONSOLE=snesn      CORE=cores/snes9x-next && \
-make clean CONSOLE=zx81       CORE=cores/libretro-81 && \
 make clean CONSOLE=numero     CORE=cores/numero && \
 make clean CONSOLE=3do        CORE=cores/libretro-opera && \
 make clean CONSOLE=a800       CORE=cores/libretro-atari800 && \

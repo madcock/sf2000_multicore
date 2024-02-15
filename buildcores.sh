@@ -29,6 +29,7 @@ make CONSOLE=gme        CORE=cores/libretro-gme && \
 make CONSOLE=pce        CORE=cores/libretro-beetle-pce-fast && \
 make CONSOLE=ngpc       CORE=cores/RACE && \
 make CONSOLE=gba        CORE=cores/gpsp && \
+make CONSOLE=gbb        CORE=cores/libretro-gambatte && \
 make CONSOLE=gbgb       CORE=cores/Gearboy/platforms/libretro && \
 make CONSOLE=gb         CORE=cores/libretro-tgbdual && \
 make CONSOLE=nes        CORE=cores/libretro-fceumm && \
@@ -38,6 +39,7 @@ make CONSOLE=snes02     CORE=cores/snes9x2002 && \
 make CONSOLE=snes       CORE=cores/snes9x2005 && \
 make CONSOLE=sega       CORE=cores/picodrive MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=gg         CORE=cores/Gearsystem/platforms/libretro && \
+make CONSOLE=zx81       CORE=cores/libretro-81 && \
 make CONSOLE=spec       CORE=cores/libretro-fuse && \
 make CONSOLE=thom       CORE=cores/theodore && \
 make CONSOLE=vec        CORE=cores/libretro-vecx && \
@@ -104,7 +106,6 @@ make CONSOLE=glxy       CORE=cores/libretro-galaxy && \
 make CONSOLE=mac        CORE=cores/libretro-minivmac && \
 make CONSOLE=fmsx       CORE=cores/libretro-fmsx && \
 make CONSOLE=gbam       CORE=cores/libretro-vbam/src/libretro && \
-make CONSOLE=gbb        CORE=cores/libretro-gambatte && \
 make CONSOLE=gbs        CORE=cores/SameBoy/libretro && \
 make CONSOLE=x68k       CORE=cores/libretro-px68k && \
 make CONSOLE=uzem       CORE=cores/libretro-uzem && \
@@ -116,7 +117,6 @@ make CONSOLE=zork       CORE=cores/mojozork MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=img        CORE=cores/libretro-imageviewer-legacy MAKEFILE=-fMakefile.libretro && \
 make CONSOLE=snesc      CORE=cores/chimerasnes && \
 make CONSOLE=snesn      CORE=cores/snes9x-next && \
-make CONSOLE=zx81       CORE=cores/libretro-81 && \
 make CONSOLE=numero     CORE=cores/numero && \
 make CONSOLE=3do        CORE=cores/libretro-opera && \
 make CONSOLE=dossvn     CORE=cores/dosbox-svn/libretro && \
@@ -137,5 +137,8 @@ make CONSOLE=psx        CORE=cores/libretro-beetle-psx && \
 #make clean CONSOLE=scpu64 CORE=cores/libretro-vice EMUTYPE=xscpu64 && \
 #make CONSOLE=a800         CORE=cores/libretro-atari800 && \
 #make CONSOLE=snes10       CORE=../cores_not_in_git/snes9x2010 && \
+#make CONSOLE=pressf       CORE=../cores_not_in_git/Press_F && \
+#make CONSOLE=dosboxl      CORE=../cores_not_in_git/dosbox-libretro && \
+#make CONSOLE=obake        CORE=../cores_not_in_git/libretro-experiment && \
 
 true

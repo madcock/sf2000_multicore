@@ -215,9 +215,6 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-px68k
 #CONSOLE=x68k
 #
-#CORE=cores/libretro-81
-#CONSOLE=zx81
-#
 #CORE=cores/libretro-opera
 #CONSOLE=3do
 #
@@ -457,6 +454,10 @@ LOADER_OBJS=init.o main.o debug.o
 #CORE=cores/libretro-x48
 #CONSOLE=x48
 #
+#CORE=cores/libretro-81
+#CONSOLE=zx81
+#
+
 ## test samples
 ###############
 #CORE=cores/libretro-samples/tests/test_advanced
