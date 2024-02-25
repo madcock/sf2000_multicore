@@ -215,10 +215,10 @@ static void recreate_region(enum tvsystem tvsys, uint16_t width, uint16_t height
 	dly_tsk(20); // wait at least one full frame
 
 	osddrv_3x_create_region(m_osd_dev, 0, &r, &para);
-	osddrv_scale(m_osd_dev, OSD_SCALE_WITH_PARAM, (uintptr_t)&scale_param);
 	osddrv_scale(m_osd_dev, OSD_SET_SCALE_MODE,
 		g_filtered ? OSD_SCALE_FILTER : OSD_SCALE_DUPLICATE
 	);
+	osddrv_scale(m_osd_dev, OSD_SCALE_WITH_PARAM, (uintptr_t)&scale_param);
 }
 
 static void region_write(const void *buf,
