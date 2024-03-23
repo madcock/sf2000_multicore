@@ -25,6 +25,11 @@ static char *corefile = NULL;
 static char *romfile = NULL;
 static char *tmpbuffer = NULL;
 
+#define MIPS_J(pfunc)    (2 << 26) | (uint32_t)pfunc >> 2 & ((1 << 26) - 1)
+#define MIPS_JAL(pfunc)  (3 << 26) | (uint32_t)pfunc >> 2 & ((1 << 26) - 1)
+
+#define PATCH_J(target, hook)    *(uint32_t*)(target) = MIPS_J(hook)
+#define PATCH_JAL(target, hook)  *(uint32_t*)(target) = MIPS_JAL(hook)
 
 bool parse_filename(const char *file_path, const char**corename, const char **filename)
 {
@@ -171,6 +176,16 @@ static void clear_bss()
 	memset(start, 0, end - start);
 }
 
+static void restore_stock_gp()
+{
+	// set $gp to the original stock's value like is done at 0x80001274 where $gp is
+	// initially set by the stock startup code
+	asm(
+        "lui	$gp, 0x80c1				\n"
+        "addiu	$gp, $gp, 0x14f4		\n"
+    );
+}
+
 static void init_once()
 {
 	static bool first_call = true;
@@ -189,6 +204,15 @@ static void init_once()
 	corefile = malloc(MAXPATH);
 	romfile = malloc(MAXPATH);
 	tmpbuffer = malloc(MAXPATH);
+
+	// Before calling "irq_handler", make sure the $gp register points to the original address that
+	// was initially set by the stock startup code and that all stock code expect it to be.
+	//
+	// This solves the freeze that was caused when using gpSP dynarec.
+	// The dynamically generated code modifies the $gp register for the duration of its execution,
+	// but if suddenly an interrupt occurs and it needs to access some global vars, then the system will crash
+	// or freeze because $gp doesn't have right value that the irq/interrupt handlers expect it to be.
+	PATCH_JAL(0x80049744, restore_stock_gp);
 }
 
 static void full_cache_flush()
