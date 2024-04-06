@@ -29,7 +29,7 @@ Multicore releases can be found here: https://github.com/madcock/sf2000_multicor
 - from the top level of this repo, install the compiler tools
     - `./install-toolchain.sh`
 - copy the 08/03/2023 (official release 1.6) file
-    - `cp <YOUR_1.6_BISRV.ASD> bisrv.asd`
+    - `cp <YOUR_1.6_BISRV.ASD> bisrv_08_03.asd`
  
 ## Building
 If setup properly, there are a few ways to build.
