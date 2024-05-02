@@ -28,7 +28,7 @@ make CONSOLE=msx        CORE=cores/libretro-blueMSX && \
 make CONSOLE=gme        CORE=cores/libretro-gme && \
 make CONSOLE=pce        CORE=cores/libretro-beetle-pce-fast && \
 make CONSOLE=ngpc       CORE=cores/RACE && \
-# make CONSOLE=gba        CORE=cores/gpsp && \
+make CONSOLE=gba        CORE=cores/gpsp && \
 make CONSOLE=gbb        CORE=cores/libretro-gambatte && \
 make CONSOLE=gbgb       CORE=cores/Gearboy/platforms/libretro && \
 make CONSOLE=gb         CORE=cores/libretro-tgbdual && \
