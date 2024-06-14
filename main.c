@@ -58,13 +58,13 @@ void load_and_run_core(const char *file_path, int load_state)
 {
 	init_once();
 
-	xlog("loader: run file=%s\n", file_path);
+	xlog("l: run file=%s\n", file_path);
 
 	// the expected template for file_path is - [corename];[rom filename].gba
 	const char *corename;
 	const char *filename;
 	if (!parse_filename(file_path, &corename, &filename)) {
-		xlog("filename is not a multicore stub...calling original run_gba\n");
+		xlog("file not MC stub: calling run_gba\n");
 		dbg_show_noblock(0x00, "\n STOCK\n\n %s\n\n ", file_path); // black
 		run_gba(file_path, load_state);
 		return;
@@ -106,11 +106,11 @@ void load_and_run_core(const char *file_path, int load_state)
 	fw_fread(core_load_addr, 1, core_size, pf);
 	fclose(pf);
 
-	xlog("loader: core loaded\n");
+	xlog("l: core loaded\n");
 
 	full_cache_flush();
 
-	xlog("loader: cache flushed\n");
+	xlog("l: cache flushed\n");
 
 	// address of the core entry function resides at the begining of the loaded core
 	core_entry_t core_entry = core_load_addr;
@@ -129,7 +129,7 @@ void load_and_run_core(const char *file_path, int load_state)
 	core_api->retro_set_input_state(retro_input_state_cb);
 	core_api->retro_set_environment(retro_environment_cb);
 
-	xlog("loader: retro_init\n");
+	xlog("l: retro_init\n");
 	core_api->retro_init();
 
 	g_retro_game_info.path = romfile;
@@ -142,10 +142,10 @@ void load_and_run_core(const char *file_path, int load_state)
 	gfn_retro_unload_game	= core_api->retro_unload_game;
 	gfn_retro_run			= core_api->retro_run;
 
-	xlog("loader: run_emulator(%d)\n", load_state);
+	xlog("l: run_emulator(%d)\n", load_state);
 	run_emulator(load_state);
 
-	xlog("loader: retro_deinit\n");
+	xlog("l: retro_deinit\n");
 	core_api->retro_deinit();
 }
 
