@@ -28,7 +28,7 @@ make clean CONSOLE=msx        CORE=cores/libretro-blueMSX && \
 make clean CONSOLE=gme        CORE=cores/libretro-gme && \
 make clean CONSOLE=pce        CORE=cores/libretro-beetle-pce-fast && \
 make clean CONSOLE=ngpc       CORE=cores/RACE && \
-make clean CONSOLE=dblcherrygb  CORE=cores/libretro-doublecherrygb && \
+make clean CONSOLE=dblcherrygb  CORE=cores/libretro-doublecherryGB && \
 make clean CONSOLE=gba        CORE=cores/gpsp && \
 make clean CONSOLE=gbb        CORE=cores/libretro-gambatte && \
 make clean CONSOLE=gbgb       CORE=cores/Gearboy/platforms/libretro && \
