@@ -5,6 +5,32 @@ const path = require('path');
 const SingleLine = Symbol();
 const Doubleline = Symbol();
 
+let legacyMode = false;
+
+function terminalText(text){
+    let bg = legacyMode ? '\u001b[41m' : '\u001b[44m';
+    process.stdout.write(bg+'\u001b[37;1m' + text + '\u001b[0m');
+}
+function logBorders(text){
+    let bg = legacyMode ? '\u001b[41m' : '\u001b[44m';
+    let fg = legacyMode ? '\u001b[34;1m' : '\u001b[31;1m';
+    console.log(bg+fg+'\u001b[1m' + text + '\u001b[0m');
+}
+function terminalBorders(text){
+    let bg = legacyMode ? '\u001b[41m' : '\u001b[44m';
+    let fg = legacyMode ? '\u001b[34;1m' : '\u001b[31;1m';
+    process.stdout.write(bg+fg+'\u001b[1m' + text + '\u001b[0m');
+}
+
+function hasOnlyNumbers(text){
+    for(let j = 0; j < text.length; j++){
+        if(text[j] < '0' || text[j] > '9'){
+            return false;
+        }
+    }
+    return true;
+}
+
 const reader = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -200,14 +226,16 @@ function drawBox(processed){
     let outterSpacesCount = Math.floor((terminalWidth - boxWidth) / 2);
     let outterSpaces = ' '.repeat(outterSpacesCount);
     
-    let line = outterSpaces;
+    process.stdout.write(outterSpaces);
+    let line = '';
     line += '╔';
     for(let i = 0; i < boxWidth - 2; i++){
         line += '═';
     }
     line += '╗';
-    console.log(line);
-    line = outterSpaces;
+    logBorders(line);
+    process.stdout.write(outterSpaces)
+    line = '';
     for(let i = 0; i < texts.length; i++){
         if(texts[i] == SingleLine){
             line += '╟';
@@ -215,8 +243,9 @@ function drawBox(processed){
                 line += '─';
             }
             line += '╢';
-            console.log(line);
-            line = outterSpaces;
+            logBorders(line);
+            process.stdout.write(outterSpaces);
+            line = '';
             continue;
         }
         if(texts[i] == Doubleline){
@@ -225,13 +254,15 @@ function drawBox(processed){
                 line += '═';
             }
             line += '╣';
-            console.log(line);
-            line = outterSpaces;
+            logBorders(line);
+            process.stdout.write(outterSpaces);
+            line = '';
             continue;
         }
         if(Array.isArray(texts[i])){
             let spacesCount = (boxWidth - texts[i][0].length - 2 ) / 2;
-            line += '║';
+            terminalBorders('║');
+            // line += '║';
             for(let i = 0; i < Math.floor(spacesCount); i++){
                 line += ' ';
             }
@@ -239,27 +270,32 @@ function drawBox(processed){
             for(let i = 0; i < Math.ceil(spacesCount); i++){
                 line += ' ';
             }
-            line += '║';
-            console.log(line);
-            line = outterSpaces;
+            terminalText(line);
+            // line += '║';
+            logBorders('║');
+            process.stdout.write(outterSpaces);
+            line = '';
             continue;
         }
         let spacesCount = (boxWidth - texts[i].length - 2 - 2);
-        line += '║  ';
+        terminalBorders('║');
+        line += '  ';
         line += texts[i];
         for(let j = 0; j < spacesCount; j++){
             line += ' ';
         }
-        line += '║';
-        console.log(line);
-        line = outterSpaces;
+        terminalText(line);
+        logBorders('║');
+        // line += '║';
+        process.stdout.write(outterSpaces);
+        line = '';
     }
     line += '╚';
     for(let i = 0; i < boxWidth - 2; i++){
         line += '═';
     }
     line += '╝';
-    console.log(line);
+    logBorders(line);
     return outterSpacesCount;
 }
 
@@ -269,20 +305,26 @@ function moveCursorBy(dx, dy){
     });
 }
 
-async function anyKey(){
+async function anyKey(blue = true){
     return new Promise((resolve, reject) => {
+        reader.line = ''
         process.stdin.setRawMode(true);
         process.stdin.resume();
         process.stdin.setEncoding('utf8');
         process.stdin.once('data', async (key) => {
             moveCursorBy(-1, 0);
-            process.stdout.write(' ');
+            if(blue == true)
+                terminalText(' ');
+            else
+                process.stdout.write(' ');
+            reader.line = ''
             resolve(key);
         });
     });
 }
 
 async function readChar(lineCount){
+    reader.line = '';
     return new Promise((resolve, reject) => {
         process.stdin.setRawMode(true);
         process.stdin.resume();
@@ -295,6 +337,9 @@ async function readChar(lineCount){
                 process.exit(0);
             }
             let toReturn = key.toString().trim();
+            moveCursorBy(-1, 0);
+            terminalText(key);
+            reader.line = ''
             resolve(toReturn);         
         });
     });
@@ -334,7 +379,11 @@ async function readString(
         ){
             redraw(curPos);
         }else{
-            updateLength(reader.line.length, curPos);
+            let redrawed = updateLength(reader.line.length, curPos);
+            if(!redrawed){
+                moveCursorBy(-1, 0);
+                terminalText(key);
+            }
         }
         lastCurRow = reader.getCursorPos().rows;
     }
@@ -396,7 +445,7 @@ async function boxedQuestion(
         let startIndex = 0;
         for(let i = 0; i < rowCount; i++){
             let endIndex = startIndex + processedBox.largestStringLength;
-            process.stdout.write(toWrite.substring(startIndex, endIndex));
+            terminalText(toWrite.substring(startIndex, endIndex));
             if(endIndex >= toWrite.length) break;
             moveCursorBy(processedBox.largestStringLength * -1, 1);
             startIndex = endIndex;
@@ -434,8 +483,10 @@ async function boxedQuestion(
             }
             if(rowsToMove >= rowCount){
                 db(cursor);
+                return true;
             }
         }
+        return false;
     }
     let db2 = () => {db(getCursorLinearPosition());}
     process.stdout.on('resize', db2);
@@ -530,7 +581,8 @@ function parseCue(cueContent){
         return [];
     }
 }
-async function createStub(){
+
+async function coreSelector(title){
     let coreList = (await fsp.readdir(`./cores`, {withFileTypes: true}))
         .filter(file => file.isDirectory())
         .map(file => file.name)
@@ -540,30 +592,38 @@ async function createStub(){
     for(let i = 0; i < coreList.length; i++){
         coreMenuOptions.push(`${i + 1}. ${coreList[i]}`);
     }
-
     let selectedCoreRaw = await boxedQuestion(
         () => {
             return [
-                ['CREATE OR UPDATE STUBS'],
+                [title],
                 Doubleline,
                 '',
                 'Select the source core:',
                 '',
                 ...gropuOptions(coreMenuOptions, 10),
+                '',
+                '0. Back'
             ]
         },
         'Option: ', [], (option) => {
-            return (parseInt(option) >= 1 && parseInt(option) <= coreList.length) ||
+            return (hasOnlyNumbers(option) && parseInt(option) >= 0 && parseInt(option) <= coreList.length) ||
             coreList.findIndex((core) => core.toLowerCase() == option.toLowerCase()) >= 0;
         }, true
     );
-
+    if(selectedCoreRaw == '0') {
+        return undefined;
+    }
     let selectedCoreOpt = coreList.findIndex((core) => core.toLowerCase() == selectedCoreRaw.toLowerCase());
     if(selectedCoreOpt < 0) {
         selectedCoreOpt = parseInt(selectedCoreRaw) - 1;
     };
-    let core = coreList[selectedCoreOpt];
+    return {
+        core: coreList[selectedCoreOpt],
+        coreOpt: coreMenuOptions[selectedCoreOpt]
+    }
+}
 
+async function destinationSelector(title, additionalLines){
     let destinationOptions = [
         ['1. Famicom (NES)', 'FC'],
         ['2. Super Famicom (SNES)', 'SFC'],
@@ -577,32 +637,32 @@ async function createStub(){
     let selectedCoreIndex = parseInt(
         await boxedQuestion(
             [
-                ['CREATE OR UPDATE STUBS'],
+                [title],
                 Doubleline,
-                'Selected core:',
-                '   ' + coreMenuOptions[selectedCoreOpt],
-                SingleLine,
+                ...additionalLines,
                 '',
                 'Select a destination for the stubs:',
                 '',
                 ...destinationOptions.map((option) => option[0]),
+                '',
+                '0. Back'
             ],    
             'Option: ', [], (option) => {
-                return parseInt(option) >= 1 && parseInt(option) <= destinationOptions.length
+                return parseInt(option) >= 0 && parseInt(option) <= destinationOptions.length
             }
         )
     ) - 1;
-
     if(selectedCoreIndex == -1) {
-        console.log('');
-        console.log('');
-        console.log('');
-        process.exit(0);
+        return undefined;
     };
-
     let selectedDestinationopt = destinationOptions[selectedCoreIndex];
-    let destination = selectedDestinationopt[1];
+    return {
+        destination: selectedDestinationopt[1],
+        destinationOpt: selectedDestinationopt[0]
+    }
+}
 
+async function extensionSelector(title, additionalLines, core){
     let coreDefaultExtensions = {
         a26: "a26 bin",
         a5200: "a52 bin",
@@ -649,63 +709,109 @@ async function createStub(){
 
     let ext = await boxedQuestion(
         [
-            ['CREATE OR UPDATE STUBS'],
+            [title],
             Doubleline,
-            'Selected core:',
-            '   ' + coreMenuOptions[selectedCoreOpt],
+            ...additionalLines,
             '',
-            'Selected destination:',
-            '   ' + selectedDestinationopt[0],
-            SingleLine,
-            '',
-            'Type the extensions, separated by spaces:                               '
+            'Type the extensions, separated by spaces, or type 0 to return:           '
         ],
         'Extensions: ',
         [],
         (option) => {return option.trim() != '';}, true, selectedCoreDefaultExt
     );
-    // if(ext.trim() == '0'){
-    //     console.log('');
-    //     console.log('');
-    //     process.exit(0);
-    // }
+    if(ext.trim() == '0'){
+        return undefined;
+    }
+    return ext.split(' ').map(ext => ext.trim().toLowerCase()).filter(ext => ext != '');
+}
 
-    ext = ext.split(' ').map(ext => ext.trim().toLowerCase()).filter(ext => ext != '');
+async function stubFilesList(destination){
+    if(legacyMode == true){
+        return (await fsp.readdir(destination, {withFileTypes: true}))
+            .filter(file => file.isFile())
+            .map(file => file.name)
+            .filter(
+                file => 
+                    path.extname(file).slice(1).toLowerCase() == 'gba' &&
+                    path.basename(file, path.extname(file)).split(';').length == 2
+            );
+    }
+    return (await fsp.readdir(destination, {withFileTypes: true}))
+        .filter(file => file.isFile())
+        .map(file => file.name)
+        .filter(file => path.extname(file).slice(1) == 'gBa')
+}
+
+async function parseStubFile(file){
+    let content;
+    if(legacyMode == true){
+        content = path.basename(file, path.extname(file)).split(';');
+    }else{
+        content = (await fsp.readFile(file, 'utf8')).split(';');
+    }
+    if(content.length != 2) return undefined;
+    return {
+        core: content[0],
+        rom: content[1]
+    }
+}
+
+async function romsList(core, ext){
+    return (await fsp.readdir(`./ROMS/${core}`, {withFileTypes: true}))
+        .filter(file => file.isFile())
+        .map(file => file.name)
+        .filter(file => ext.includes(path.extname(file).slice(1).toLowerCase()));
+}
+
+async function createStub(){
+    let title = 'CREATE OR UPDATE STUBS' + (legacyMode ? ' [LEGACY MODE]' : '');
+    let selectedCore = await coreSelector(title);
+    if(selectedCore == undefined) {return ;}
+    let core = selectedCore.core;
+
+    let selectedDestination = await destinationSelector(title, [
+        'Selected core:',
+        '   ' + selectedCore.coreOpt,
+        SingleLine
+    ]);
+    if(selectedDestination == undefined) {return ;}
+    let destination = selectedDestination.destination;
+
+    let ext = await extensionSelector(title, [
+        'Selected core:',
+        '   ' + selectedCore.coreOpt,
+        '',
+        'Selected destination:',
+        '   ' + selectedDestination.destinationOpt,
+        SingleLine,
+    ], core);
+    if(ext == undefined) {return ;}
     
     let files = [];
     if(fs.existsSync(`./ROMS/${core}`) && (await fsp.stat(`./ROMS/${core}`)).isDirectory()){
-        files = (await fsp.readdir(`./ROMS/${core}`, {withFileTypes: true}))
-            .filter(file => file.isFile())
-            .map(file => file.name)
-            .filter(file => ext.includes(path.extname(file).slice(1).toLowerCase()));
+        files = await romsList(core, ext);
     }
     
-    let existingStubFiles = (await fsp.readdir(`./${destination}`, {withFileTypes: true}))
-        .filter(file => file.isFile())
-        .map(file => file.name)
-        .filter(file => path.extname(file).slice(1) == 'gBa');
-
-    let existingStubs = [];
-    for(let i = 0; i < existingStubFiles.length; i++){
-        let content = (await fsp.readFile(`./${destination}/${existingStubFiles[i]}`, 'utf8')).split(';');
-        if(content.length != 2) continue;
-        if(content[0] != core) continue;
-        existingStubs.push(content[1]);
-    }
-
     console.log('\n\n');
     drawLine();
     console.log('');
+
+    console.log('Parsing existing stubs...');
+    let existingStubFiles = await stubFilesList(`./${destination}`);
+    let existingStubs = [];
+    for(let i = 0; i < existingStubFiles.length; i++){
+        try {
+            console.log(`Parsing ${existingStubFiles[i]}`);
+            let stub = await parseStubFile(`./${destination}/${existingStubFiles[i]}`);
+            if(stub?.core == core) existingStubs.push(stub.rom);
+        } catch (error) {}
+    }
     
     let created = false;
-    let skipped = false;
     
     let cueFiles = [];
     if(fs.existsSync(`./ROMS/${core}`) && (await fsp.stat(`./ROMS/${core}`)).isDirectory()){
-        cueFiles = (await fsp.readdir(`./ROMS/${core}`, {withFileTypes: true}))
-            .filter(file => file.isFile())
-            .map(file => file.name)
-            .filter(file => path.extname(file).slice(1).toLowerCase() == 'cue');
+        cueFiles = await romsList(core, ['cue']);
     }
     
     let inCue = [];
@@ -718,10 +824,14 @@ async function createStub(){
     for(let i = 0; i < files.length; i++){
         if(existingStubs.includes(files[i])){
             console.log(`Skipping existing stub: ${core};${files[i]}`);
-            skipped = true;
             continue;
         }
         console.log(`Creating stub: ${core};${files[i]}`);
+        if(legacyMode == true){
+            fsp.writeFile(`./${destination}/${core};${files[i]}.gba`, "");
+            created = true;
+            continue;
+        }
         let _fileWoExt = path.basename(files[i], path.extname(files[i]));
         let fileWoExt = _fileWoExt;
         if(fs.existsSync(`./${destination}/${fileWoExt}.gBa`)){
@@ -737,9 +847,7 @@ async function createStub(){
     }
 
     if(created == false){
-        if(skipped){
-            console.log('');
-        }
+        console.log('');
         console.log('No new stubs to create. Press any key to continue.');
     }else{
         console.log('');
@@ -751,86 +859,55 @@ async function createStub(){
         }
     }
     
-    await anyKey();
+    await anyKey(false);
 }
 async function deleteStub(){
-    let destinationOptions = [
-        ['1. Famicom (NES)', 'FC'],
-        ['2. Super Famicom (SNES)', 'SFC'],
-        ['3. Game Boy', 'GB'],
-        ['4. Game Boy Color', 'GBC'],
-        ['5. Game Boy Advance', 'GBA'],
-        ['6. Mega Drive', 'MD'],
-        ['7. Arcade', 'ARCADE'],
-        ['8. User Roms', 'ROMS'],
-    ]
-    let destinationIndex = parseInt(
-        await boxedQuestion(
-            [
-                ['DELETE STUBS THAT POINTS TO INEXISTING ROMS'],
-                Doubleline,
-                '',
-                'Select the stub directory:',
-                '',
-                ...destinationOptions.map((option) => option[0]),
-            ],
-            'Option: ', [], (option) => {
-                return parseInt(option) >= 1 && parseInt(option) <= destinationOptions.length
-            }
-        )
-    ) - 1;
-    let selectedDestinationopt = destinationOptions[destinationIndex];
-    if(destinationIndex == -1){
-        console.log('');
-        console.log('');
-        console.log('');
-        process.exit(0);
-    }
+    let title = 'DELETE STUBS THAT POINTS TO INEXISTING ROMS' + (legacyMode ? ' [LEGACY MODE]' : '');
+    let selectedDestination = await destinationSelector(title, []);
+    if(selectedDestination == undefined) {return ;}
+    let destination = selectedDestination.destination;
     console.log('\n\n\n');
     drawLine();
     console.log('');
-    let destination = selectedDestinationopt[1];
-    let existingStubFiles = (await fsp.readdir(`./${destination}`, {withFileTypes: true}))
-        .filter(file => file.isFile())
-        .map(file => file.name)
-        .filter(file => path.extname(file).slice(1) == 'gBa');
+    let existingStubFiles = await stubFilesList(`./${destination}`);
 
     let coreCueds = {};
-
     let deleted = false;
     for(let i = 0; i < existingStubFiles.length; i++){
         let currentFile = `./${destination}/${existingStubFiles[i]}`;
-        let content = (await fsp.readFile(currentFile, 'utf8')).split(';');
-        if(content.length != 2){
-            console.log(`Deleting corrupted stub: ${currentFile}`);
-            await fsp.unlink(currentFile);
-            deleted = true;
+        let stubContent;
+        try {
+            stubContent = await parseStubFile(currentFile);
+            if(stubContent == undefined){
+                console.log(`Deleting corrupted stub: ${currentFile}`);
+                await fsp.unlink(currentFile);
+                deleted = true;
+                continue;
+            }
+        } catch (error) {
             continue;
         }
-        if(coreCueds[content[0]] == undefined){
+
+        if(coreCueds[stubContent.core] == undefined){
             let toAdd = [];
             try {
-                let cueFiles = (await fsp.readdir(`./ROMS/${content[0]}`, {withFileTypes: true}))
-                    .filter(file => file.isFile())
-                    .map(file => file.name)
-                    .filter(file => path.extname(file).slice(1).toLowerCase() == 'cue');
-
+                let cueFiles = await romsList(stubContent.core, ['cue']);
                 for(let i = 0; i < cueFiles.length; i++){
-                    let cueContent = parseCue(await fsp.readFile(`./ROMS/${content[0]}/${cueFiles[i]}`, 'utf8'));
+                    let cueContent = parseCue(await fsp.readFile(`./ROMS/${stubContent.core}/${cueFiles[i]}`, 'utf8'));
                     cueContent.forEach(file => toAdd.push(file));
                 }
             } catch (error) {}
-            coreCueds[content[0]] = toAdd;
+            coreCueds[stubContent.core] = toAdd;
         }
         // console.log(coreCueds);
-        if(coreCueds[content[0]].includes(content[1])){
-            console.log(`Deleting stub in cue: ${content[0]};${content[1]}`);
+        if(coreCueds[stubContent.core].includes(stubContent.rom)){
+            console.log(`Deleting stub in cue: ${stubContent.core};${stubContent.rom}`);
             await fsp.unlink(currentFile);
             deleted = true;
             continue;
         }
-        if(!fs.existsSync(`./ROMS/${content[0]}/${content[1]}`)){
-            console.log(`Deleting stub: ${content[0]};${content[1]}`);
+        if(!fs.existsSync(`./ROMS/${stubContent.core}/${stubContent.rom}`)){
+            console.log(`Deleting stub: ${stubContent.core};${stubContent.rom}`);
             await fsp.unlink(currentFile);
             deleted = true;
         }
@@ -847,19 +924,74 @@ async function deleteStub(){
             console.log('Stubs deleted. Press any key to continue.');
         }
     }
+    await anyKey(false);
+}
+
+async function deleteDirStub(){
+    let title = 'DELETE ALL STUBS FROM AN SPECIFIC CORE' + (legacyMode ? ' [LEGACY MODE]' : '')
+    let selectedCore = await coreSelector(title);
+    if(selectedCore == undefined) {return ;}
+    let core = selectedCore.core;
+
+    let selectedDestination = await destinationSelector(title, [
+        'Selected core:',
+        '   ' + selectedCore.coreOpt,
+        SingleLine
+    ]);
+    if(selectedDestination == undefined) {return ;}
+    let destination = selectedDestination.destination;
+    console.log('\n\n\n');
+    drawLine();
+    console.log('');
+    let existingStubFiles = await stubFilesList(`./${destination}`);
+
+    let deleted = false;
+    for(let i = 0; i < existingStubFiles.length; i++){
+        let currentFile = `./${destination}/${existingStubFiles[i]}`;
+        let stubContent;
+        try {
+            stubContent = await parseStubFile(currentFile);
+            if(stubContent == undefined){
+                console.log(`Deleting corrupted stub: ${currentFile}`);
+                await fsp.unlink(currentFile);
+                deleted = true;
+                continue;
+            }
+        } catch (error) {
+            continue;
+        }
+        if(stubContent.core == core){
+            console.log(`Deleting stub: ${stubContent.core};${stubContent.rom}`);
+            await fsp.unlink(currentFile);
+            deleted = true;
+            continue;
+        }
+    }
     
-    await anyKey();
+    if(deleted == false){
+        console.log('No stubs to delete. Press any key to continue.');
+    }else{
+        console.log('');
+        if(destination != 'ROMS'){
+            console.log('Stubs deleted. YOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST.');
+            console.log('Press any key to continue.');
+        }else{
+            console.log('Stubs deleted. Press any key to continue.');
+        }
+    }
+    
+    await anyKey(false);
 }
 
 async function firstFunction(){
     try {
-        process.stdout.write('\x1b]2;' + 'MULTICORE STUB V2 GENERATOR' + '\x1b\x5c');
+        process.stdout.write('\x1b]2;' + 'MULTICORE STUB GENERATOR' + '\x1b\x5c');
     } catch (error) {}
     try {
         if(!fs.existsSync('./bios/bisrv.asd')){
             await boxedQuestion(
                 [
-                    ['MULTICORE STUB V2 GENERATOR'],
+                    ['MULTICORE STUB GENERATOR'],
                     Doubleline,
                     '',
                     "It seems that this stub generator is not running from the root of your SD card. ",
@@ -869,7 +1001,7 @@ async function firstFunction(){
                 'Press any key to exit.',[], (option) => {return true}
             )
             moveCursorBy(-1, 0);
-            process.stdout.write(' ');
+            terminalText(' ');
             console.log('');
             console.log('');
             console.log('');
@@ -880,23 +1012,33 @@ async function firstFunction(){
         while(option != '0'){
             option = await boxedQuestion(
                 [
-                    ['MULTICORE STUB V2 GENERATOR'],
+                    ['MULTICORE STUB GENERATOR'],
                     Doubleline,
                     '',
                     "Select one of the following options:",
                     '',
                     "1. Create or update stubs",
                     "2. Delete stubs that points to inexisting roms",
+                    '3. Delete all stubs from an specific core',
+                    '',
+                    '4. Select mode',
+                    `    Current mode: ${legacyMode ? 'Legacy Stubs' : 'Modern Stubs'}`,
                     '',
                     "0. Exit",
                 ],
-                'Option: ',[], (option) => {return option >= '0' && option <= '2'}
+                'Option: ',[], (option) => {return option >= '0' && option <= '4'}
             );
             if(option == '1'){
                 await createStub();
             }
             if(option == '2'){
                 await deleteStub();
+            }
+            if(option == '3'){
+                await deleteDirStub();
+            }
+            if(option == '4'){
+                legacyMode = !legacyMode;
             }
             if(option == '0'){
                 console.log('');
@@ -909,7 +1051,7 @@ async function firstFunction(){
         console.error(error);
         console.error('');
         console.error('Something went wrong, press any key to exit. ');
-        await anyKey();
+        await anyKey(false);
     }
     reader.close();
 }
