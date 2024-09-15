@@ -582,12 +582,16 @@ function parseCue(cueContent){
     }
 }
 
-async function coreSelector(title){
-    let coreList = (await fsp.readdir(`./cores`, {withFileTypes: true}))
+async function getCoreList(){
+    return (await fsp.readdir(`./cores`, {withFileTypes: true}))
         .filter(file => file.isDirectory())
         .map(file => file.name)
         .filter(file => file != 'config')
         .sort();
+}
+
+async function coreSelector(title){
+    let coreList = await getCoreList();
     let coreMenuOptions = [];
     for(let i = 0; i < coreList.length; i++){
         coreMenuOptions.push(`${i + 1}. ${coreList[i]}`);
@@ -598,7 +602,7 @@ async function coreSelector(title){
                 [title],
                 Doubleline,
                 '',
-                'Select the source core:',
+                'Select a core:',
                 '',
                 ...gropuOptions(coreMenuOptions, 10),
                 '',
@@ -641,7 +645,7 @@ async function destinationSelector(title, additionalLines){
                 Doubleline,
                 ...additionalLines,
                 '',
-                'Select a destination for the stubs:',
+                'Select the stub directory:',
                 '',
                 ...destinationOptions.map((option) => option[0]),
                 '',
@@ -983,6 +987,78 @@ async function deleteDirStub(){
     await anyKey(false);
 }
 
+async function deleteNoCoreStub(){
+    let title = 'DELETE ALL STUBS FOR INEXISTING CORES' + (legacyMode ? ' [LEGACY MODE]' : '');
+    let selectedDestination = await destinationSelector(title, []);
+    if(selectedDestination == undefined) {return ;}
+    console.log('\n\n\n');
+    drawLine();
+    console.log('');
+    let coreList = await getCoreList();
+    let existingStubFiles = await stubFilesList(`./${selectedDestination.destination}`);
+    for(let i = 0; i < existingStubFiles.length; i++){
+        let currentFile = `./${selectedDestination.destination}/${existingStubFiles[i]}`;
+        let stubContent;
+        try {
+            stubContent = await parseStubFile(currentFile);
+            if(stubContent == undefined){
+                console.log(`Deleting corrupted stub: ${currentFile}`);
+                await fsp.unlink(currentFile);
+                deleted = true;
+                continue;
+            }
+        } catch (error) {
+            continue;
+        }
+        if(!coreList.includes(stubContent.core)){
+            console.log(`Deleting stub: ${stubContent.core};${stubContent.rom}`);
+            await fsp.unlink(currentFile);
+            deleted = true;
+        }
+    }
+
+    if(deleted == false){
+        console.log('No stubs to delete. Press any key to continue.');
+    }else{
+        console.log('');
+        if(selectedDestination.destination != 'ROMS'){
+            console.log('Stubs deleted. YOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST.');
+            console.log('Press any key to continue.');
+        }else{
+            console.log('Stubs deleted. Press any key to continue.');
+        }
+    }
+    await anyKey(false);
+}
+
+async function deleteAll(){
+    let title = 'DELETE ALL STUBS' + (legacyMode ? ' [LEGACY MODE]' : '');
+    let selectedDestination = await destinationSelector(title, []);
+    if(selectedDestination == undefined) {return ;}
+    console.log('\n\n\n');
+    drawLine();
+    console.log('');
+    
+    let existingStubFiles = await stubFilesList(`./${selectedDestination.destination}`);
+    for(let i = 0; i < existingStubFiles.length; i++){
+        console.log(`Deleting stub: ${existingStubFiles[i]}`);
+        await fsp.unlink(`./${selectedDestination.destination}/${existingStubFiles[i]}`);
+        deleted = true;
+    }
+
+    if(deleted == false){
+        console.log('No stubs to delete. Press any key to continue.');
+    }else{
+        console.log('');
+        if(selectedDestination.destination != 'ROMS'){
+            console.log('Stubs deleted. YOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST.');
+            console.log('Press any key to continue.');
+        }else{
+            console.log('Stubs deleted. Press any key to continue.');
+        }
+    }
+    await anyKey(false);
+}
 async function firstFunction(){
     try {
         process.stdout.write('\x1b]2;' + 'MULTICORE STUB GENERATOR' + '\x1b\x5c');
@@ -1020,13 +1096,15 @@ async function firstFunction(){
                     "1. Create or update stubs",
                     "2. Delete stubs that points to inexisting roms",
                     '3. Delete all stubs from an specific core',
+                    '4. Delete stubs for inexisting cores',
+                    '5. Delete all stubs',
                     '',
-                    '4. Select mode',
+                    '6. Select mode',
                     `    Current mode: ${legacyMode ? 'Legacy Stubs' : 'Modern Stubs'}`,
                     '',
                     "0. Exit",
                 ],
-                'Option: ',[], (option) => {return option >= '0' && option <= '4'}
+                'Option: ',[], (option) => {return option >= '0' && option <= '6'}
             );
             if(option == '1'){
                 await createStub();
@@ -1038,6 +1116,12 @@ async function firstFunction(){
                 await deleteDirStub();
             }
             if(option == '4'){
+                await deleteNoCoreStub();
+            }
+            if(option == '5'){
+                await deleteAll();
+            }
+            if(option == '6'){
                 legacyMode = !legacyMode;
             }
             if(option == '0'){
