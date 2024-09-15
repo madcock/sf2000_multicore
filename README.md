@@ -3,14 +3,24 @@
 ## About the platform
 More information about the SF2000 handheld gaming system can be found [here](https://vonmillhausen.github.io/sf2000/).
 
+## About this modification
+This version enables the game's built-in SRAM save, it also stores SRAM and savestates on the same directory of the rom instead of a save directory, to avoid conflict when you have multiple roms with the same file name for different cores, if you are upgrading from previous versions, you must move your saves manually.
+
+It also creates a new stub format that doesn't rely on the stub name, which allows you to rename the stub files independently of the rom name, and you don't need the core name taking almost half of the space available for the game name on the screen, the old stub format is still supported.
+
+Since the space for storing the loader is very limited, I had to sacrifice the stub loader's logging, I guess nobody will miss that.
+
+To distinguish between a GBA rom and a stub, this version of multicore uses the case of the extension, if the extension is .gBa (case sensitive) it's a stub, if not it is a GBA rom (or a legacy stub)
+
 ## Status
 Some cores build and work well, others build and have issues (no sound, slowness, etc.), some build but do not currently work, and others do not build at all. For current information on the state of each core, please see the [spreadsheet](https://docs.google.com/spreadsheets/d/1BDPqLwRcY2cN7tObuyW7RzLw8oGyY9XGLS1D4jLgz2Q/edit?usp=sharing).
 
 ## Releases
 Multicore releases can be found here: https://github.com/madcock/sf2000_multicore_cores/releases
+Multicore with save feature enabled can be found here: https://github.com/leonardothehuman/sf2000_multicore/releases
 
 ## Setup (before building)
-(This is the top level project, forked from: https://gitlab.com/kobily/sf2000_multicore)
+(This is the top level project, forked from: https://github.com/madcock/sf2000_multicore, wich was forked from https://gitlab.com/kobily/sf2000_multicore)
 - choose a directory to contain all this
 - decide if you want EVERYTHING (there are a lot of cores!)
     - YES, I want ALL the cores!
@@ -64,7 +74,6 @@ All of the cores are independent.
 All the latest information can be found in the [dev channel on Discord](https://discord.com/channels/741895796315914271/1099465777825972347) which is part of [Retro Handhelds](https://discord.gg/retrohandhelds).
 
 ## Notes
-This repo was forked from the official repo in github that kobil maintains at https://gitlab.com/kobily/sf2000_multicore
-I will try to keep things here in sync.
+This repo was forked from the official repo in github at https://github.com/madcock/sf2000_multicore, wich was forked from https://gitlab.com/kobily/sf2000_multicore.
 
 Here are some useful notes on dealing with submodules: <https://www.vogella.com/tutorials/GitSubmodules/article.html>

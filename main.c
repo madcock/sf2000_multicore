@@ -58,16 +58,34 @@ void load_and_run_core(const char *file_path, int load_state)
 {
 	init_once();
 
-	xlog("l: run file=%s\n", file_path);
+	//xlog("l: run file=%s\n", file_path);
 
 	// the expected template for file_path is - [corename];[rom filename].gba
 	const char *corename;
 	const char *filename;
 	if (!parse_filename(file_path, &corename, &filename)) {
-		xlog("file not MC stub: calling run_gba\n");
-		dbg_show_noblock(0x00, "\n STOCK\n\n %s\n\n ", file_path); // black
-		run_gba(file_path, load_state);
-		return;
+		char* dot = strrchr(file_path, '.');
+		bool isStub = false;
+		if(*(dot + 1) == 'g' && *(dot + 2) == 'B' && *(dot + 3) == 'a') {
+			char *fileContent = malloc(MAXPATH);
+			*fileContent = '/';
+			FILE *fp = fopen(file_path, "rb");
+			if(!fp) {
+				lcd_bsod("\n COULD NOT\n OPEN STUB\n FILE :-(\n ");
+			}
+			size_t bytesRead = fw_fread(fileContent+1, 1, MAXPATH - 3, fp);
+			fileContent[bytesRead+1] = '.';
+			fileContent[bytesRead+2] = 0;
+			fclose(fp);
+			isStub = parse_filename(fileContent, &corename, &filename);
+			free(fileContent);
+		}
+		if(!isStub){
+			//xlog("file not MC stub: calling run_gba\n");
+			dbg_show_noblock(0x00, "\n STOCK\n\n %s\n\n ", file_path); // black
+			run_gba(file_path, load_state);
+			return;
+		}
 	}
 
 	// this will show a loading screen when loading a rom.
@@ -91,12 +109,12 @@ void load_and_run_core(const char *file_path, int load_state)
 	snprintf(corefile, MAXPATH, "/mnt/sda1/cores/%s/core_87000000", corename);
 	snprintf(romfile, MAXPATH, "/mnt/sda1/ROMS/%s/%s", corename, filename);
 
-	xlog("corefile=%s\n", corefile);
-	xlog("romfile=%s\n", romfile);
+	//xlog("corefile=%s\n", corefile);
+	//xlog("romfile=%s\n", romfile);
 
 	pf = fopen(corefile, "rb");
 	if (!pf) {
-		xlog("Error opening corefile\n");
+		//xlog("Error opening corefile\n");
 		return;
 	}
 
@@ -106,11 +124,11 @@ void load_and_run_core(const char *file_path, int load_state)
 	fw_fread(core_load_addr, 1, core_size, pf);
 	fclose(pf);
 
-	xlog("l: core loaded\n");
+	//xlog("l: core loaded\n");
 
 	full_cache_flush();
 
-	xlog("l: cache flushed\n");
+	//xlog("l: cache flushed\n");
 
 	// address of the core entry function resides at the begining of the loaded core
 	core_entry_t core_entry = core_load_addr;
@@ -129,7 +147,7 @@ void load_and_run_core(const char *file_path, int load_state)
 	core_api->retro_set_input_state(retro_input_state_cb);
 	core_api->retro_set_environment(retro_environment_cb);
 
-	xlog("l: retro_init\n");
+	//xlog("l: retro_init\n");
 	core_api->retro_init();
 
 	g_retro_game_info.path = romfile;
@@ -142,10 +160,10 @@ void load_and_run_core(const char *file_path, int load_state)
 	gfn_retro_unload_game	= core_api->retro_unload_game;
 	gfn_retro_run			= core_api->retro_run;
 
-	xlog("l: run_emulator(%d)\n", load_state);
+	//xlog("l: run_emulator(%d)\n", load_state);
 	run_emulator(load_state);
 
-	xlog("l: retro_deinit\n");
+	//xlog("l: retro_deinit\n");
 	core_api->retro_deinit();
 }
 
