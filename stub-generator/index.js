@@ -5,6 +5,14 @@ const path = require('path');
 const SingleLine = Symbol();
 const Doubleline = Symbol();
 
+let spinnerIndex = 0;
+function updateSpinner(){
+    let spinner = '|/-\\';
+    spinnerIndex = (spinnerIndex + 1) % spinner.length;
+    process.stdout.write(spinner.charAt(spinnerIndex));
+    moveCursorBy(-1, 0);
+}
+
 let legacyMode = false;
 
 function terminalText(text){
@@ -798,17 +806,16 @@ async function createStub(){
     
     console.log('\n\n');
     drawLine();
-    console.log('');
+    console.log(' ');
 
-    console.log('Parsing existing stubs...');
     let existingStubFiles = await stubFilesList(`./${destination}`);
     let existingStubs = [];
     for(let i = 0; i < existingStubFiles.length; i++){
         try {
-            console.log(`Parsing ${existingStubFiles[i]}`);
             let stub = await parseStubFile(`./${destination}/${existingStubFiles[i]}`);
             if(stub?.core == core) existingStubs.push(stub.rom);
         } catch (error) {}
+        updateSpinner();
     }
     
     let created = false;
@@ -822,12 +829,19 @@ async function createStub(){
     for(let i = 0; i < cueFiles.length; i++){
         let content = parseCue(await fsp.readFile(`./ROMS/${core}/${cueFiles[i]}`, 'utf8'));
         content.forEach(file => inCue.push(file));
+        updateSpinner();
     }
     files = files.filter(file => !inCue.includes(file));
 
+    let warnings = [];
     for(let i = 0; i < files.length; i++){
         if(existingStubs.includes(files[i])){
             console.log(`Skipping existing stub: ${core};${files[i]}`);
+            continue;
+        }
+        if(files[i].includes(';')){
+            warnings.push(`THE ROM "${files[i]}" WAS SKIPPED BECAUSE ";" IS NOT ALLOWED IN ROM FILENAMES.`);
+            console.log(`Skipping stub with invalid filename: ${core};${files[i]}`);
             continue;
         }
         console.log(`Creating stub: ${core};${files[i]}`);
@@ -850,13 +864,19 @@ async function createStub(){
         created = true;
     }
 
+    if(warnings.length > 0){
+        console.log(' ');
+        for(let i = 0; i < warnings.length; i++){
+            console.log('Warning: \u001b[31m\u001b[1m' + warnings[i] + '\u001b[0m');
+        }
+    }
     if(created == false){
-        console.log('');
+        console.log(' ');
         console.log('No new stubs to create. Press any key to continue.');
     }else{
-        console.log('');
+        console.log(' ');
         if(destination != 'ROMS'){
-            console.log('Stubs generated. YOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST.');
+            console.log('Stubs generated. \u001b[31m\u001b[1mYOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST\u001b[0m.');
             console.log('Press any key to continue.');
         }else{
             console.log('Stubs generated. Press any key to continue.');
@@ -872,7 +892,7 @@ async function deleteStub(){
     let destination = selectedDestination.destination;
     console.log('\n\n\n');
     drawLine();
-    console.log('');
+    console.log(' ');
     let existingStubFiles = await stubFilesList(`./${destination}`);
 
     let coreCueds = {};
@@ -902,6 +922,7 @@ async function deleteStub(){
                 }
             } catch (error) {}
             coreCueds[stubContent.core] = toAdd;
+            updateSpinner();
         }
         // console.log(coreCueds);
         if(coreCueds[stubContent.core].includes(stubContent.rom)){
@@ -914,15 +935,17 @@ async function deleteStub(){
             console.log(`Deleting stub: ${stubContent.core};${stubContent.rom}`);
             await fsp.unlink(currentFile);
             deleted = true;
+            continue;
         }
+        updateSpinner();
     }
     
     if(deleted == false){
         console.log('No stubs to delete. Press any key to continue.');
     }else{
-        console.log('');
+        console.log(' ');
         if(destination != 'ROMS'){
-            console.log('Stubs deleted. YOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST.');
+            console.log('Stubs deleted. \u001b[31m\u001b[1mYOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST\u001b[0m.');
             console.log('Press any key to continue.');
         }else{
             console.log('Stubs deleted. Press any key to continue.');
@@ -946,7 +969,7 @@ async function deleteDirStub(){
     let destination = selectedDestination.destination;
     console.log('\n\n\n');
     drawLine();
-    console.log('');
+    console.log(' ');
     let existingStubFiles = await stubFilesList(`./${destination}`);
 
     let deleted = false;
@@ -970,14 +993,15 @@ async function deleteDirStub(){
             deleted = true;
             continue;
         }
+        updateSpinner();
     }
     
     if(deleted == false){
         console.log('No stubs to delete. Press any key to continue.');
     }else{
-        console.log('');
+        console.log(' ');
         if(destination != 'ROMS'){
-            console.log('Stubs deleted. YOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST.');
+            console.log('Stubs deleted. \u001b[31m\u001b[1mYOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST\u001b[0m.');
             console.log('Press any key to continue.');
         }else{
             console.log('Stubs deleted. Press any key to continue.');
@@ -996,6 +1020,7 @@ async function deleteNoCoreStub(){
     console.log('');
     let coreList = await getCoreList();
     let existingStubFiles = await stubFilesList(`./${selectedDestination.destination}`);
+    let deleted = false;
     for(let i = 0; i < existingStubFiles.length; i++){
         let currentFile = `./${selectedDestination.destination}/${existingStubFiles[i]}`;
         let stubContent;
@@ -1014,15 +1039,17 @@ async function deleteNoCoreStub(){
             console.log(`Deleting stub: ${stubContent.core};${stubContent.rom}`);
             await fsp.unlink(currentFile);
             deleted = true;
+            continue;
         }
+        updateSpinner();
     }
 
     if(deleted == false){
         console.log('No stubs to delete. Press any key to continue.');
     }else{
-        console.log('');
+        console.log(' ');
         if(selectedDestination.destination != 'ROMS'){
-            console.log('Stubs deleted. YOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST.');
+            console.log('Stubs deleted. \u001b[31m\u001b[1mYOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST\u001b[0m.');
             console.log('Press any key to continue.');
         }else{
             console.log('Stubs deleted. Press any key to continue.');
@@ -1040,6 +1067,7 @@ async function deleteAll(){
     console.log('');
     
     let existingStubFiles = await stubFilesList(`./${selectedDestination.destination}`);
+    let deleted = false;
     for(let i = 0; i < existingStubFiles.length; i++){
         console.log(`Deleting stub: ${existingStubFiles[i]}`);
         await fsp.unlink(`./${selectedDestination.destination}/${existingStubFiles[i]}`);
@@ -1051,7 +1079,48 @@ async function deleteAll(){
     }else{
         console.log('');
         if(selectedDestination.destination != 'ROMS'){
-            console.log('Stubs deleted. YOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST.');
+            console.log('Stubs deleted. \u001b[31m\u001b[1mYOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST\u001b[0m.');
+            console.log('Press any key to continue.');
+        }else{
+            console.log('Stubs deleted. Press any key to continue.');
+        }
+    }
+    await anyKey(false);
+}
+
+async function deleteCorrupted(){
+    let title = 'DELETE CORRUPTED STUBS' + (legacyMode ? ' [LEGACY MODE]' : '');
+    let selectedDestination = await destinationSelector(title, []);
+    if(selectedDestination == undefined) {return ;}
+    console.log('\n\n\n');
+    drawLine();
+    console.log('');
+    
+    let existingStubFiles = await stubFilesList(`./${selectedDestination.destination}`);
+    let deleted = false;
+    for(let i = 0; i < existingStubFiles.length; i++){
+        let currentFile = `./${selectedDestination.destination}/${existingStubFiles[i]}`;
+        let stubContent;
+        try {
+            stubContent = await parseStubFile(currentFile);
+            if(stubContent == undefined){
+                console.log(`Deleting corrupted stub: ${currentFile}`);
+                await fsp.unlink(currentFile);
+                deleted = true;
+                continue;
+            }
+        } catch (error) {
+            continue;
+        }
+        updateSpinner();
+    }
+
+    if(deleted == false){
+        console.log('No stubs to delete. Press any key to continue.');
+    }else{
+        console.log(' ');
+        if(selectedDestination.destination != 'ROMS'){
+            console.log('Stubs deleted. \u001b[31m\u001b[1mYOU MUST RUN TADPOLE TO UPDATE THE ROMS LIST\u001b[0m.');
             console.log('Press any key to continue.');
         }else{
             console.log('Stubs deleted. Press any key to continue.');
@@ -1098,13 +1167,14 @@ async function firstFunction(){
                     '3. Delete all stubs from an specific core',
                     '4. Delete stubs for inexisting cores',
                     '5. Delete all stubs',
+                    '6. Delete corrupted stubs',
                     '',
-                    '6. Select mode',
+                    '7. Select mode',
                     `    Current mode: ${legacyMode ? 'Legacy Stubs' : 'Modern Stubs'}`,
                     '',
                     "0. Exit",
                 ],
-                'Option: ',[], (option) => {return option >= '0' && option <= '6'}
+                'Option: ',[], (option) => {return option >= '0' && option <= '7'}
             );
             if(option == '1'){
                 await createStub();
@@ -1122,6 +1192,9 @@ async function firstFunction(){
                 await deleteAll();
             }
             if(option == '6'){
+                await deleteCorrupted();
+            }
+            if(option == '7'){
                 legacyMode = !legacyMode;
             }
             if(option == '0'){
