@@ -1,0 +1,22 @@
+{
+  "name": "stub-generator",
+  "version": "1.0.0",
+  "description": "Generate stub files for sf2000 multicore",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "build": "node build.js",
+    "clean": "node clean.js",
+    "cleanAll": "node clean.js all"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "hasha": "^5.2.2",
+    "nodejs-file-downloader": "^4.13.0",
+    "postject": "^1.0.0-alpha.6",
+    "rimraf": "^3.0.2",
+    "yauzl": "^3.1.3"
+  }
+}
