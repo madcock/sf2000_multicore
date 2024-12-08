@@ -73,13 +73,15 @@ make clean CONSOLE=vb         CORE=cores/libretro-beetle-vb && \
 make clean CONSOLE=gpgx       CORE=cores/Genesis-Plus-GX MAKEFILE=-fMakefile.libretro && \
 make clean CONSOLE=geolith    CORE=cores/libretro-geolith/libretro && \
 make clean CONSOLE=xmil       CORE=cores/libretro-xmil/libretro && \
+make clean CONSOLE=tama       CORE=cores/tamalibretro && \
 
 #working but major issues, not to release
 #make -C cores/fbalpha2012/svn-current/trunk platform=sf2000 -fmakefile.libretro generate-files-clean && make clean CONSOLE=fba CORE=cores/fbalpha2012/svn-current/trunk MAKEFILE=-fmakefile.libretro && \
 #make clean CONSOLE=mame2003   CORE=cores/libretro-mame2003-plus && \
 #make clean CONSOLE=mame2003mw CORE=cores/mame2003_midway && \
 #make clean CONSOLE=atarist    CORE=cores/hatari MAKEFILE=-fMakefile.libretro && \
-#make clean CONSOLE=quake      CORE=cores/tyrquake && \
+make clean CONSOLE=quake      CORE=cores/tyrquake && \
+make clean CONSOLE=geargrafx  CORE=../cores_not_in_git/Geargrafx/platforms/libretro
 
 #test cores
 make clean CONSOLE=testadv CORE=cores/libretro-samples/tests/test_advanced && \
